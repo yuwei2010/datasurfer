@@ -27,7 +27,7 @@ from itertools import chain
 from functools import reduce, wraps
 
 from .dataobjects import Data_Interface, DATA_OBJECT, \
-                        ASAMMDF_OBJECT, PANDAS_OBJECT, FINANCE_OBJECT,\
+                        ASAMMDF_OBJECT, PANDAS_OBJECT,\
                         MATLAB_OBJECT
 
 
