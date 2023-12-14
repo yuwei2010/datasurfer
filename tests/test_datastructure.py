@@ -6,8 +6,7 @@ import pytest
 
 import sys
 
-sys.path.insert(0, '..')
-
+sys.path.insert(0, r'C:\95_Programming\10_Data_Related\20_Projects\10_Git\10_Datastructure')
 import datastructure as ds
 
 
@@ -21,7 +20,7 @@ def response():
     # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
 
 
-def test_content(response):
+def test_content(response: None):
     """Sample pytest test function with the pytest fixture as an argument."""
     # from bs4 import BeautifulSoup
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
