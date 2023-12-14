@@ -36,11 +36,7 @@ try:
 except:    
     warnings.warn('Can not import "mdfreader"')
     
-# try:
-#     import hdf5storage
-# except ImportError:
-#     warnings.warn('Can not import "hdf5"')
-    
+
 from difflib import SequenceMatcher
 from itertools import chain
 from functools import wraps
