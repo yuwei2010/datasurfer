@@ -556,32 +556,36 @@ class Data_Interface(object):
         
         return out
     
-    def to_csv(self, name=None):
+    def to_csv(self, name=None, overwrite=True):
         
         if name is None:
             
             name = self.name + '.csv'
             
-        self.df.to_csv(name)
+        if overwrite or not Path(name).is_file():
+            
+            self.df.to_csv(name)
         
         return self
 
-    def to_excel(self, name=None):
+    def to_excel(self, name=None, overwrite=True):
         
         if name is None:
             
             name = self.name + '.xlsx'
-            
-        self.df.to_excel(name)
+        
+        if overwrite or not Path(name).is_file():
+            self.df.to_excel(name)
         
         return self
     
-    def save(self, path=None):
+    def save(self, name, overwrite=True):
         
-        dobj = DATA_OBJECT(path=self.path, config=self.config, name=self.name, 
+        if overwrite or not Path(name).is_file():
+        
+            dobj = DATA_OBJECT(path=self.path, config=self.config, name=self.name, 
                            comment=self.comment, df=self.df)
-        
-        dobj.save(path)
+            dobj.save(name)
         
         return self
     
