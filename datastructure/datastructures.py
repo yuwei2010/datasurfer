@@ -992,8 +992,7 @@ class Data_Lake(object):
         
         zcount = len(str(len(self.objs))) + 1
         
-        strfmt = f':0{zcount}'
-        
+        strfmt = f':0{zcount}'        
         
         fmt = 'DataPool_' + '{' + strfmt + '}'
                 
