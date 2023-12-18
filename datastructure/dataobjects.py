@@ -142,7 +142,7 @@ def translate_config(newconfig=None):
                             
                             for vv in v:
                                 
-                                res.columns = res.columns.str.replace(vv, k)
+                                res.columns = res.columns.str.replace(vv, k, regex=False)
 
                 return res
             
@@ -596,6 +596,10 @@ class Data_Interface(object):
             self._fhandler.close()  
             
             del self._fhandler
+            
+        if hasattr(self, '_df'):
+            
+            del self._df
 
 #%% DATA_OBJECT
 class DATA_OBJECT(Data_Interface):
