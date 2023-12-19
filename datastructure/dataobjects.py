@@ -589,7 +589,7 @@ class Data_Interface(object):
         
         return self
     
-    def close(self):
+    def close(self, clean=True):
 
         if hasattr(self, '_fhandler') and hasattr(self._fhandler, 'close'):
             
@@ -597,7 +597,7 @@ class Data_Interface(object):
             
             del self._fhandler
             
-        if hasattr(self, '_df'):
+        if clean and hasattr(self, '_df'):
             
             del self._df
 
