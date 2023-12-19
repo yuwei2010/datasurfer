@@ -18,6 +18,7 @@ import json
 import warnings
 import scipy.io
 
+
 from xml.etree.ElementTree import fromstring
 
 from pathlib import Path
@@ -589,6 +590,10 @@ class Data_Interface(object):
         
         return self
     
+
+        
+        
+        
     def close(self, clean=True):
 
         if hasattr(self, '_fhandler') and hasattr(self._fhandler, 'close'):

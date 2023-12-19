@@ -16,6 +16,7 @@ import datetime
 import pandas as pd
 import numpy as np
 import warnings
+import random
 
 import gc
 import traceback
@@ -29,7 +30,7 @@ from functools import reduce, wraps
 from .dataobjects import Data_Interface, DATA_OBJECT, \
                          ASAMMDF_OBJECT, PANDAS_OBJECT, MATLAB_OBJECT
 
-
+random.seed()
 #%% Collect files
 
 def collect_files(root, *patts, warn_if_double=True, ignore_double=False):
@@ -954,6 +955,24 @@ class DataPool(object):
             del npz.f
     
             return self
+
+    def split_pool(self, chunk=2, shuffle=True):
+        
+        out = dict()
+        objs = random.shuffle(self.objs[:]) if shuffle else self.objs[:]
+        
+        while objs:
+            
+            for k in range(chunk):
+                
+                if not objs: break
+                
+                out.setdefault(k, []).append(objs.pop())
+                
+        
+        return [self.__class__(v) for v in out.values]        
+            
+
     
     def close(self, clean=True, pbar=True):
         
