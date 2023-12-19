@@ -160,7 +160,7 @@ def combine_configs(*cfgs):
   
 #%% Data Pool
 
-class Data_Pool(object):
+class DataPool(object):
     
     Mapping_Interfaces = {
                          '.csv': PANDAS_OBJECT,
@@ -227,8 +227,8 @@ class Data_Pool(object):
             if all(isinstance(s, (str, Path)) for s in datobjects) and all(Path(s).is_dir() for s in datobjects):
                 
                 datobjects = reduce(lambda x, y: 
-                                    Data_Pool(x, config=config, interface=interface, **kwargs)
-                                    +Data_Pool(y, config=config, interface=interface,  **kwargs), datobjects)    
+                                    DataPool(x, config=config, interface=interface, **kwargs)
+                                    +DataPool(y, config=config, interface=interface,  **kwargs), datobjects)    
 
 
         if datobjects is None:
@@ -975,11 +975,10 @@ class Data_Pool(object):
         
         return None
 
-DataPool = Data_Pool
 
 #%% Data Lake
 
-class Data_Lake(object):
+class DataLake(object):
     
     
     def __init__(self, items):
@@ -1012,9 +1011,7 @@ class Data_Lake(object):
     def search(self, patt, ignore_case=True, raise_error=False):
                 
         pass
-        
 
-DataLake = Data_Lake
 
 #%% Main Loop
 
