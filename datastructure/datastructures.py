@@ -959,17 +959,20 @@ class DataPool(object):
     def split_pool(self, chunk=2, shuffle=True):
         
         out = dict()
-        objs = random.shuffle(self.objs[:]) if shuffle else self.objs[:]
+        objs = self.objs[:]
         
+        if shuffle:
+            random.shuffle(objs)
+
         while objs:
             
             for k in range(chunk):
-                
+
                 if not objs: break
                 
                 out.setdefault(k, []).append(objs.pop())
                 
-        
+
         return [self.__class__(v) for v in out.values()]        
             
 
@@ -1036,7 +1039,9 @@ class DataLake(object):
 
 if __name__ == '__main__':
     
+    dp = DataPool(r'C:\95_Programming\10_Data_Related\10_test_files\tushare_csv')
     
+    print(dp.split_pool())
     
     pass
 
