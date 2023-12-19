@@ -970,7 +970,7 @@ class DataPool(object):
                 out.setdefault(k, []).append(objs.pop())
                 
         
-        return [self.__class__(v) for v in out.values]        
+        return [self.__class__(v) for v in out.values()]        
             
 
     
