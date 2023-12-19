@@ -658,7 +658,7 @@ class PANDAS_OBJECT(Data_Interface):
             '.xlsx': pd.read_excel,
             }
     
-    def __init__(self, path=None, config=None, name=None, comment=None, df=None):
+    def __init__(self, path=None, config=None, name=None, comment=None):
         
         super().__init__(path, config=config, name=name, comment=comment)
         
@@ -1144,7 +1144,11 @@ class MATLAB_OBJECT(Data_Interface):
         return df
 
 
-def AMERES_OBJECT(self)    
+def AMERES_OBJECT(self):
+
+    def __init__(self, path=None, config=None, name=None, comment=None):
+        
+        super().__init__(path, config=config, name=name, comment=comment)   
     
 #%% Main Loop
 
