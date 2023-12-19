@@ -241,6 +241,10 @@ class DataPool(object):
             
             if isinstance(obj, Data_Interface):
                 
+                if config:
+                    
+                    obj.config = config
+                
                 objs.append(obj)
                 
             elif isinstance(interface, type) and issubclass(interface, Data_Interface):
