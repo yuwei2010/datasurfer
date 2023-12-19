@@ -1142,7 +1142,9 @@ class MATLAB_OBJECT(Data_Interface):
         
             
         return df
-    
+
+
+def AMERES_OBJECT(self)    
     
 #%% Main Loop
 
