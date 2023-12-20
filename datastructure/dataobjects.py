@@ -1143,16 +1143,35 @@ class MATLAB_OBJECT(Data_Interface):
             
         return df
 
-
-def AMERES_OBJECT(self):
+#%% AMERES_OJBECT
+class AMERES_OBJECT(Data_Interface):
 
     def __init__(self, path=None, config=None, name=None, comment=None):
         
-        super().__init__(path, config=config, name=name, comment=comment)   
+        super().__init__(path, config=config, name=name, comment=comment)  
+        
+    @property
+    def channels(self):
+        
+        fparam = self.path.parent / (self.path.stem+'.ssf')
+        
+        with open(fparam, 'r') as fobj:
+            
+            lines = fobj.readlines()
+        
+        n = 0
+        for l in lines:
+            
+            s = re.findall(r'Param_Id=([0-9]+)', l)
+            print(s)
+            
+        print(n)        
     
 #%% Main Loop
 
 if __name__ == '__main__':
     
-    pass
-    
+    obj = AMERES_OBJECT(r'C:\90_Software\57_AMESim'
+                        r'\40_Workspace\10_eATS_1p6_v2'
+                        r'\eATS_1p6_v2_comod_.results')
+    print(obj.channels)
