@@ -637,6 +637,7 @@ class DATA_OBJECT(Data_Interface):
     def load(self, path):
         
         with np.load(path, allow_pickle=True) as dat:
+            
             dat = np.load(path, allow_pickle=True)
             df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
             
@@ -1070,16 +1071,14 @@ class MDF_OBJECT(Data_Interface):
             else:
                 
                 res = pd.DataFrame(self.t, index=self.t, columns= ['time'])
-        
-                
+                        
         else:
             
             res = self.get_channels(*names)
             
-            #self._df = pd.concat([self.df, res], axis=0)
-        
-                        
-        return res      
+        return res  
+
+  
     
 #%% MATLAB_OJBECT
 
@@ -1112,8 +1111,6 @@ class MATLAB_OBJECT(Data_Interface):
                     raise ValueError('Can not find data area')
                     
         return self._fhandler   
-        
-
     
     @property
     def t(self):
@@ -1189,7 +1186,8 @@ class AMERES_OBJECT(Data_Interface):
                 raw, = re.findall(r'\[\S+\]', l)
                 l = l.replace(raw, '').strip()
                 s, = re.findall(r'\[(\S+)\]', raw)                    
-                item['Unit'] = s   
+                item['Unit'] = s  
+                
             except ValueError:
                 pass
             
@@ -1197,11 +1195,25 @@ class AMERES_OBJECT(Data_Interface):
             l = l.replace(raw, '').strip()
             s, = re.findall(r'^[01]+\s+(\S+\s+\S+\s+\S+)', raw)    
             item['Label'] = s
-            item['Description'] = l           
+            item['Description'] = l   
+            item['Row_Index'] = idx
             
-            out[idx] = item                
+            out[item['Data_Path']] = item                
             
         return out
+    
+    @property
+    def t(self):
+        
+        if not len(self.df) and self.config is None:
+            
+            t = self.get_results()[0]
+            
+        else:
+            
+            t = self.df.index
+            
+        return np.asarray(t)    
 
     @property
     def channels(self):
@@ -1213,34 +1225,84 @@ class AMERES_OBJECT(Data_Interface):
     @extract_channels()
     def get_channels(self, *channels):
         
-        df = self.fhandler.to_dataframe(channels=channels, 
-                                    raster=self.sampling,
-                                    time_from_zero=True)
+        params = self.params
+        
+        row_indices = [params[c]['Row_Index'] for c in channels]
+        
+        array = self.get_results(rows=row_indices)
+        
+        df = pd.DataFrame(dict(zip(channels, array[1:])))
+        df.index = array[0]
         
         df.index.name = 'time'
         
-        return df
+        return df 
 
-    def load_results(self, param_ids=None):
+    def get_df(self):
+
+        
+        if self.config is None:
+            
+            df = pd.DataFrame()
+        
+        else:
+            
+            df = self.get_channels(*self.config.keys())
+
+        return df
+    
+    def get(self, *names):
+        
+        if all(na in self.df.keys() for na in names):
+            
+            res = super().get(*names)
+            
+        elif len(names) == 1 and (names[0].lower() == 't' 
+                                  or names[0].lower() == 'time' 
+                                  or names[0].lower() == 'index'):
+            
+            if names[0] in self.df.keys():
+                
+                res = self.df[names]
+                
+            else:
+                
+                res = pd.DataFrame(self.t, index=self.t, columns= ['time'])
+        
+                
+        else:
+            
+            res = self.get_channels(*names)
+                       
+                        
+        return res
+
+    def get_results(self, rows=None):
         
         with open(self.path, "rb") as fobj:
         
             narray, = np.fromfile(fobj, dtype=np.dtype('i'), count=1)
-                   
             nvar, = abs(np.fromfile(fobj, dtype=np.dtype('i'), count=1))
-            
-
-            idx=[0]+[np.fromfile(fobj, dtype=np.dtype('i'), count=1)[0]+1 for n in range(nvar)]
-            
-            nvar=nvar+1 #+1 for time
-            
-            print(nvar)            
-            array=np.fromfile(fobj, dtype=np.dtype('d'), count=narray*nvar)
+            _ = np.hstack([[0], np.fromfile(fobj, dtype=np.dtype('i'), count=nvar)+1])                        
+            nvar = nvar + 1
+            array = np.fromfile(fobj, dtype=np.dtype('d'), count=narray*nvar)
+            array = array.reshape(narray, nvar).T
+                
+        array = array if rows is None else array[np.concatenate([[0], np.asarray(rows, dtype=int).ravel()])]
         
-            array=array.reshape(narray, nvar)
-            retval= dict(zip(idx, [array[:,n] for n in range(len(idx))]))  
+        return array
+    
+    def keys(self):
+        
+        if not len(self.df):
             
-        return retval
+            res = self.channels
+            
+        else:
+            
+            res = list(self.df.keys())
+        
+        return res   
         
 #%% Main Loop
 
@@ -1248,7 +1310,8 @@ if __name__ == '__main__':
     
     obj = AMERES_OBJECT(r'C:\90_Software\57_AMESim'
                         r'\40_Workspace\10_eATS_1p6_v2'
-                        r'\eATS_1p6_v2_comod_.results')
+                        r'\eATS_1p6_v2_comod_.results',)# config={'param1':'Gr2@CoolgCh.tfconvection2ports'})
+
+    #print(obj.get_channels(*obj.channels[:2]))
     
-    print(len(obj.channels))
-    print(obj.load_results()[0])
+    print(obj.t)
