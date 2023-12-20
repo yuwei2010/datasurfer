@@ -1151,22 +1151,31 @@ class AMERES_OBJECT(Data_Interface):
         super().__init__(path, config=config, name=name, comment=comment)  
         
     @property
-    def channels(self):
+    def params(self):
         
         fparam = self.path.parent / (self.path.stem+'.ssf')
+        out = dict()
         
         with open(fparam, 'r') as fobj:
             
             lines = fobj.readlines()
         
-        n = 0
-        for l in lines:
+        for idx, l in enumerate(lines, start=1):
             
-            s = re.findall(r'Param_Id=([0-9]+)', l)
-            print(s)
+            item = dict()
+            l = l.strip()
             
-        print(n)        
-    
+            try:
+                
+                raw, = re.findall(r'Data_Path=.+', l)
+                s, = re.findall(r'Data_Path=(.+)', raw)                
+                print(s)
+                item['Data_Path'] = s
+            except ValueError:
+                continue
+            
+
+        return out
 #%% Main Loop
 
 if __name__ == '__main__':
@@ -1174,4 +1183,4 @@ if __name__ == '__main__':
     obj = AMERES_OBJECT(r'C:\90_Software\57_AMESim'
                         r'\40_Workspace\10_eATS_1p6_v2'
                         r'\eATS_1p6_v2_comod_.results')
-    print(obj.channels)
+    print(obj.params)
