@@ -1148,6 +1148,10 @@ class AMERES_OBJECT(Data_Interface):
 
     def __init__(self, path=None, config=None, name=None, comment=None):
         
+        if name is None:
+            
+            name = Path(path).stem[:-1]
+        
         super().__init__(path, config=config, name=name, comment=comment)  
         
     @property
@@ -1189,7 +1193,6 @@ class AMERES_OBJECT(Data_Interface):
             except ValueError:
                 pass
             
-
             raw, = re.findall(r'^[01]+\s+\S+\s+\S+\s+\S+', l)
             l = l.replace(raw, '').strip()
             s, = re.findall(r'^[01]+\s+(\S+\s+\S+\s+\S+)', raw)    
@@ -1198,7 +1201,6 @@ class AMERES_OBJECT(Data_Interface):
             
             out[idx] = item                
             
-
         return out
 
     @property
@@ -1207,17 +1209,38 @@ class AMERES_OBJECT(Data_Interface):
         return sorted(v['Data_Path'] for v in self.params.values())
 
 
-    # @translate_config()
-    # @extract_channels()
-    # def get_channels(self, *channels):
+    @translate_config()
+    @extract_channels()
+    def get_channels(self, *channels):
         
-    #     df = self.fhandler.to_dataframe(channels=channels, 
-    #                                 raster=self.sampling,
-    #                                 time_from_zero=True)
+        df = self.fhandler.to_dataframe(channels=channels, 
+                                    raster=self.sampling,
+                                    time_from_zero=True)
         
-    #     df.index.name = 'time'
+        df.index.name = 'time'
         
-    #     return df         
+        return df
+
+    def load_results(self, param_ids=None):
+        
+        with open(self.path, "rb") as fobj:
+        
+            narray, = np.fromfile(fobj, dtype=np.dtype('i'), count=1)
+                   
+            nvar, = abs(np.fromfile(fobj, dtype=np.dtype('i'), count=1))
+            
+
+            idx=[0]+[np.fromfile(fobj, dtype=np.dtype('i'), count=1)[0]+1 for n in range(nvar)]
+            
+            nvar=nvar+1 #+1 for time
+            
+            print(nvar)            
+            array=np.fromfile(fobj, dtype=np.dtype('d'), count=narray*nvar)
+        
+            array=array.reshape(narray, nvar)
+            retval= dict(zip(idx, [array[:,n] for n in range(len(idx))]))  
+            
+        return retval
         
 #%% Main Loop
 
@@ -1226,4 +1249,6 @@ if __name__ == '__main__':
     obj = AMERES_OBJECT(r'C:\90_Software\57_AMESim'
                         r'\40_Workspace\10_eATS_1p6_v2'
                         r'\eATS_1p6_v2_comod_.results')
-    print(obj.channels)
+    
+    print(len(obj.channels))
+    print(obj.load_results()[0])
