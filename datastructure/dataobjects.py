@@ -1167,15 +1167,58 @@ class AMERES_OBJECT(Data_Interface):
             
             try:
                 
-                raw, = re.findall(r'Data_Path=.+', l)
-                s, = re.findall(r'Data_Path=(.+)', raw)                
-                print(s)
+                raw, = re.findall(r'Data_Path=\S+', l)
+                l = l.replace(raw, '').strip()
+                s, = re.findall(r'Data_Path=(.+)', raw)    
                 item['Data_Path'] = s
+                
+                raw, = re.findall(r'Param_Id=\S+', l)
+                l = l.replace(raw, '').strip()
+                s, = re.findall(r'Param_Id=(.+)', raw)                    
+                item['Param_Id'] = s
+
             except ValueError:
                 continue
             
+            try:
+                
+                raw, = re.findall(r'\[\S+\]', l)
+                l = l.replace(raw, '').strip()
+                s, = re.findall(r'\[(\S+)\]', raw)                    
+                item['Unit'] = s   
+            except ValueError:
+                pass
+            
+
+            raw, = re.findall(r'^[01]+\s+\S+\s+\S+\s+\S+', l)
+            l = l.replace(raw, '').strip()
+            s, = re.findall(r'^[01]+\s+(\S+\s+\S+\s+\S+)', raw)    
+            item['Label'] = s
+            item['Description'] = l           
+            
+            out[idx] = item                
+            
 
         return out
+
+    @property
+    def channels(self):
+        
+        return sorted(v['Data_Path'] for v in self.params.values())
+
+
+    # @translate_config()
+    # @extract_channels()
+    # def get_channels(self, *channels):
+        
+    #     df = self.fhandler.to_dataframe(channels=channels, 
+    #                                 raster=self.sampling,
+    #                                 time_from_zero=True)
+        
+    #     df.index.name = 'time'
+        
+    #     return df         
+        
 #%% Main Loop
 
 if __name__ == '__main__':
@@ -1183,4 +1226,4 @@ if __name__ == '__main__':
     obj = AMERES_OBJECT(r'C:\90_Software\57_AMESim'
                         r'\40_Workspace\10_eATS_1p6_v2'
                         r'\eATS_1p6_v2_comod_.results')
-    print(obj.params)
+    print(obj.channels)
