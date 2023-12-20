@@ -27,7 +27,7 @@ from tqdm import tqdm
 from itertools import chain
 from functools import reduce, wraps
 
-from .dataobjects import Data_Interface, DATA_OBJECT, \
+from .dataobjects import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
                          ASAMMDF_OBJECT, PANDAS_OBJECT, MATLAB_OBJECT
 
 random.seed()
@@ -168,6 +168,7 @@ class DataPool(object):
                          '.xlsx': PANDAS_OBJECT,
                          '.mf4': ASAMMDF_OBJECT,
                          '.mat': MATLAB_OBJECT,
+                         '.results': AMERES_OBJECT,
                      }
     
     def __init__(self, datobjects=None, config=None, interface=None, **kwargs):

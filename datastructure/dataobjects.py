@@ -622,7 +622,11 @@ class DATA_OBJECT(Data_Interface):
         else:
             super().__init__(path, config=config, name=name, comment=comment)
             self._df = df
+            
+    @property   
+    def t(self):
         
+        return np.asarray(self.df.index)        
     
     def save(self, name=None):
                 
@@ -1207,7 +1211,7 @@ class AMERES_OBJECT(Data_Interface):
         
         if not len(self.df) and self.config is None:
             
-            t = self.get_results()[0]
+            t = self.get_results(rows=[0])
             
         else:
             
@@ -1268,13 +1272,11 @@ class AMERES_OBJECT(Data_Interface):
             else:
                 
                 res = pd.DataFrame(self.t, index=self.t, columns= ['time'])
-        
-                
+                        
         else:
             
             res = self.get_channels(*names)
-                       
-                        
+                                               
         return res
 
     def get_results(self, rows=None):
@@ -1288,7 +1290,8 @@ class AMERES_OBJECT(Data_Interface):
             array = np.fromfile(fobj, dtype=np.dtype('d'), count=narray*nvar)
             array = array.reshape(narray, nvar).T
                 
-        array = array if rows is None else array[np.concatenate([[0], np.asarray(rows, dtype=int).ravel()])]
+        array = (array if rows is None 
+                 else array[np.concatenate([[0], np.asarray(rows, dtype=int).ravel()])])
         
         return array
     
@@ -1303,6 +1306,16 @@ class AMERES_OBJECT(Data_Interface):
             res = list(self.df.keys())
         
         return res   
+    
+    def search_channel(self, patt):
+        
+        r = re.compile(patt)
+        
+        return list(filter(r.match, self.channels))
+    
+#%% AMEGP_OJBECT
+
+
         
 #%% Main Loop
 
@@ -1310,8 +1323,8 @@ if __name__ == '__main__':
     
     obj = AMERES_OBJECT(r'C:\90_Software\57_AMESim'
                         r'\40_Workspace\10_eATS_1p6_v2'
-                        r'\eATS_1p6_v2_comod_.results',)# config={'param1':'Gr2@CoolgCh.tfconvection2ports'})
+                        r'\eATS_1p6_v2_comod_.results', 
+                        config={'param1':'Gr2@CoolgCh.tfconvection2ports'})
 
-    #print(obj.get_channels(*obj.channels[:2]))
-    
-    print(obj.t)
+    print(obj.search_channel('.*CoolgCh.*'))
+    print(obj.search('.*param.*'))
