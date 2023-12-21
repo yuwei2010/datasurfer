@@ -1193,7 +1193,7 @@ class AMERES_OBJECT(Data_Interface):
                 item['Unit'] = s  
                 
             except ValueError:
-                pass
+                item['Unit'] = '-' 
             
             raw, = re.findall(r'^[01]+\s+\S+\s+\S+\s+\S+', l)
             l = l.replace(raw, '').strip()
@@ -1321,10 +1321,15 @@ class AMERES_OBJECT(Data_Interface):
 
 if __name__ == '__main__':
     
-    obj = AMERES_OBJECT(r'C:\90_Software\57_AMESim'
-                        r'\40_Workspace\10_eATS_1p6_v2'
-                        r'\eATS_1p6_v2_comod_.results', 
-                        config={'param1':'Gr2@CoolgCh.tfconvection2ports'})
-
-    print(obj.search_channel('.*CoolgCh.*'))
-    print(obj.search('.*param.*'))
+    path = Path(r'C:\90_Software\57_AMESim\40_Workspace\10_eATS_1p6_v2\eATS_1p6_v2_comod_.amegp')
+    
+    df = pd.read_xml(path)
+    
+    df.at[0, 'VALUE'] = 2
+    
+    
+    #print(df.loc[0])
+    
+    print(df.columns)
+    
+    df.to_xml(path)
