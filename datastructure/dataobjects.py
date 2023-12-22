@@ -1044,9 +1044,7 @@ class MDF_OBJECT(Data_Interface):
         return pd.concat(outs, axis=1)
     
     def get_df(self):
-        
-
-        
+                
         if self.config is None:
             
             df = pd.DataFrame()
