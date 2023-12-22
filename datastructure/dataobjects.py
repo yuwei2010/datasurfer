@@ -1382,5 +1382,4 @@ class AMEGP_OBJECT(Data_Interface):
 
 if __name__ == '__main__':
     
-    
     pass
