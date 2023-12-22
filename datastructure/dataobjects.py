@@ -1314,22 +1314,91 @@ class AMERES_OBJECT(Data_Interface):
         return list(filter(r.match, self.channels))
     
 #%% AMEGP_OJBECT
+class AMEGP_OBJECT(Data_Interface):
 
+    def __init__(self, path=None, config=None, name=None, comment=None):
+        
+        if name is None:
+            
+            name = Path(path).stem[:-1]
+        
+        super().__init__(path, config=config, name=name, comment=comment)  
+        
+    def __setitem__(self, name, value):
+        
+        self.set_value(name, value)
+        
+    def get_df(self):
+        
+        df = pd.read_xml(self.path)
+        
+        df.set_index('VARNAME', inplace=True)
+                
+        return df.transpose()
+    
+    def set_value(self, name, value):
+        
+        self.df.at['VALUE', name] = value
+        
+        return self
+    
+    def save(self, name=None):
+       
+        name = name if name is not None else self.path
+        
+        with open(self.path, 'r') as fobj:
+        
+            lines = fobj.readlines()
+        
+        newlines = []
+        
+        for l in lines:
+        
+        
+            if re.match(r'^<VARNAME>.+</VARNAME>$', l.strip()):
+                
+                varname, = re.findall(r'^<VARNAME>(.+)</VARNAME>$', l.strip())
+                
+                item = self.df[varname]
+                
+            if re.match(r'^<VALUE>.+</VALUE>$', l.strip()):  
+                
+                str_old, = re.findall(r'^<VALUE>.+</VALUE>$', l.strip())
 
+                str_new = '<VALUE>{}</VALUE>'.format(item['VALUE'])
+                l = l.replace(str_old, str_new, 1)
+                    
+                
+            newlines.append(l)
+            
+        with open(name, 'w') as fobj:
+          
+            fobj.writelines(newlines)
+            
+            
+        return self
         
 #%% Main Loop
 
 if __name__ == '__main__':
     
-    path = Path(r'C:\90_Software\57_AMESim\40_Workspace\10_eATS_1p6_v2\eATS_1p6_v2_comod_.amegp')
+    obj = AMEGP_OBJECT(r'C:\90_Software\57_AMESim\40_Workspace\10_eATS_1p6_v2\eATS_1p6_v2_comod_.amegp')
     
-    df = pd.read_xml(path)
+    # print(obj.df)
     
-    df.at[0, 'VALUE'] = 2
+    # print(obj.df.columns)
+    
+    obj['T_ambient_housing'] = 65
+    # print(obj['multLS'])
+    
+    obj.save()
+    # df = pd.read_xml(path)
+    
+    # df.at[0, 'VALUE'] = 5
     
     
-    #print(df.loc[0])
+    # #print(df.loc[0])
     
-    print(df.columns)
+    # print(df.columns)
     
-    df.to_xml(path)
+    # df.to_xml(path)

@@ -28,7 +28,8 @@ from itertools import chain
 from functools import reduce, wraps
 
 from .dataobjects import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
-                         ASAMMDF_OBJECT, PANDAS_OBJECT, MATLAB_OBJECT
+                         ASAMMDF_OBJECT, PANDAS_OBJECT, MATLAB_OBJECT,\
+                         AMEGP_OBJECT
 
 random.seed()
 #%% Collect files
@@ -169,6 +170,7 @@ class DataPool(object):
                          '.mf4': ASAMMDF_OBJECT,
                          '.mat': MATLAB_OBJECT,
                          '.results': AMERES_OBJECT,
+                         '.amegp': AMEGP_OBJECT,
                      }
     
     def __init__(self, datobjects=None, config=None, interface=None, **kwargs):
