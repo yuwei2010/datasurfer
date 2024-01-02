@@ -214,9 +214,12 @@ class DataPool(object):
                 self.name = dpath.name if self.name is None else self.name
                 self.path =  Path(dpath).absolute()
             
-                patts = kwargs.pop('patts', None)
+                patts = kwargs.pop('pattern', None)
                 
-                patts = patts if patts is not None else ['.+\\'+k for k  in self.__class__.Mapping_Interfaces.keys()]
+                patts = patts if patts else ['.+\\'+k for k  in self.__class__.Mapping_Interfaces.keys()]
+                
+                if not isinstance(patts, (list, tuple, set)):
+                    patts = [patts]
                 
                 datobjects = sorted(collect_files(dpath, *patts))
                 
