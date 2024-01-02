@@ -1,12 +1,14 @@
-Data Lake
+
+
+
 
 class DataLake(object):
     
     
-    def __init__(self, items):
+    def __init__(self, patt):
         
-        
-        self.objs = items
+
+        pass
         
         
     def keys(self):
@@ -33,3 +35,15 @@ class DataLake(object):
     def search(self, patt, ignore_case=True, raise_error=False):
                 
         pass
+    
+    #%%
+    if __name__ == '__main__':
+        
+        import sys
+        
+        sys.path.insert(0, '.')
+        
+        from datapool import DataPool
+        
+        
+        

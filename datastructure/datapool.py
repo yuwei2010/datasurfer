@@ -27,7 +27,7 @@ from tqdm import tqdm
 from itertools import chain
 from functools import reduce, wraps
 
-from .dataobjects import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
+from dataobjects import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
                          ASAMMDF_OBJECT, PANDAS_OBJECT, MATLAB_OBJECT,\
                          AMEGP_OBJECT
 
@@ -214,7 +214,9 @@ class DataPool(object):
                 self.name = dpath.name if self.name is None else self.name
                 self.path =  Path(dpath).absolute()
             
-                patts = ['.+\\'+k for k  in self.__class__.Mapping_Interfaces.keys()]
+                patts = kwargs.pop('patts', None)
+                
+                patts = patts if patts is not None else ['.+\\'+k for k  in self.__class__.Mapping_Interfaces.keys()]
                 
                 datobjects = sorted(collect_files(dpath, *patts))
                 
