@@ -1017,9 +1017,18 @@ class DataPool(object):
 
 if __name__ == '__main__':
     
-    dp = DataPool(r'C:\95_Programming\10_Data_Related\10_test_files\tushare_csv')
+    dp = DataPool(r'D:\01_Python\stock\Analyse_Data\20191128')
     
-    print(dp.split_pool())
+    ps = dp.split_pool(2)
     
-    pass
+    from multiprocessing.dummy import Pool
+    
+    def foo(p):
+        
+        return p.keys()
+    
+    p = Pool(2)
+    
+    print(p.map(foo, ps))
+    
 
