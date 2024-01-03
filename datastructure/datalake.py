@@ -1,12 +1,19 @@
 import os
+import re
 import warnings
 
 from itertools import chain
 from pathlib import Path
 
+
+import sys
+
+sys.path.insert(0, '.')
+from datapool import DataPool
+
 #%%
 
-def collect_files(root, *patts, warn_if_double=True, ignore_double=False):
+def collect_dirs(root, *patts, warn_if_double=True, ignore_double=False):
     
 
     if isinstance(root, (list, tuple, set)):
@@ -14,27 +21,27 @@ def collect_files(root, *patts, warn_if_double=True, ignore_double=False):
     
     found = {}
        
-    for r, ds, fs in os.walk(root):
+    for r, ds, _ in os.walk(root):
         
-        for f in fs:
+        for d in ds:
         
-            ismatch = any(re.match(patt, f) for patt in patts)
+            ismatch = any(re.match(patt, d) for patt in patts)
             
             if ismatch: 
                 
-                path = (Path(r) / f)
+                path = (Path(r) / d)
                 
-                if warn_if_double and f in found:
+                if warn_if_double and d in found:
                     
-                    dirs = '\n\t'.join(found[f])
+                    dirs = '\n\t'.join(found[d])
                     
                     warnings.warn(f'"{path}" exists already in:\n{dirs}')
                     
-                if (f not in found) or (not ignore_double) :
+                if (d not in found) or (not ignore_double) :
                     
                     yield path
                     
-                found.setdefault(f, []).append(r)
+                found.setdefault(d, []).append(r)
 
 
 class DataLake(object):
@@ -74,11 +81,9 @@ class DataLake(object):
     #%%
     if __name__ == '__main__':
         
-        import sys
+        pass
         
-        sys.path.insert(0, '.')
         
-        from datapool import DataPool
         
         
         
