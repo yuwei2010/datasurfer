@@ -1384,3 +1384,21 @@ if __name__ == '__main__':
     
     obj = AMEGP_OBJECT(r'C:\90_Software\57_AMESim\40_Workspace\10_eATS_1p6_v2\eATS_1p6_v2_comod_.amegp')
     
+    # print(obj.df)
+    
+    # print(obj.df.columns)
+    
+    obj['T_ambient_housing'] = 65
+    # print(obj['multLS'])
+    
+    obj.save()
+    # df = pd.read_xml(path)
+    
+    # df.at[0, 'VALUE'] = 5
+    
+    
+    # #print(df.loc[0])
+    
+    # print(df.columns)
+    
+    # df.to_xml(path)
