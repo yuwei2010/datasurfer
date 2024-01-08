@@ -653,7 +653,7 @@ class DataPool(object):
         
         for obj in self.objs:
             
-            if obj.path.stem == name:
+            if obj.name == name:
                 return obj
         else:
             raise NameError(f'Can not find any "{name}"')
