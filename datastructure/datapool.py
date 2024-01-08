@@ -27,7 +27,7 @@ from tqdm import tqdm
 from itertools import chain
 from functools import reduce, wraps
 
-from .dataobjects import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
+from dataobjects import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
                          ASAMMDF_OBJECT, PANDAS_OBJECT, MATLAB_OBJECT,\
                          AMEGP_OBJECT
 
@@ -214,7 +214,12 @@ class DataPool(object):
                 self.name = dpath.name if self.name is None else self.name
                 self.path =  Path(dpath).absolute()
             
-                patts = ['.+\\'+k for k  in self.__class__.Mapping_Interfaces.keys()]
+                patts = kwargs.pop('pattern', None)
+                
+                patts = patts if patts else ['.+\\'+k for k  in self.__class__.Mapping_Interfaces.keys()]
+                
+                if not isinstance(patts, (list, tuple, set)):
+                    patts = [patts]
                 
                 datobjects = sorted(collect_files(dpath, *patts))
                 
@@ -1005,50 +1010,25 @@ class DataPool(object):
         return None
 
 
-#%% Data Lake
 
-class DataLake(object):
-    
-    
-    def __init__(self, items):
-        
-        
-        self.objs = items
-        
-        
-    def keys(self):
-        
-        zcount = len(str(len(self.objs))) + 1
-        
-        strfmt = f':0{zcount}'        
-        
-        fmt = 'DataPool_' + '{' + strfmt + '}'
-                
-        def get():
-            
-            for idx, dp in enumerate(self.objs):
-                
-                if dp.name is None:
-                    
-                    yield fmt.format(idx)
-                else:
-                    
-                    yield dp.name
-                
-        return list(get())
-
-    def search(self, patt, ignore_case=True, raise_error=False):
-                
-        pass
 
 
 #%% Main Loop
 
 if __name__ == '__main__':
     
-    dp = DataPool(r'C:\95_Programming\10_Data_Related\10_test_files\tushare_csv')
+    dp = DataPool(r'D:\01_Python\stock\Analyse_Data\20191128')
     
-    print(dp.split_pool())
+    ps = dp.split_pool(2)
     
-    pass
+    from multiprocessing.dummy import Pool
+    
+    def foo(p):
+        
+        return p.keys()
+    
+    p = Pool(2)
+    
+    print(p.map(foo, ps))
+    
 
