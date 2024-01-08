@@ -259,8 +259,11 @@ class DataPool(object):
                 objs.append(interface(obj, config=config, **kwargs))
                 
             else:
-                key = Path(obj).suffix.lower()                    
-                objs.append(self.__class__.Mapping_Interfaces[key](obj, config=config, **kwargs))
+                key = Path(obj).suffix.lower()
+                try:                   
+                    objs.append(self.__class__.Mapping_Interfaces[key](obj, config=config, **kwargs))
+                except KeyError:
+                    pass        
                 
         self.objs = sorted(set(objs), key=lambda x:x.name)
         
@@ -289,9 +292,12 @@ class DataPool(object):
         obj_types = set(obj_names)
         
         s = ';'.join(f'{typ}({obj_names.count(typ)})' for typ in obj_types)
-              
-        return f'<{self.__class__.__name__}@{s}>' 
-    
+        
+        if self.name:
+            return  f'<{self.__class__.__name__}"{self.name}"@{s}>'   
+        else: 
+            return f'<{self.__class__.__name__}@{s}>' 
+
     def __iter__(self):
         
         return iter(self.objs)

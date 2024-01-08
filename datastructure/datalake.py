@@ -13,77 +13,68 @@ from datapool import DataPool
 
 #%%
 
-def collect_dirs(root, *patts, warn_if_double=True, ignore_double=False):
+def collect_dirs(root, *patts,  patt_filter=None):
     
+    patt_filter = patt_filter or [r'^\..*']
 
     if isinstance(root, (list, tuple, set)):
         root = chain(*root)
     
     found = {}
        
-    for r, ds, _ in os.walk(root):
+    for r, _, fs in os.walk(root):
         
-        for d in ds:
+
+        d = Path(r).stem
+        ismatch = (any(re.match(patt, d) for patt in patts) 
+                    and (not any(re.match(patt, d) for patt in patt_filter)))
         
-            ismatch = any(re.match(patt, d) for patt in patts)
+        if ismatch: 
             
-            if ismatch: 
+            path = Path(r)                
+            if fs:
+                yield path, fs
                 
-                path = (Path(r) / d)
-                
-                if warn_if_double and d in found:
-                    
-                    dirs = '\n\t'.join(found[d])
-                    
-                    warnings.warn(f'"{path}" exists already in:\n{dirs}')
-                    
-                if (d not in found) or (not ignore_double) :
-                    
-                    yield path
-                    
-                found.setdefault(d, []).append(r)
 
 
+#%%
 class DataLake(object):
     
     
-    def __init__(self, patt):
+    def __init__(self, root, **kwargs):
         
+        patts = kwargs.pop('pattern', r'.*')
+        
+        if not isinstance(patts, (list, tuple, set)):
+            
+            patts = [patts]
+            
+            
+        objs = [DataPool([d/f for f in fs], name=d.stem) for d, fs in 
+                     sorted(collect_dirs(root, *patts))]
+        
+        self.objs = [obj for obj in objs if len(obj)]
 
-        pass
-        
         
     def keys(self):
         
-        zcount = len(str(len(self.objs))) + 1
-        
-        strfmt = f':0{zcount}'        
-        
-        fmt = 'DataPool_' + '{' + strfmt + '}'
-                
-        def get():
-            
-            for idx, dp in enumerate(self.objs):
-                
-                if dp.name is None:
-                    
-                    yield fmt.format(idx)
-                else:
-                    
-                    yield dp.name
-                
-        return list(get())
+        return [obj.name for obj in self.objs]
 
     def search(self, patt, ignore_case=True, raise_error=False):
                 
         pass
     
     #%%
-    if __name__ == '__main__':
+if __name__ == '__main__':
         
-        pass
+    dlk = DataLake(r'C:\30_eATS1p6\33_Measurement_Evaluation\70_Alpen_Fahrt')
+    
+    print(dlk.keys())
+    
+    pass
         
         
         
         
         
+# %%
