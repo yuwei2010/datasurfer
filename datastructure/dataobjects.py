@@ -133,6 +133,26 @@ def extract_channels(newconfig=None):
 #%% Translate Config
 
 def translate_config(newconfig=None):
+    """
+    Decorator function that translates column names in the output of a decorated function
+    based on a provided configuration dictionary.
+
+    Args:
+        newconfig (dict, optional): A dictionary that maps the original column names to the
+            desired translated column names. Defaults to None.
+
+    Returns:
+        function: The decorated function.
+
+    Example:
+        @translate_config(newconfig={'Name': 'Full Name', 'Age': 'Years'})
+        def process_data(data):
+            # Process the data and return a DataFrame
+            return processed_data
+
+        The above example will translate the column names 'Name' to 'Full Name' and 'Age' to 'Years'
+        in the output DataFrame of the process_data function.
+    """
     
     def decorator(func):
     
