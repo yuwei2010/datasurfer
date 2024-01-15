@@ -35,50 +35,39 @@ random.seed()
 #%% Collect files
 
 def collect_files(root, *patts, warn_if_double=True, ignore_double=False):
-    
     '''
+    Gather files from the data directory that match patterns
     
-        Gather files from the data directory that match patterns
+    Parameters:
+        root (str): The root directory to start searching for files.
+        *patts (str): Variable number of patterns in the format of regular expressions.
+        warn_if_double (bool, optional): If True, a warning will be raised if files with the same name exist. Defaults to True.
+        ignore_double (bool, optional): If True, files with the same name will be ignored and not returned. Defaults to False.
         
-        Paramters:
-            root: directory
-            patts: patterns in format of regular expression
-            warn_if_double: warning if files with same name exist.
-            
-        Return:
-            iterator of found files
-            
-        Usage:
-            
-            # collecte csv-file in current folder, return a list
-            collection = list(collect_files('.', r'.*\.csv', warn_if_double=True))
+    Yields:
+        Path: An iterator of found file paths.
         
-    
+    Usage:
+        # Collect csv files in the current folder, return a list
+        collection = list(collect_files('.', r'.*\.csv', warn_if_double=True))
     '''
-    
     if isinstance(root, (list, tuple, set)):
         root = chain(*root)
     
     found = {}
        
     for r, ds, fs in os.walk(root):
-        
         for f in fs:
-        
             ismatch = any(re.match(patt, f) for patt in patts)
             
             if ismatch: 
-                
                 path = (Path(r) / f)
                 
                 if warn_if_double and f in found:
-                    
                     dirs = '\n\t'.join(found[f])
-                    
                     warnings.warn(f'"{path}" exists already in:\n{dirs}')
                     
                 if (f not in found) or (not ignore_double) :
-                    
                     yield path
                     
                 found.setdefault(f, []).append(r)
