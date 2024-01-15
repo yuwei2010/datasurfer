@@ -72,7 +72,21 @@ def combine_configs(*cfgs):
 #%% Extract channels
 
 def extract_channels(newconfig=None):
-    
+    """
+    Decorator function that extracts channels from the given configuration and passes them as arguments to the decorated function.
+
+    Args:
+        newconfig (dict, optional): A dictionary containing the mapping of keys to channels. Defaults to None.
+
+    Returns:
+        function: The decorated function.
+
+    Example:
+        @extract_channels(newconfig={'A': 'Channel1', 'B': 'Channel2'})
+        def process_data(self, channel1, channel2):
+            # Process data using the specified channels
+            pass
+    """
     def decorator(func):
     
         @wraps(func)
@@ -160,43 +174,48 @@ def translate_config(newconfig=None):
 class Data_Interface(object):
    
     def __init__(self, path, config=None, name=None, comment=None):
+        """
+        Initialize a DataObject instance.
 
-        
+        Args:
+            path (str or Path): The path to the data object.
+            config (str, Path, list, tuple, set, dict, optional): The configuration for the data object.
+                If a string or Path is provided, it is assumed to be a path to a JSON file and will be loaded as a dictionary.
+                If a list, tuple, or set of strings is provided, it will be converted into a dictionary with each string as both the key and value.
+                If a list of dictionaries is provided, the dictionaries will be combined into a single dictionary.
+                If a dictionary is provided, it will be used as is.
+                Defaults to None.
+            name (str, optional): The name of the data object. Defaults to None.
+            comment (str, optional): A comment or description for the data object. Defaults to None.
+        """
         if config is not None: 
-            
             if isinstance(config, (str, Path)):
                 if str(config).endswith('.json'):
-            
                     config = json.load(open(config))
-                    
                 else:
                     raise IOError('Unknown config format, expect json.')
-                
             elif isinstance(config, (list, tuple, set)):
-                
                 if all(isinstance(s, str) for s in config):
                     config = dict((v, v) for v in config)
-                    
                 elif all(isinstance(s, dict) for s in config):
                     config = combine_configs(*list(config))
-                    
                 else:
                     raise TypeError('Can not handle config type.')
-                    
             elif not isinstance(config, dict):
                 raise TypeError('Unknown config format, expect dict')
                 
         if path is not None:
-            
             path = Path(path).absolute() 
-        
+            
         self._name = name
         self.path = path
         self.config = config
         self._comment = comment
         
     def __enter__(self):
-        
+        """
+        Enter method for context manager.
+        """
         return self
     
     def __exit__(self, exc_type, exc_value, exc_traceback):
