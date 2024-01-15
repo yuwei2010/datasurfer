@@ -76,6 +76,18 @@ def collect_files(root, *patts, warn_if_double=True, ignore_double=False):
                 
 #%% Show_Pool_Progress_bar
 def show_pool_progress(msg, show=False, set_init=True, count=None):
+    """
+    Decorator function that adds progress bar functionality to a method in a data pool object.
+
+    Parameters:
+    - msg (str): The message to display in the progress bar.
+    - show (bool): Whether to show the progress bar or not. Default is False.
+    - set_init (bool): Whether to set the 'initialized' attribute of the data pool object to True after the method is executed. Default is True.
+    - count (int): The total count of objects to iterate over. If None, the count is determined by the length of the data pool object. Default is None.
+
+    Returns:
+    - The decorated method.
+    """
     
     def decorator(func):
     
@@ -844,26 +856,36 @@ class DataPool(object):
         return self
     
     def to_dataframe(self, columns=None, pbar=True):
-        
-        @show_pool_progress('Processing', show=pbar)
-        def fun(self):
-            
-            for obj in self.objs:
-                
-                df = obj.df.reset_index()
-                
-                if columns is not None:
-                    
-                    df = df[columns]
-                
-                index =  pd.MultiIndex.from_product([[obj.name], df.columns])
-                
-                df.columns = index
-                                
-                yield df
+            """
+            Convert the objects in the datapool to a pandas DataFrame.
 
-        dfs = list(fun(self))
-        return pd.concat(dfs, axis=1)
+            Args:
+                columns (list, optional): List of column names to include in the DataFrame. Defaults to None.
+                pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+
+            Returns:
+                pandas.DataFrame: The combined DataFrame of all objects in the datapool.
+            """
+            
+            @show_pool_progress('Processing', show=pbar)
+            def fun(self):
+                
+                for obj in self.objs:
+                    
+                    df = obj.df.reset_index()
+                    
+                    if columns is not None:
+                        
+                        df = df[columns]
+                    
+                    index =  pd.MultiIndex.from_product([[obj.name], df.columns])
+                    
+                    df.columns = index
+                                    
+                    yield df
+
+            dfs = list(fun(self))
+            return pd.concat(dfs, axis=1)
                 
     def to_csvs(self, wdir, pbar=True):
         

@@ -15,15 +15,25 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 #%%
 
 def plot_dendrogram(ax, df, method='centroid'):
+    """
+    Plots a dendrogram using the given axis and dataframe.
 
+    Parameters:
+    - ax (matplotlib.axes.Axes): The axis on which to plot the dendrogram.
+    - df (pandas.DataFrame): The dataframe containing the data to be plotted.
+    - method (str, optional): The linkage method to be used. Defaults to 'centroid'.
+
+    Returns:
+    - Z (numpy.ndarray): The linkage matrix.
+    - dn (dict): The dendrogram dictionary.
+
+    """
     Z = linkage(df.values.T, method=method)
     dn = dendrogram(Z, ax=ax)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False) 
     ax.spines['left'].set_visible(False) 
     ax.axes.get_yaxis().set_visible(False)
-    
-    
     
     xlbls = [int(t.get_text()) for t in ax.get_xticklabels()]
     xlbltxts = [df.columns[idx] for idx in xlbls]    
