@@ -811,24 +811,45 @@ class DATA_OBJECT(Data_Interface):
 #%% PANDAS_OBJECT, FINANCE_OBJECT
 
 class PANDAS_OBJECT(Data_Interface):
-    
+    """
+    A class representing a Pandas object.
+
+    Attributes:
+        dict_fun (dict): A dictionary mapping file extensions to Pandas read functions.
+    """
+
     dict_fun = {
-            '.csv':  pd.read_csv,
-            '.xlsx': pd.read_excel,
-            }
+        '.csv':  pd.read_csv,
+        '.xlsx': pd.read_excel,
+    }
     
     def __init__(self, path=None, config=None, name=None, comment=None):
-        
+        """
+        Initializes a new instance of the PANDAS_OBJECT class.
+
+        Args:
+            path (str): The path to the data file.
+            config (dict): A dictionary containing configuration options.
+            name (str): The name of the object.
+            comment (str): A comment or description for the object.
+        """
         super().__init__(path, config=config, name=name, comment=comment)
         
     @property   
     def t(self):
-        
+        """
+        Returns the index of the DataFrame as a NumPy array.
+        """
         return np.asarray(self.df.index)
     
     @translate_config()
     def get_df(self):
-        
+        """
+        Reads the data file using the appropriate Pandas read function based on the file extension.
+
+        Returns:
+            DataFrame: The loaded data as a Pandas DataFrame.
+        """
         fun = self.__class__.dict_fun[self.path.suffix.lower()]
                 
         df = fun(self.path, index_col=0)
@@ -837,15 +858,43 @@ class PANDAS_OBJECT(Data_Interface):
     
 
 class FINANCE_OBJECT(PANDAS_OBJECT):
+    """
+    A class representing a finance object.
+    
+    Attributes:
+        path (str): The path to the finance object.
+        config (dict): The configuration settings for the finance object.
+        name (str): The name of the finance object.
+        comment (str): Any additional comments about the finance object.
+        df (pandas.DataFrame): The data stored in the finance object.
+        time_format (str): The format of the time values in the finance object.
+    """
     
     def __init__(self, path=None, config=None, name=None, comment=None, 
                  df=None, time_format='%Y%m%d'):
+        """
+        Initializes a new instance of the FINANCE_OBJECT class.
+        
+        Args:
+            path (str, optional): The path to the finance object. Defaults to None.
+            config (dict, optional): The configuration settings for the finance object. Defaults to None.
+            name (str, optional): The name of the finance object. Defaults to None.
+            comment (str, optional): Any additional comments about the finance object. Defaults to None.
+            df (pandas.DataFrame, optional): The data stored in the finance object. Defaults to None.
+            time_format (str, optional): The format of the time values in the finance object. Defaults to '%Y%m%d'.
+        """
         
         super().__init__(path, config=config, name=name, comment=comment)
         self.time_format = time_format
     
     @translate_config()
     def get_df(self):
+        """
+        Retrieves the data stored in the finance object.
+        
+        Returns:
+            pandas.DataFrame: The data stored in the finance object.
+        """
         
         fun = self.__class__.dict_fun[self.path.suffix.lower()]
                 
@@ -857,42 +906,87 @@ class FINANCE_OBJECT(PANDAS_OBJECT):
             
             df[c] = pd.to_datetime(df[c], format=self.time_format)
         
-        return df    
+        return df
 
     
 
 #%% ASAMMDF_OBJECT
 class ASAMMDF_OBJECT(Data_Interface):
-       
+    """
+    Represents an ASAM MDF object.
+
+    Args:
+        path (str): The path to the MDF file.
+        config (dict, optional): The configuration dictionary. Defaults to None.
+        sampling (float, optional): The sampling rate. Defaults to 0.1.
+        name (str, optional): The name of the object. Defaults to None.
+        comment (str, optional): The comment for the object. Defaults to None.
+        autoclose (bool, optional): Whether to automatically close the object. Defaults to False.
+    """
+
     def __init__(self, path, config=None, sampling=0.1, name=None, 
                  comment=None, autoclose=False):
+        """
+        Initializes a new instance of the ASAMMDF_OBJECT class.
 
+        Args:
+            path (str): The path to the MDF file.
+            config (dict, optional): The configuration dictionary. Defaults to None.
+            sampling (float, optional): The sampling rate. Defaults to 0.1.
+            name (str, optional): The name of the object. Defaults to None.
+            comment (str, optional): The comment for the object. Defaults to None.
+            autoclose (bool, optional): Whether to automatically close the object. Defaults to False.
+        """
         super().__init__(path, config, comment=comment, name=name)
         
         self.sampling = sampling
         self.autoclose = autoclose
 
     def __enter__(self):
-        
+        """
+        Enters the context manager.
+
+        Returns:
+            ASAMMDF_OBJECT: The current instance.
+        """
         return self
     
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        
+        """
+        Exits the context manager.
+
+        Args:
+            exc_type (type): The type of the exception.
+            exc_value (Exception): The exception instance.
+            exc_traceback (traceback): The traceback information.
+
+        Returns:
+            bool: True if the exception was handled, False otherwise.
+        """
         self.close()
         
         if exc_type:
-            
             return False
         
         return True   
 
     def __len__(self):
-        
+        """
+        Returns the length of the object.
+
+        Returns:
+            int: The length of the object.
+        """
         return self.t.size
 
     @property
     def info(self):
-        
+        """
+        Gets the information dictionary of the object.
+
+        Returns:
+            dict: The information dictionary.
+        """
         if not hasattr(self, '_info'):
             try:
                 self._info = self.fhandler.info()
@@ -903,401 +997,479 @@ class ASAMMDF_OBJECT(Data_Interface):
         
     @property
     def comment(self):
-        
+        """
+        Gets the comment of the object.
+
+        Returns:
+            dict: The comment dictionary.
+        """
         if self._comment is None :
-            
             info = self.info
-            
             if info and 'comment' in info:
-                
                 xmlobj= fromstring(info['comment'])             
                 comment = dict()
                 try:
                     tx, = xmlobj.findall('TX')
-
                     if tx.text:
                         comment = dict(re.findall(r'(.+):\s+(.+)', tx.text))
                 except ValueError:
-                    
                     comment = dict()
                 try:
                     cp, = xmlobj.findall('common_properties')
-                
                     for item in cp:
-                        
                         name = item.attrib['name']
-                        
                         value = item.text
-                    
                         if value is not None:
-                            
                             comment[name] = value
                 except ValueError:
-                    
                     if not comment:
                         comment = None
-                        
                 self._comment = comment
-
         return self._comment
     
     @property
     def t(self):
-        
+        """
+        Gets the time axis of the object.
+
+        Returns:
+            numpy.ndarray: The time axis.
+        """
         if not len(self.df) and self.config is None:
-            
             warnings.warn('Time axis may have deviation due to missing configuration.')
             n = 0
             while 1:
-                
                 df = self.get_channels(self.channels[n])
-                
                 if len(df):
                     break
-                
                 n = n + 1
-
             t = df.index
-            
         else:
-            
             t = self.df.index
-            
         return np.asarray(t)
     
     @property
     def df(self):
-        
+        """
+        Gets the DataFrame of the object.
+
+        Returns:
+            pandas.DataFrame: The DataFrame.
+        """
         if not hasattr(self, '_df'):
-            
             if self.config is None:
-                
                 self._df = pd.DataFrame()
-                
             else:
-                
                 self._df = self.get_df()
-            
         return self._df
     
     @property
     def fhandler(self):
-                
+        """
+        Gets the MDF file handler.
+
+        Returns:
+            asammdf.MDF: The MDF file handler.
+        """
         if not hasattr(self, '_fhandler'):
-            
             self._fhandler = asammdf.MDF(self.path)
-            
         return self._fhandler
         
     @property
     def channels(self):
-        
+        """
+        Gets the list of channels in the object.
+
+        Returns:
+            list: The list of channels.
+        """
         out = [chn.name for group in self.fhandler.groups for chn in group['channels']]
-                        
         return sorted(set(out)) 
-    
 
     @translate_config()
     @extract_channels()
     def get_channels(self, *channels):
-        
+        """
+        Gets the channels from the object.
+
+        Args:
+            *channels (str): The names of the channels.
+
+        Returns:
+            pandas.DataFrame: The DataFrame containing the channels.
+        """
         df = self.fhandler.to_dataframe(channels=channels, 
                                     raster=self.sampling,
                                     time_from_zero=True)
-        
         df.index.name = 'time'
-        
         return df 
     
-
-        
     def keys(self):
-        
+        """
+        Gets the keys of the object.
+
+        Returns:
+            list: The keys of the object.
+        """
         if not len(self.df):
-            
             res = self.channels
-            
         else:
-            
             res = list(self.df.keys())
-        
         return res   
     
-
-    
     def get_df(self, close=None):
-        
+        """
+        Gets the DataFrame of the object.
+
+        Args:
+            close (bool, optional): Whether to close the object after getting the DataFrame. Defaults to None.
+
+        Returns:
+            pandas.DataFrame: The DataFrame.
+        """
         close = self.autoclose if close is None else close
-        
         if self.config is None:
-            
             df = pd.DataFrame()
-        
         else:
-            
             df = self.get_channels(*self.config.keys())
-            
         if close:   
             self.comment
             self.close()
-            
         return df
-            
 
     def get(self, *names):
-        
+        """
+        Gets the data from the object.
+
+        Args:
+            *names (str): The names of the data.
+
+        Returns:
+            object: The data.
+        """
         if all(na in self.df.keys() for na in names):
-            
             res = super().get(*names)
-            
         elif len(names) == 1 and (names[0].lower() == 't' 
                                   or names[0].lower() == 'time' 
                                   or names[0].lower() == 'index'):
-            
             if names[0] in self.df.keys():
-                
                 res = self.df[names]
-                
             else:
-                
                 res = pd.DataFrame(self.t, index=self.t, columns= ['time'])
-        
-                
         else:
-            
             res = self.get_channels(*names)
-                       
-                        
         return res
-            
-        
+    
     def search_channel(self, patt):
-        
+        """
+        Searches for channels matching a pattern.
+
+        Args:
+            patt (str): The pattern to search for.
+
+        Returns:
+            list: The list of matching channels.
+        """
         r = re.compile(patt)
-        
         return list(filter(r.match, self.channels))
     
 #%% MDF_OBJECT 
 
 class MDF_OBJECT(Data_Interface):
-       
-    def __init__(self, path, config=None, sampling=0.1, name=None, comment=None):
+    """
+    Represents an MDF object that provides access to MDF file data.
 
+    Args:
+        path (str): The path to the MDF file.
+        config (dict, optional): Configuration dictionary specifying the channels to extract. Defaults to None.
+        sampling (float, optional): The sampling rate for resampling the data. Defaults to 0.1.
+        name (str, optional): The name of the MDF object. Defaults to None.
+        comment (str, optional): The comment associated with the MDF object. Defaults to None.
+
+    Attributes:
+        sampling (float): The sampling rate for resampling the data.
+        fhandler: The MDF file handler.
+        info: Information about the MDF file.
+        comment: The comment associated with the MDF object.
+        channels: The list of available channels in the MDF file.
+        t: The time axis of the data.
+    """
+
+    def __init__(self, path, config=None, sampling=0.1, name=None, comment=None):
         super().__init__(path, config, comment=comment, name=name)
-        
         self.sampling = sampling
-        
+
     @property
     def fhandler(self):
-        
+        """
+        Lazily initializes and returns the MDF file handler.
+
+        Returns:
+            Mdf: The MDF file handler.
+        """
         if not hasattr(self, '_fhandler'):
-            
-            self._fhandler = mdfreader.Mdf(self.path, no_data_loading=True) 
-                                   
+            self._fhandler = mdfreader.Mdf(self.path, no_data_loading=True)
         return self._fhandler
-    
+
     @property
     def info(self):
-        
+        """
+        Returns information about the MDF file.
+
+        Returns:
+            dict: Information about the MDF file.
+        """
         return self.fhandler.info
-    
+
     @property
     def comment(self):
-        
-        if self._comment is None :
-            
+        """
+        Returns the comment associated with the MDF object.
+
+        Returns:
+            dict: The comment associated with the MDF object.
+        """
+        if self._comment is None:
             cmmt = self.info['HD']['Comment']
-                
             if cmmt.get('TX') is not None:
-            
                 txt = dict(re.findall(r'(.+):\s+(.+)', cmmt.get('TX')))
-                
                 cmmt.update(txt)
-            
             self._comment = cmmt
-            
-        return self._comment  
-    
+        return self._comment
+
     @property
     def channels(self):
-        
-        return sorted(set(self.fhandler.keys()))   
+        """
+        Returns the list of available channels in the MDF file.
+
+        Returns:
+            list: The list of available channels.
+        """
+        return sorted(set(self.fhandler.keys()))
 
     @property
     def t(self):
-        
+        """
+        Returns the time axis of the data.
+
+        Returns:
+            ndarray: The time axis.
+        """
         if self.config is None:
-            
             warnings.warn('Time axis may have deviation due to missing configuration.')
-        
         if not len(self.df):
-            
             df = self.get_channels(self.channels[0])
-            
             t = df.index
-            
         else:
-            
             t = self.df.index
-            
         return np.asarray(t)
-    
+
     def keys(self):
-        
+        """
+        Returns the list of keys.
+
+        Returns:
+            list: The list of keys.
+        """
         if not len(self.df):
-            
             res = self.channels
-            
         else:
-            
             res = list(self.df.keys())
-        
-        return res   
-    
+        return res
+
     def search_channel(self, patt):
-        
+        """
+        Searches for channels that match the given pattern.
+
+        Args:
+            patt (str): The pattern to search for.
+
+        Returns:
+            list: The list of channels that match the pattern.
+        """
         r = re.compile(patt)
-        
         return list(filter(r.match, self.channels))
-    
+
     @translate_config()
     @extract_channels()
     def get_channels(self, *channels):
-               
+        """
+        Extracts the specified channels from the MDF file.
+
+        Args:
+            *channels: The channels to extract.
+
+        Returns:
+            DataFrame: The extracted channels as a DataFrame.
+        """
         def get(chn):
-            
             mname = mdfobj.get_channel_master(chn)
-            
             if mname is None:
-                
                 raise ValueError
-                                
             dat = mdfobj.get_channel(chn)['data']
             t = mdfobj.get_channel(mname)['data']
-
-            
-            return pd.Series(dat, index=t-t.min(), name=chn)        
+            return pd.Series(dat, index=t-t.min(), name=chn)
 
         mdfobj = mdfreader.Mdf(self.path, channel_list=channels)
-        
-        
-        if self.sampling is not None:            
-            mdfobj.resample(self.sampling)    
-        
+        if self.sampling is not None:
+            mdfobj.resample(self.sampling)
         outs = []
-        
-        for chn in channels: 
+        for chn in channels:
             try:
                 res = get(chn)
                 outs.append(res)
-                
             except ValueError:
                 raise
-                warnings.warn(f'Channel "{chn}" not found.')  
-                
+                warnings.warn(f'Channel "{chn}" not found.')
         return pd.concat(outs, axis=1)
-    
-    def get_df(self):
-                
-        if self.config is None:
-            
-            df = pd.DataFrame()
-        
-        else:
-            
-            df = self.get_channels(*self.config.keys())
-                        
-        return df   
 
-        
-    def get(self, *names):
-        
-        if all(na in self.df.keys() for na in names):
-            
-            res = self.df[list(names)]
-            
-        elif len(names) == 1 and (names[0].lower() == 't' 
-                                  or names[0].lower() == 'time' 
-                                  or names[0].lower() == 'index'):
-            
-            if names[0] in self.df.keys():
-                
-                res = self.df[names]
-                
-            else:
-                
-                res = pd.DataFrame(self.t, index=self.t, columns= ['time'])
-                        
+    def get_df(self):
+        """
+        Returns the DataFrame representation of the MDF object.
+
+        Returns:
+            DataFrame: The DataFrame representation of the MDF object.
+        """
+        if self.config is None:
+            df = pd.DataFrame()
         else:
-            
+            df = self.get_channels(*self.config.keys())
+        return df
+
+    def get(self, *names):
+        """
+        Returns the specified data from the MDF object.
+
+        Args:
+            *names: The names of the data to retrieve.
+
+        Returns:
+            DataFrame: The retrieved data as a DataFrame.
+        """
+        if all(na in self.df.keys() for na in names):
+            res = self.df[list(names)]
+        elif len(names) == 1 and (names[0].lower() == 't' or names[0].lower() == 'time' or names[0].lower() == 'index'):
+            if names[0] in self.df.keys():
+                res = self.df[names]
+            else:
+                res = pd.DataFrame(self.t, index=self.t, columns=['time'])
+        else:
             res = self.get_channels(*names)
-            
-        return res  
+        return res
 
   
     
 #%% MATLAB_OJBECT
 
 class MATLAB_OBJECT(Data_Interface):
-    
-    
-    def __init__(self, path, config=None, key=None, name=None, comment=None, **kwargs):
+    """
+    Represents a MATLAB object that can be loaded from a file.
 
+    Args:
+        path (str): The path to the MATLAB file.
+        config (dict, optional): Configuration parameters for the object. Defaults to None.
+        key (str, optional): The key to access the desired data in the MATLAB file. Defaults to None.
+        name (str, optional): The name of the object. Defaults to None.
+        comment (str, optional): Additional comment for the object. Defaults to None.
+        **kwargs: Additional keyword arguments.
+
+    Attributes:
+        matkey (str): The key to access the desired data in the MATLAB file.
+
+    Properties:
+        fhandler (numpy.ndarray): The loaded data from the MATLAB file.
+        t (numpy.ndarray): The time values associated with the data.
+
+    Methods:
+        get_df(): Returns a pandas DataFrame containing the loaded data.
+
+    """
+
+    def __init__(self, path, config=None, key=None, name=None, comment=None, **kwargs):
         super().__init__(path, config, comment=comment, name=name)
         self.matkey = key
-        
+
     @property
     def fhandler(self):
-        
+        """
+        The loaded data from the MATLAB file.
+
+        Returns:
+            numpy.ndarray: The loaded data.
+
+        Raises:
+            ValueError: If the data area cannot be found in the MATLAB file.
+
+        """
         if not hasattr(self, '_fhandler'):
-            
             mat = scipy.io.loadmat(self.path)
             if self.matkey:
-                
                 self._fhandler = mat[self.matkey]
-                
             else:
                 for v in mat.values():
-                    
                     if isinstance(v, np.ndarray) and v.size > 0:
                         self._fhandler = v
                         break
                 else:
-                    
                     raise ValueError('Can not find data area')
-                    
-        return self._fhandler   
-    
+        return self._fhandler
+
     @property
     def t(self):
+        """
+        The time values associated with the data.
+
+        Returns:
+            numpy.ndarray: The time values.
+
+        """
         key = None
-        if 't' in self.df.columns :
-            
+        if 't' in self.df.columns:
             key = 't'
-            
         elif 'time' in self.df.columns:
-            
             key = 'time'
-        
-        if key: 
+        if key:
             return self.df[key].to_numpy()
         else:
             return self.df.index.to_numpy()
-    
-    
-    def get_df(self):
-        
-        dat = dict((k, self.fhandler[k].ravel()[0].ravel()) for 
-                   k in self.fhandler.dtype.fields.keys())
-        
 
-        df = pd.DataFrame(dat)    
-        
-            
+    def get_df(self):
+        """
+        Returns a pandas DataFrame containing the loaded data.
+
+        Returns:
+            pandas.DataFrame: The DataFrame containing the loaded data.
+
+        """
+        dat = dict((k, self.fhandler[k].ravel()[0].ravel()) for k in self.fhandler.dtype.fields.keys())
+        df = pd.DataFrame(dat)
         return df
 
 #%% AMERES_OJBECT
 class AMERES_OBJECT(Data_Interface):
+    """
+    Represents an object for handling AMERES data.
+
+    Args:
+        path (str): The path to the AMERES data file.
+        config (dict): Configuration parameters for data extraction.
+        name (str): The name of the AMERES object.
+        comment (str): Additional comment for the AMERES object.
+
+    Attributes:
+        params (dict): A dictionary containing the parameters of the AMERES data.
+        t (numpy.ndarray): An array containing the time values of the AMERES data.
+        channels (list): A sorted list of data channels in the AMERES data.
+
+    Methods:
+        get_channels: Retrieves the specified data channels from the AMERES data.
+        get_df: Retrieves a DataFrame containing the specified data channels.
+        get: Retrieves the specified data channels or time values from the AMERES data.
+        get_results: Retrieves the raw data from the AMERES data file.
+        keys: Retrieves the keys (data channels) of the AMERES data.
+        search_channel: Searches for data channels that match a given pattern.
+    """
+
 
     def __init__(self, path=None, config=None, name=None, comment=None):
         
@@ -1309,53 +1481,53 @@ class AMERES_OBJECT(Data_Interface):
         
     @property
     def params(self):
-        
+        """
+        Parses a parameter file and returns a dictionary of parameter information.
+
+        Returns:
+            dict: A dictionary containing parameter information. The keys are the data paths and the values are dictionaries
+                  containing the parameter details such as 'Data_Path', 'Param_Id', 'Unit', 'Label', 'Description', and 'Row_Index'.
+        """
         fparam = self.path.parent / (self.path.stem+'.ssf')
         out = dict()
-        
+
         with open(fparam, 'r') as fobj:
-            
             lines = fobj.readlines()
-        
+
         for idx, l in enumerate(lines, start=1):
-            
             item = dict()
             l = l.strip()
-            
+
             try:
-                
                 raw, = re.findall(r'Data_Path=\S+', l)
                 l = l.replace(raw, '').strip()
-                s, = re.findall(r'Data_Path=(.+)', raw)    
+                s, = re.findall(r'Data_Path=(.+)', raw)
                 item['Data_Path'] = s
-                
+
                 raw, = re.findall(r'Param_Id=\S+', l)
                 l = l.replace(raw, '').strip()
-                s, = re.findall(r'Param_Id=(.+)', raw)                    
+                s, = re.findall(r'Param_Id=(.+)', raw)
                 item['Param_Id'] = s
-
             except ValueError:
                 continue
-            
+
             try:
-                
                 raw, = re.findall(r'\[\S+\]', l)
                 l = l.replace(raw, '').strip()
-                s, = re.findall(r'\[(\S+)\]', raw)                    
-                item['Unit'] = s  
-                
+                s, = re.findall(r'\[(\S+)\]', raw)
+                item['Unit'] = s
             except ValueError:
-                item['Unit'] = '-' 
-            
+                item['Unit'] = '-'
+
             raw, = re.findall(r'^[01]+\s+\S+\s+\S+\s+\S+', l)
             l = l.replace(raw, '').strip()
-            s, = re.findall(r'^[01]+\s+(\S+\s+\S+\s+\S+)', raw)    
+            s, = re.findall(r'^[01]+\s+(\S+\s+\S+\s+\S+)', raw)
             item['Label'] = s
-            item['Description'] = l   
+            item['Description'] = l
             item['Row_Index'] = idx
-            
-            out[item['Data_Path']] = item                
-            
+
+            out[item['Data_Path']] = item
+
         return out
     
     @property
@@ -1380,6 +1552,15 @@ class AMERES_OBJECT(Data_Interface):
     @translate_config()
     @extract_channels()
     def get_channels(self, *channels):
+        """
+        Retrieves the data for the specified channels.
+        
+        Parameters:
+        *channels: Variable number of channel names
+        
+        Returns:
+        df: Pandas DataFrame containing the data for the specified channels, with time as the index.
+        """
         
         params = self.params
         
@@ -1392,17 +1573,21 @@ class AMERES_OBJECT(Data_Interface):
         
         df.index.name = 'time'
         
-        return df 
+        return df
 
     def get_df(self):
+        """
+        Returns a DataFrame based on the configuration settings.
 
-        
+        If the configuration is None, an empty DataFrame is returned.
+        Otherwise, a DataFrame is returned based on the channels specified in the configuration.
+
+        Returns:
+            pandas.DataFrame: The resulting DataFrame.
+        """
         if self.config is None:
-            
             df = pd.DataFrame()
-        
         else:
-            
             df = self.get_channels(*self.config.keys())
 
         return df
@@ -1432,20 +1617,29 @@ class AMERES_OBJECT(Data_Interface):
         return res
 
     def get_results(self, rows=None):
-        
-        with open(self.path, "rb") as fobj:
-        
-            narray, = np.fromfile(fobj, dtype=np.dtype('i'), count=1)
-            nvar, = abs(np.fromfile(fobj, dtype=np.dtype('i'), count=1))
-            _ = np.hstack([[0], np.fromfile(fobj, dtype=np.dtype('i'), count=nvar)+1])                        
-            nvar = nvar + 1
-            array = np.fromfile(fobj, dtype=np.dtype('d'), count=narray*nvar)
-            array = array.reshape(narray, nvar).T
-                
-        array = (array if rows is None 
-                 else array[np.concatenate([[0], np.asarray(rows, dtype=int).ravel()])])
-        
-        return array
+            """
+            Retrieves the results from a file and returns them as a NumPy array.
+
+            Parameters:
+            - rows (list or None): Optional list of row indices to retrieve. If None, all rows are retrieved.
+
+            Returns:
+            - array (ndarray): NumPy array containing the retrieved results.
+            """
+            
+            with open(self.path, "rb") as fobj:
+            
+                narray, = np.fromfile(fobj, dtype=np.dtype('i'), count=1)
+                nvar, = abs(np.fromfile(fobj, dtype=np.dtype('i'), count=1))
+                _ = np.hstack([[0], np.fromfile(fobj, dtype=np.dtype('i'), count=nvar)+1])                        
+                nvar = nvar + 1
+                array = np.fromfile(fobj, dtype=np.dtype('d'), count=narray*nvar)
+                array = array.reshape(narray, nvar).T
+                    
+            array = (array if rows is None 
+                     else array[np.concatenate([[0], np.asarray(rows, dtype=int).ravel()])])
+            
+            return array
     
     def keys(self):
         
@@ -1467,66 +1661,122 @@ class AMERES_OBJECT(Data_Interface):
     
 #%% AMEGP_OJBECT
 class AMEGP_OBJECT(Data_Interface):
+    """
+    Represents an object for handling AMEGP data.
+
+    Args:
+        path (str): The path to the data file.
+        config (dict): Configuration settings for the object.
+        name (str): The name of the object.
+        comment (str): Additional comment for the object.
+
+    Attributes:
+        path (str): The path to the data file.
+        config (dict): Configuration settings for the object.
+        name (str): The name of the object.
+        comment (str): Additional comment for the object.
+        df (pd.DataFrame): The data stored in a pandas DataFrame.
+
+    Methods:
+        __init__(self, path=None, config=None, name=None, comment=None):
+            Initializes a new instance of the AMEGP_OBJECT class.
+        __setitem__(self, name, value):
+            Sets the value of a specific item in the object.
+        get_df(self):
+            Retrieves the data as a transposed DataFrame.
+        set_value(self, name, value):
+            Sets the value of a specific item in the DataFrame.
+        save(self, name=None):
+            Saves the object's data to a file.
+
+    """
 
     def __init__(self, path=None, config=None, name=None, comment=None):
-        
+        """
+        Initializes a new instance of the AMEGP_OBJECT class.
+
+        Args:
+            path (str): The path to the data file.
+            config (dict): Configuration settings for the object.
+            name (str): The name of the object.
+            comment (str): Additional comment for the object.
+
+        """
         if name is None:
-            
             name = Path(path).stem[:-1]
         
         super().__init__(path, config=config, name=name, comment=comment)  
-        
+    
     def __setitem__(self, name, value):
-        
+        """
+        Sets the value of a specific item in the object.
+
+        Args:
+            name (str): The name of the item.
+            value: The value to be set.
+
+        """
         self.set_value(name, value)
         
     def get_df(self):
-        
+        """
+        Retrieves the data as a transposed DataFrame.
+
+        Returns:
+            pd.DataFrame: The data stored in a pandas DataFrame.
+
+        """
         df = pd.read_xml(self.path)
-        
         df.set_index('VARNAME', inplace=True)
-                
         return df.transpose()
     
     def set_value(self, name, value):
-        
+        """
+        Sets the value of a specific item in the DataFrame.
+
+        Args:
+            name (str): The name of the item.
+            value: The value to be set.
+
+        Returns:
+            self: The updated AMEGP_OBJECT instance.
+
+        """
         self.df.at['VALUE', name] = value
-        
         return self
     
     def save(self, name=None):
-       
+        """
+        Saves the object's data to a file.
+
+        Args:
+            name (str, optional): The name of the file to save the data to. If not provided, the original file will be overwritten.
+
+        Returns:
+            self: The AMEGP_OBJECT instance.
+
+        """
         name = name if name is not None else self.path
         
         with open(self.path, 'r') as fobj:
-        
             lines = fobj.readlines()
         
         newlines = []
         
         for l in lines:
-        
-        
             if re.match(r'^<VARNAME>.+</VARNAME>$', l.strip()):
-                
                 varname, = re.findall(r'^<VARNAME>(.+)</VARNAME>$', l.strip())
-                
                 item = self.df[varname]
                 
             if re.match(r'^<VALUE>.+</VALUE>$', l.strip()):  
-                
                 str_old, = re.findall(r'^<VALUE>.+</VALUE>$', l.strip())
-
                 str_new = '<VALUE>{}</VALUE>'.format(item['VALUE'])
                 l = l.replace(str_old, str_new, 1)
                     
-                
             newlines.append(l)
             
         with open(name, 'w') as fobj:
-          
             fobj.writelines(newlines)
-            
             
         return self
         
