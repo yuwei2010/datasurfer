@@ -137,7 +137,21 @@ def show_pool_progress(msg, show=False, set_init=True, count=None):
 #%% Combine configs
 
 def combine_configs(*cfgs):
-    
+    """
+    Combines multiple configuration dictionaries into a single dictionary.
+
+    Args:
+        *cfgs: Variable number of configuration dictionaries.
+
+    Returns:
+        dict: A dictionary containing the combined configurations.
+
+    Example:
+        >>> cfg1 = {'a': 'apple', 'b': 'banana'}
+        >>> cfg2 = {'a': 'avocado', 'c': 'cherry'}
+        >>> combine_configs(cfg1, cfg2)
+        {'a': ['apple', 'avocado'], 'b': ['banana'], 'c': ['cherry']}
+    """
     out = dict()
     
     for k, v in chain(*[cfg.items() for cfg in cfgs]):
@@ -164,43 +178,70 @@ def combine_configs(*cfgs):
 #%% Data Pool
 
 class DataPool(object):
+    """
+    A class representing a data pool to process datasets.
+    
+    Attributes:
+        Mapping_Interfaces (dict): A dictionary mapping file extensions to corresponding data interface objects.
+        
+    Methods:
+        __init__: Initializes the DataPool object.
+        __enter__: Enters the context manager.
+        __exit__: Exits the context manager.
+        __repr__: Returns a string representation of the DataPool object.
+        __iter__: Returns an iterator over the DataPool object.
+        __len__: Returns the number of objects in the DataPool.
+        __add__: Adds two DataPool objects.
+        __or__: Performs a union operation on two DataPool objects.
+        __and__: Performs an intersection operation on two DataPool objects.
+        __sub__: Performs a difference operation on two DataPool objects.
+        __getitem__: Retrieves data from the DataPool object.
+        __setitem__: Sets a callable object for a given name in the DataPool object.
+        config: Gets or sets the configuration of the DataPool object.
+        describe: Returns a DataFrame with descriptive information about the DataPool object.
+        memory_usage: Returns the memory usage of each object in the DataPool.
+        keys: Returns the names of all objects in the DataPool.
+        names: Returns the names of all objects in the DataPool.
+        sorted: Sorts the objects in the DataPool by name.
+        items: Returns a list of all objects in the DataPool.
+        types: Returns a dictionary mapping object types to objects in the DataPool.
+        length: Returns the number of objects in the DataPool.
+        paths: Returns the file paths of all objects in the DataPool.
+        file_size: Returns the file size of all objects in the DataPool.
+        file_date: Returns the file date of all objects in the DataPool.
+        comments: Returns a DataFrame with comments for each object in the DataPool.
+        configs: Returns a DataFrame with configurations for each object in the DataPool.
+        signals: Returns a list of all unique signal names in the DataPool.
+        signal_count: Returns the number of signals in each object of the DataPool.
+    """
     
     Mapping_Interfaces = {
-                         '.csv': PANDAS_OBJECT,
-                         '.xlsx': PANDAS_OBJECT,
-                         '.mf4': ASAMMDF_OBJECT,
-                         '.mat': MATLAB_OBJECT,
-                         '.results': AMERES_OBJECT,
-                         '.amegp': AMEGP_OBJECT,
-                     }
+        '.csv': PANDAS_OBJECT,
+        '.xlsx': PANDAS_OBJECT,
+        '.mf4': ASAMMDF_OBJECT,
+        '.mat': MATLAB_OBJECT,
+        '.results': AMERES_OBJECT,
+        '.amegp': AMEGP_OBJECT,
+    }
     
     def __init__(self, datobjects=None, config=None, interface=None, **kwargs):
+        """
+        Initializes the DataPool object.
         
-        '''
-            Creating a data pool to process dataset.
+        Args:
+            datobjects (str, Path, list, set, tuple): Path of data directory or list of data file paths.
+            config (dict, str): Configuration in dictionary format or path to a config file.
+            interface (type): Data interface class.
+            **kwargs: Additional keyword arguments.
+        
+        Usage:
+            # Create a data pool
+            pool = DataPool(r'/data', config='config.json')
             
-            Inputs:
-                
-                datobjects: path of data directory or list of data file paths 
-                config:     configuration in dictionary format or path to a config file, in format of excel or json 
+            # Get data from pool, return a pandas dataframe
+            TRotor = pool['tRotor']
+        """
 
-                
-            Output:
-                
-                A Pool-Object to access the data
-                
-            usage:
-                
-                # Create a data pool
-                
-                pool = Data_Pool(r'/data', config='config.json')
-                
-                # Get data from pool, return a pandas dataframe
-                
-                TRotor = pool['tRotor']
-        
-        
-        '''
         
         self.silent = kwargs.pop('silent', False)
         self.name = kwargs.pop('name', None)
@@ -287,17 +328,22 @@ class DataPool(object):
         return True        
 
     def __repr__(self):
-        
+        """
+        Returns a string representation of the object.
+
+        The string representation includes the class name, object name (if available),
+        and the count of each object type in the `objs` list.
+
+        Returns:
+            str: A string representation of the object.
+        """
         obj_names = [obj.__class__.__name__ for obj in self.objs]
-        
         obj_types = set(obj_names)
-        
         s = ';'.join(f'{typ}({obj_names.count(typ)})' for typ in obj_types)
-        
         if self.name:
-            return  f'<{self.__class__.__name__}"{self.name}"@{s}>'   
-        else: 
-            return f'<{self.__class__.__name__}@{s}>' 
+            return f'<{self.__class__.__name__}"{self.name}"@{s}>'
+        else:
+            return f'<{self.__class__.__name__}@{s}>'
 
     def __iter__(self):
         
@@ -329,7 +375,15 @@ class DataPool(object):
     
     
     def __getitem__(self, inval):
+        """
+        Retrieve an item from the datapool.
 
+        Parameters:
+            inval (str, list, tuple, set, function, np.ndarray, pd.Series, pd.DataFrame): The key or keys to retrieve from the datapool.
+
+        Returns:
+            object: The retrieved item(s) from the datapool.
+        """
         if isinstance(inval, str):
             
             if '*' in inval:
@@ -383,24 +437,42 @@ class DataPool(object):
         else:
             out = self.objs[inval]
             
-        return out   
+        return out
     
     def __setitem__(self, name, fun):
-        
+        """
+        Set the value of an item in the datapool.
+
+        Args:
+            name (str): The name of the item.
+            fun (callable): The function to be associated with the item.
+
+        Raises:
+            AssertionError: If the input value is not callable.
+        """
         assert hasattr(fun, '__call__'), 'Input value must be callable.'
-        
+
         self.apply(name, fun)
 
     @property
     def config(self):
-        
+        """
+        Combines the configurations of all objects in the datapool.
+
+        Returns:
+            dict: The combined configuration.
+        """
         out = combine_configs(*[obj.config for obj in self.objs if obj.config])
-                        
         return out
     
     @config.setter    
     def config(self, value):
+        """
+        Configure the objects in the datapool with the given value.
         
+        Args:
+            value: The value to be set as the configuration for the objects.
+        """
         for obj in self.objs:
             if hasattr(obj, '_df'):
                 del obj._df
@@ -409,7 +481,24 @@ class DataPool(object):
             obj.config = value
             
     def describe(self, pbar=False):
-        
+        """
+        Generates a summary DataFrame containing information about the data pool.
+
+        Parameters:
+            pbar (bool): Whether to display a progress bar during memory usage calculation. Default is False.
+
+        Returns:
+            pandas.DataFrame: Summary DataFrame with the following columns:
+                - Signal: Number of signals in the data pool.
+                - Signal Length: Length of each signal.
+                - Count: Number of occurrences of each signal.
+                - Memory: Memory usage of the data pool in megabytes.
+                - Interface: Class name of each signal object.
+                - File Type: File extension of each signal file.
+                - Size: Size of the data pool file in megabytes.
+                - Date: Date of the data pool file.
+                - Path: File path of the data pool file.
+        """
         path = self.paths()
         signal = self.signal_count(pbar=False)
         length = pd.Series([obj.__len__() for obj in self.objs], 
@@ -426,27 +515,30 @@ class DataPool(object):
         return df
                 
     def memory_usage(self, pbar=True):
-        
-        @show_pool_progress('Calculating', show=pbar)
-        def fun(self):
+            """
+            Calculate the memory usage of each object in the datapool.
+
+            Parameters:
+            - pbar (bool): Whether to show a progress bar during calculation. Default is True.
+
+            Returns:
+            - s (pd.Series): Series containing the memory usage of each object.
+            """
             
-            for obj in self.objs:
+            @show_pool_progress('Calculating', show=pbar)
+            def fun(self):
                 
-                yield obj.name, obj.memory_usage().sum()
-        
-        s = pd.Series(dict(fun(self)), name='Memory Usage')
-        return s
+                for obj in self.objs:
+                    
+                    yield obj.name, obj.memory_usage().sum()
+            
+            s = pd.Series(dict(fun(self)), name='Memory Usage')
+            return s
 
     def keys(self):
-        
-        '''
-            return all file names from pool
-        
-            usage:
-                
-                keys = obj.keys()
-        '''
-        
+        """
+        Returns a list of keys in the datapool.
+        """
         return [obj.name for obj in self.objs]
     
     def names(self):
@@ -501,76 +593,116 @@ class DataPool(object):
         return pd.DataFrame(dict((obj.name, obj.config) for obj in self.objs))
         
     def signals(self, count=None, pbar=False):
-        
+        """
+        Returns a list of unique keys from the objects in the datapool.
+
+        Args:
+            count (int, optional): The maximum number of objects to consider. If not specified, all objects are considered.
+            pbar (bool, optional): Whether to show a progress bar during processing. Default is False.
+
+        Returns:
+            list: A sorted list of unique keys from the objects in the datapool.
+        """
         if count is not None: 
-                       
             count = max([1, count])
         
         @show_pool_progress('Processing', show=pbar, count=count)
-        def get(self):
-            
-            if count is not None:
-                objs = self.objs[:count]
+        class DataPool:
+            def __init__(self, objs):
+                self.objs = objs
+
+            def get(self, count=None):
+                """
+                Retrieves a generator that yields the keys of the objects in the DataPool.
+
+                Args:
+                    count (int, optional): The number of objects to retrieve. If None, retrieves all objects.
+
+                Yields:
+                    dict_keys: The keys of the objects in the DataPool.
+                """
+                if count is not None:
+                    objs = self.objs[:count]
+                else:
+                    objs = self.objs
                 
-            else:
-                objs = self.objs
-            
-            for obj in objs:
-                
-                yield obj.keys()
+                for obj in objs:
+                    yield obj.keys()
                 
         keys = sorted(set(chain(*get(self))))    
-        
         return keys
     
     def signal_count(self, pbar=True):
-        
+        """
+        Returns a pandas Series containing the count of signals for each object in the datapool.
+
+        Parameters:
+            pbar (bool): Whether to show a progress bar during processing. Default is True.
+
+        Returns:
+            pandas.Series: A Series object with the signal count for each object.
+        """
         @show_pool_progress('Processing', show=pbar)
         def get(self):
-            
             for obj in self.objs:
-                
                 yield obj.name, len(obj.keys())
                 
         return pd.Series(dict(get(self)), name='Signal Count')
     
     def count(self, pbar=True):
-        
+        """
+        Count the signal size for each object in the datapool.
+
+        Args:
+            pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+
+        Returns:
+            pd.Series: A pandas Series containing the signal size for each object.
+        """
         @show_pool_progress('Processing', show=pbar)
         def get(self):
-            
             for obj in self.objs:
-                
                 yield obj.name, obj.count().sum()
                 
         return pd.Series(dict(get(self)), name='Signal Size')
     
     
     def initialize(self, pbar=True):
-        
+        """
+        Initializes the datapool by calling the `initialize` method on each object in the datapool.
+
+        Args:
+            pbar (bool, optional): Whether to show a progress bar during initialization. Defaults to True.
+        """
         @show_pool_progress('Initializing', show=pbar, set_init=True)
         def get(self):
-            
             for obj in self.objs:
-                
                 obj.initialize()
-                
                 yield
-        
+
         list(get(self))
-        
+
         return self
     
     def load_signals(self, *keys, mapping=None, pbar=True):
-        
+        """
+        Load signals from the data pool.
+
+        Args:
+            *keys: Variable length argument list of keys to load.
+            mapping: Optional mapping object to apply to the loaded signals.
+            pbar: Boolean flag indicating whether to show a progress bar.
+
+        Returns:
+            The updated data pool object.
+
+        """
         @show_pool_progress('Loading', show=pbar)
         def get(self):
             for obj in self.objs:
-                
                 obj.load(*keys, mapping=mapping)
-                
                 yield
-        
+
         list(get(self))
         return self
 
@@ -625,35 +757,75 @@ class DataPool(object):
                     raise
 
     def get_signal(self, signame, ignore_error=True, mask=None):
-        
+        """
+        Retrieves the data for a given signal name.
+
+        Args:
+            signame (str): The name of the signal to retrieve.
+            ignore_error (bool, optional): Whether to ignore errors if the signal is not found. Defaults to True.
+            mask (str, optional): A mask to filter the data. Defaults to None.
+
+        Returns:
+            pandas.DataFrame: The concatenated data for the given signal.
+        """
         dats = list(self.iter_signal(
-                signame, ignore_error=ignore_error, mask=mask))
-        
+            signame, ignore_error=ignore_error, mask=mask))
+
         return pd.concat(dats, axis=1)
     
 
     def get_signal1D(self, signame, ignore_error=True, mask=None, reindex=True):
-        
+        """
+        Retrieve a 1-dimensional signal from the datapool.
+
+        Parameters:
+        - signame (str): The name of the signal to retrieve.
+        - ignore_error (bool): Whether to ignore errors if the signal is not found. Default is True.
+        - mask (ndarray): An optional mask to apply to the retrieved data. Default is None.
+        - reindex (bool): Whether to reindex the output DataFrame. Default is True.
+
+        Returns:
+        - DataFrame: A pandas DataFrame containing the retrieved signal.
+        """
         dats = list(self.iter_signal(
-                signame, ignore_error=ignore_error, mask=mask))
-                        
+            signame, ignore_error=ignore_error, mask=mask))
+
         out = pd.DataFrame(np.concatenate(dats, axis=0), columns=[signame])
-        
+
         if reindex:
-            
             out.index = np.arange(len(out))
-        
+
         return out
     
     def get_signals(self, *signames, ignore_error=True, mask=None):
-        
+        """
+        Retrieves the values of multiple signals from the datapool.
+
+        Args:
+            *signames: Variable-length argument list of signal names.
+            ignore_error (bool): Flag indicating whether to ignore errors when retrieving signals.
+            mask: Optional mask to apply to the retrieved signals.
+
+        Returns:
+            dict: A dictionary mapping signal names to their corresponding values.
+        """
         return dict((signame, self.get_signal(signame, ignore_error=ignore_error, mask=mask))
-                for signame in signames)
+                    for signame in signames)
     
     def get_object(self, name):
-        
+        """
+        Retrieve an object from the datapool by its name.
+
+        Args:
+            name (str): The name of the object to retrieve.
+
+        Returns:
+            object: The object with the specified name.
+
+        Raises:
+            NameError: If no object with the specified name is found.
+        """
         for obj in self.objs:
-            
             if obj.name == name:
                 return obj
         else:
@@ -661,47 +833,68 @@ class DataPool(object):
             
     
     def get_testobj(self):
+        """
+        Returns the test object with the smallest file size for test purpos.
         
+        Returns:
+            The test object with the smallest file size.
+        """
         idx = self.file_size().values.argsort()[0]
-        
         return self.objs[idx]
     
             
     def search_object(self, patt, ignore_case=True, raise_error=False):
-        
+        """
+        Search for objects in the datapool that match a given pattern.
+
+        Parameters:
+        - patt (str): The pattern to search for.
+        - ignore_case (bool): Whether to ignore the case when matching the pattern. Default is True.
+        - raise_error (bool): Whether to raise a KeyError if no objects are found. Default is False.
+
+        Returns:
+        - found (list): A list of keys of the objects that match the pattern.
+        """
         found = []
-        
-        if ignore_case: patt = patt.lower()
-        
+
+        if ignore_case:
+            patt = patt.lower()
+
         for key in self.keys():
-            
+
             if ignore_case:
-                
                 key0 = key.lower()
             else:
                 key0 = key
-            
+
             if re.match(patt, key0):
-                
                 found.append(key)
-                
-                
+
         if not found and raise_error:
-            
             raise KeyError(f'Cannot find any object with pattern "{patt}".')
-                
+
         return found
     
     def search_signal(self, patt, ignore_case=False, raise_error=False, pbar=True):
-    
+        """
+        Search for a signal in the datapool.
+
+        Args:
+            patt (str): The pattern to search for.
+            ignore_case (bool, optional): Whether to ignore case when searching. Defaults to False.
+            raise_error (bool, optional): Whether to raise an error if the signal is not found. Defaults to False.
+            pbar (bool, optional): Whether to show a progress bar during the search. Defaults to True.
+
+        Returns:
+            list: A sorted list of unique signals matching the pattern.
+        """
+
         @show_pool_progress('Searching', pbar)
         def get(self):        
             for obj in self.objs:                
-                yield obj.search(patt, ignore_case=ignore_case, 
-                                      raise_error=raise_error)
-                
-        
-        return sorted(set(chain(*get(self)))) 
+                yield obj.search(patt, ignore_case=ignore_case, raise_error=raise_error)
+            
+        return sorted(set(chain(*get(self))))
     
     def sort_objects(self, key):
         
@@ -709,57 +902,77 @@ class DataPool(object):
     
 
     def apply(self, signame, methode, ignore_error=True, pbar=True):
-        
+        """
+        Apply a given method to each object in the datapool.
+
+        Args:
+            signame (str): The name of the signal to be modified.
+            methode (callable): The method to be applied to each object.
+            ignore_error (bool, optional): Whether to ignore errors raised during processing. Defaults to True.
+            pbar (bool, optional): Whether to display a progress bar. Defaults to True.
+
+        Returns:
+            self: The modified datapool object.
+        """
 
         @show_pool_progress('Processing', pbar)
         def get(self):
             for obj in self.objs:
-    
-                try:
 
+                try:
                     obj.df[signame] = methode(obj)
-                    
                 except Exception as err:
-                    
-                    if ignore_error:     
-                        
+                    if ignore_error:
                         errname = err.__class__.__name__
                         tb = traceback.format_exc(limit=0, chain=False)
                         warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
                     else:
-                        raise    
-                        
+                        raise
+
                 yield True
-                    
+
         list(get(self))
         return self
 
     def merge(self, pool0):
-        
+        """
+        Merges the objects from another datapool into the current datapool.
+
+        Args:
+            pool0 (DataPool): The datapool to merge.
+
+        Returns:
+            DataPool: The merged datapool.
+        """
         names = [obj.name for obj in self.objs]
-        
+
         for obj in pool0.objs:
-            
             if obj.name not in names:
-                
                 self.objs.append(obj)
-                
+
         return self
     
     def merge_data(self, pool0):
-        
+        """
+        Merges the data from another datapool into the current datapool.
+
+        Args:
+            pool0 (DataPool): The datapool containing the data to be merged.
+
+        Returns:
+            DataPool: The current datapool with the merged data.
+        """
 
         names0 = [obj.name for obj in pool0.objs]
-        
+
         for obj in self.objs:
-            
+
             if obj.name in names0:
-                
+
                 obj0 = pool0.objs[names0.index(obj.name)]
-                
+
                 obj.merge(obj0)
-                
-                
+
         return self
          
     def pop(self, name):
@@ -769,18 +982,23 @@ class DataPool(object):
         
     
     def squeeze(self, *keys, pbar=True):
-        
+        """
+        Squeezes the objects in the datapool by applying the squeeze method to each object.
+
+        Args:
+            *keys: Variable length argument representing the keys to be passed to the squeeze method of each object.
+            pbar (bool): Flag indicating whether to display a progress bar during the squeezing process. Default is True.
+
+        Returns:
+            self: The modified datapool object after squeezing.
+
+        """
         @show_pool_progress('Processing', pbar)
         def get(self):
-        
             for obj in self.objs:
-
                 obj.squeeze(*keys)
-                    
                 yield
-                    
         list(get(self))
-            
         return self
         
     def select(self, mask_array):
@@ -793,41 +1011,58 @@ class DataPool(object):
         return [obj for obj, msk in zip(self.objs, mask_array) if msk]
     
     def pipe(self, *funs):
-        
+        """
+        Applies a series of functions to each object in the data pool and yields the result.
+
+        Args:
+            *funs: Variable number of functions to be applied to each object.
+
+        Yields:
+            The modified object after applying all the functions.
+        """
         for obj in self.objs:
-            
             for fun in funs:
-                
                 fun(obj)
-                
             yield obj
                 
                 
     def deepcopy(self, pbar=True):
+            """
+            Create a deep copy of the DataPool object.
 
-        @show_pool_progress('Copying', show=pbar)
-        def fun(self):
-            
-            for name, dat in self.iter_dict():
-                df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-                obj = DATA_OBJECT(path=dat['path'],
-                                  config=dat['config'],
-                                  comment=dat['comment'],
-                                  name=dat['name'],
-                                  df=df)                
-                yield obj
+            Parameters:
+            - pbar (bool): Whether to show a progress bar during the copy process. Default is True.
+
+            Returns:
+            - DataPool: A new DataPool object that is a deep copy of the original object.
+            """
+            @show_pool_progress('Copying', show=pbar)
+            def fun(self):
                 
-                
-        objs = list(fun(self))
-                
-        return self.__class__(objs)
+                for name, dat in self.iter_dict():
+                    df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
+                    obj = DATA_OBJECT(path=dat['path'],
+                                      config=dat['config'],
+                                      comment=dat['comment'],
+                                      name=dat['name'],
+                                      df=df)                
+                    yield obj
+                    
+                    
+            objs = list(fun(self))
+                    
+            return self.__class__(objs)
     
     def iter_dict(self):
-                
+        """
+        Iterate over the objects in the datapool and yield a dictionary for each object.
+        
+        Returns:
+            A generator that yields a tuple containing the object name and a dictionary
+            containing information about the object.
+        """
         for obj in self.objs:
-                        
             out = dict()
-            
             out['path'] = str(obj.path)
             out['config'] = obj.config
             out['comment'] = obj.comment  
@@ -836,23 +1071,28 @@ class DataPool(object):
             out['index'] = obj.df.index
             out['columns'] = obj.df.columns
             
-            yield obj.name, out    
+            yield obj.name, out
             
     def rename_signals(self, **kwargs):
-        
+        """
+        Renames signals in the datapool.
+
+        Args:
+            **kwargs: Additional keyword arguments to be passed to the `rename` method of each signal object.
+
+        Returns:
+            self: The updated datapool object.
+        """
         pbar = kwargs.pop('pbar', True)
-        
+
         @show_pool_progress('Renaming', show=pbar)
         def get(self):
-            
-            for obj in self.objs: 
-                
+            for obj in self.objs:
                 obj.rename(**kwargs)
-                
                 yield
-                
+
         list(get(self))
-        
+
         return self
     
     def to_dataframe(self, columns=None, pbar=True):
@@ -888,40 +1128,64 @@ class DataPool(object):
             return pd.concat(dfs, axis=1)
                 
     def to_csvs(self, wdir, pbar=True):
-        
+        """
+        Save the data from each object in the datapool to separate CSV files.
+
+        Args:
+            wdir (str): The directory path where the CSV files will be saved.
+            pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+
+        Returns:
+            self: The current instance of the datapool.
+        """
         wdir = Path(wdir)
         wdir.mkdir(exist_ok=True)
-        
+
         @show_pool_progress('Saving', show=pbar)
         def fun(self):
-
             for obj in self.objs:
-                
                 obj.df.to_csv(wdir / (obj.name+'.csv'))
-                
                 yield True
-                
+
         list(fun(self))
-        
-        return self 
+
+        return self
 
     def to_excels(self, wdir, pbar=True):
-        
+        """
+        Save each object's DataFrame to an Excel file in the specified directory.
+
+        Args:
+            wdir (str): The directory path where the Excel files will be saved.
+            pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+
+        Returns:
+            self: The current instance of the DataPool class.
+        """
         wdir = Path(wdir)
         wdir.mkdir(exist_ok=True)
         
         @show_pool_progress('Saving', show=pbar)
         def fun(self):       
             for obj in self.objs:
-    
                 obj.df.to_excel(wdir / (obj.name+'.xlsx'))
                 yield True
             
         list(fun(self))        
-        return self     
+        return self
 
     def to_excel(self, name, pbar=True):
-        
+        """
+        Save the data pool to an Excel file.
+
+        Parameters:
+        - name (str): The name of the Excel file to save.
+        - pbar (bool): Whether to show a progress bar while saving. Default is True.
+
+        Returns:
+        - self: The data pool object.
+
+        """
         with pd.ExcelWriter(name) as writer:
             @show_pool_progress('Saving', show=pbar)
             def fun(self):       
@@ -929,15 +1193,23 @@ class DataPool(object):
                     obj.df.to_excel(writer, sheet_name=obj.name)
                     yield True            
             list(fun(self))        
-            return self             
+            return self
             
     def save(self, name, pbar=True):
-        
+        """
+        Save the data pool to a file.
+
+        Parameters:
+        - name (str): The name of the file to save the data pool to.
+        - pbar (bool): Whether to show a progress bar during the saving process. Default is True.
+
+        Returns:
+        - self: The updated instance of the DataPool class.
+
+        """
         @show_pool_progress('Saving', show=pbar, set_init=True)
         def fun(self):
-            
             for res in self.iter_dict():
-                
                 yield res
                
         out = dict(list(fun(self)))                
@@ -946,9 +1218,20 @@ class DataPool(object):
         return self
     
     def load(self, name, keys=None, pbar=True, count=None):
-                
+        """
+        Load data from a numpy .npz file and create DATA_OBJECT instances.
+
+        Parameters:
+            name (str): The name of the .npz file to load.
+            keys (list, optional): A list of keys to load from the .npz file. If None, all keys will be loaded. Default is None.
+            pbar (bool, optional): Whether to show a progress bar during loading. Default is True.
+            count (int, optional): The maximum number of objects to load. If None, all objects will be loaded. Default is None.
+
+        Returns:
+            self: The updated instance of the class.
+
+        """
         with np.load(name, allow_pickle=True) as npz:
-            
             npzkeys = npz.keys()
             
             if count is None:
@@ -958,12 +1241,9 @@ class DataPool(object):
             
             @show_pool_progress('Loading', show=pbar, count=num)
             def fun(self):
-                
                 ncount = 0
                 for k in npzkeys:
-                    
                     if (keys is None) or (k in keys):
-                                            
                         dat = npz[k].item()            
                         df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
                         obj = DATA_OBJECT(path=dat['path'],
@@ -971,59 +1251,67 @@ class DataPool(object):
                                           comment=dat['comment'],
                                           name=dat['name'],
                                           df=df)
-                        
                         yield obj
                         ncount = ncount + 1
-                        
                         if ncount >= num:
                             break
-    
+        
             self.objs = list(fun(self))                
             self.initialized = True
             
             del npz.f
-    
-            return self
+
+        return self
 
     def split_pool(self, chunk=2, shuffle=True):
-        
+        """
+        Splits the pool of objects into multiple chunks.
+
+        Args:
+            chunk (int): The number of chunks to split the pool into. Default is 2.
+            shuffle (bool): Whether to shuffle the objects before splitting. Default is True.
+
+        Returns:
+            list: A list of DataPool instances, each containing a chunk of objects from the original pool.
+        """
         out = dict()
         objs = self.objs[:]
-        
+
         if shuffle:
             random.shuffle(objs)
 
         while objs:
-            
             for k in range(chunk):
-
-                if not objs: break
-                
+                if not objs:
+                    break
                 out.setdefault(k, []).append(objs.pop())
-                
 
-        return [self.__class__(v) for v in out.values()]        
+        return [self.__class__(v) for v in out.values()]
             
 
     
     def close(self, clean=True, pbar=True):
-        
+        """
+        Closes the datapool.
+
+        Args:
+            clean (bool, optional): Indicates whether to clean up the datapool. Defaults to True.
+            pbar (bool, optional): Indicates whether to show a progress bar. Defaults to True.
+        """
         @show_pool_progress('Closing', show=pbar)
         def get(self):
             for obj in self.objs:
-                
                 if hasattr(obj, 'close'):
                     obj.close()
-                    
                 if clean and hasattr(obj, '_df'):
                     del obj._df
                 yield
-        
+
         list(get(self))
         if clean:
             self.initialized = False
         gc.collect()
-        
+
         return None
 
 

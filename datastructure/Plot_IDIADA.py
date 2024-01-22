@@ -45,14 +45,8 @@ def plot_dendrogram(ax, df, method='centroid'):
 
     
 #%%
-
 def plot_parallel_coordinate(fig, host, df, **kwargs):
-    
-    '''
-    
-    
-    '''
-    
+      
     ynames = list(df.columns)
     ys = np.array(df)
     
@@ -117,19 +111,23 @@ def plot_parallel_coordinate(fig, host, df, **kwargs):
 
 #%%
 def arghisto(data, bins):
-        
+    """
+    Compute the histogram of the input data based on the given bins.
+
+    Parameters:
+    data (ndarray): Input data array.
+    bins (ndarray): Bins for computing the histogram.
+
+    Returns:
+    list: List of arrays containing the indices of data points falling into each bin.
+    """
     out = []
-    
     dat = data.ravel()
        
     for idx in range(0, len(bins)-1):
-        
         if idx == 0:
-        
             out.append(np.where((bins[idx]<=dat) & (bins[idx+1]>=dat))[0])
-            
         else:
-            
             out.append(np.where((bins[idx]<dat) & (bins[idx+1]>=dat))[0])
         
     return out
@@ -137,23 +135,36 @@ def arghisto(data, bins):
 #%%
 def plot_xybar(ax, data, bins, width=None, labels=None, title=None, xlabel=None, 
               ylabel=None, yfun=None, pct=True, colors=None, rebuildx=False):
+    """
+    Plot a bar chart with multiple bars for each x value.
 
+    Parameters:
+    - ax (matplotlib.axes.Axes): The axes on which to plot the bar chart.
+    - data (list): A list of arrays containing the y values for each bar.
+    - bins (array-like): The x values for the bars.
+    - width (float, optional): The width of each bar. If not provided, it is automatically calculated.
+    - labels (list, optional): The labels for each group of bars.
+    - title (str, optional): The title of the plot.
+    - xlabel (str, optional): The label for the x-axis.
+    - ylabel (str, optional): The label for the y-axis.
+    - yfun (function, optional): A function to apply to the y values before plotting.
+    - pct (bool, optional): Whether to display the percentage of each bar.
+    - colors (list, optional): The colors for each group of bars.
+    - rebuildx (bool, optional): Whether to rebuild the x values as a range from 0 to the number of bins.
+
+    Returns:
+    - bs (list): The bar containers for each group of bars.
+    """
     n = len(data)
     
     if width is None:
-        
         width = min(np.diff(np.asarray(bins))) * 0.5 / n
-        
         
     offsets = np.linspace(-(n-1)*width/2, (n-1)*width/2, n)
     
-
-    
     for idx, dat in enumerate(data):
-        
         y = dat
         x = bins
-
         
         if yfun:
             y = yfun(y)
@@ -173,13 +184,10 @@ def plot_xybar(ax, data, bins, width=None, labels=None, title=None, xlabel=None,
         else:
             bs = ax.bar(xloc+offsets[idx], y, width=width, color=color)
         
-    
-        
         if pct:
             sum_ = np.abs(y).sum()
             pcs = np.abs(y) / sum_ * 100
             for rect, pc in zip(bs, pcs):
-                
                 height = rect.get_height()
         
                 if pc > 1:
@@ -193,7 +201,6 @@ def plot_xybar(ax, data, bins, width=None, labels=None, title=None, xlabel=None,
                 else:
                     ax.text(rect.get_x(), height, f'{txt}', 
                         ha='center', va='bottom', fontsize=8, color='grey')                     
-
     
     ax.set_xticks(x)
     ax.set_xticklabels(bins)
@@ -213,7 +220,6 @@ def plot_xybar(ax, data, bins, width=None, labels=None, title=None, xlabel=None,
         
     if ylabel:
         ax.set_ylabel(ylabel)
-    
     
     return bs
 
@@ -382,40 +388,28 @@ def plot_histh(ax, data, bins, width=None, labels=None, title=None, xlabel=None,
     return bs
 
 #%%
+
 def plot_hist(ax, data, bins, width=None, labels=None, title=None, xlabel=None, 
               ylabel=None, yfun=None, pct=True, rebuildx=False):
-    '''
-    
+    """
+    Plot histogram(s) on the given axes.
 
-    Parameters
-    ----------
-    ax : TYPE
-        DESCRIPTION.
-    data : TYPE
-        DESCRIPTION.
-    bins : TYPE
-        DESCRIPTION.
-    width : TYPE, optional
-        DESCRIPTION. The default is None.
-    labels : TYPE, optional
-        DESCRIPTION. The default is None.
-    title : TYPE, optional
-        DESCRIPTION. The default is None.
-    xlabel : TYPE, optional
-        DESCRIPTION. The default is None.
-    ylabel : TYPE, optional
-        DESCRIPTION. The default is None.
-    yfun : TYPE, optional
-        DESCRIPTION. The default is None.
-    pct : TYPE, optional
-        DESCRIPTION. The default is True.
+    Parameters:
+    - ax (matplotlib.axes.Axes): The axes on which to plot the histogram(s).
+    - data (list or array-like): The data to be plotted as histogram(s).
+    - bins (int or sequence): The number of bins or the bin edges.
+    - width (float, optional): The width of each bar in the histogram. If not provided, it is calculated automatically.
+    - labels (list, optional): The labels for each histogram. If not provided, no labels will be shown.
+    - title (str, optional): The title of the plot.
+    - xlabel (str, optional): The label for the x-axis.
+    - ylabel (str, optional): The label for the y-axis.
+    - yfun (function, optional): A function to apply to the y-values of the histogram(s).
+    - pct (bool, optional): Whether to show the percentage values on top of each bar. Default is True.
+    - rebuildx (bool, optional): Whether to rebuild the x-axis values. Default is False.
 
-    Returns
-    -------
-    ax : TYPE
-        DESCRIPTION.
-
-    '''
+    Returns:
+    - bs (matplotlib.container.BarContainer): The bar containers representing the histogram(s).
+    """
     
     #assert data.ndim == 2, 'Data should be a 2-dimentional array.'
     
@@ -569,11 +563,24 @@ def plot_hist_stacked(ax, data, bins, width=None, labels=None, title=None, xlabe
 #%%
 
 def get_maxmin_labels(dat, prefix=None, rnd=1):
-    
-    '''
-    
-    '''
-    
+    """
+    Returns a list of labels containing the maximum, minimum, and average values of the input data.
+
+    Parameters:
+    - dat: list of numpy arrays, the input data
+    - prefix: list of strings, optional prefix for each label
+    - rnd: int, optional number of decimal places to round the values
+
+    Returns:
+    - list of strings, the labels
+
+    Example usage:
+    >>> data = [np.array([1, 2, 3]), np.array([4, 5, 6])]
+    >>> labels = get_maxmin_labels(data, prefix=['A', 'B'], rnd=2)
+    >>> print(labels)
+    ['A: max 3.0; min 1.0; avg 2.0', 'B: max 6.0; min 4.0; avg 5.0']
+    """
+
     if prefix:
         return [f'{p}: max {round(d.max(), rnd)}; min {round(d.min(), rnd)}; avg {round(d.mean(), rnd)}' for d, p in zip(dat, prefix)]
     else:

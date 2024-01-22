@@ -72,21 +72,7 @@ def combine_configs(*cfgs):
 #%% Extract channels
 
 def extract_channels(newconfig=None):
-    """
-    Decorator function that extracts channels from the given configuration and passes them as arguments to the decorated function.
-
-    Args:
-        newconfig (dict, optional): A dictionary containing the mapping of keys to channels. Defaults to None.
-
-    Returns:
-        function: The decorated function.
-
-    Example:
-        @extract_channels(newconfig={'A': 'Channel1', 'B': 'Channel2'})
-        def process_data(self, channel1, channel2):
-            # Process data using the specified channels
-            pass
-    """
+    
     def decorator(func):
     
         @wraps(func)
@@ -133,52 +119,38 @@ def extract_channels(newconfig=None):
 #%% Translate Config
 
 def translate_config(newconfig=None):
-    """
-    Decorator function that translates column names in the output of a decorated function
-    based on a provided configuration dictionary.
-
-    Args:
-        newconfig (dict, optional): A dictionary that maps the original column names to the
-            desired translated column names. Defaults to None.
-
-    Returns:
-        function: The decorated function.
-
-    Example:
-        @translate_config(newconfig={'Name': 'Full Name', 'Age': 'Years'})
-        def process_data(data):
-            # Process the data and return a DataFrame
-            return processed_data
-
-        The above example will translate the column names 'Name' to 'Full Name' and 'Age' to 'Years'
-        in the output DataFrame of the process_data function.
-    """
     
     def decorator(func):
-        """
-        A decorator function that modifies the behavior of the decorated function.
-        
-        Args:
-            func: The function to be decorated.
-        
-        Returns:
-            The decorated function.
-        """
+    
         @wraps(func)
         def wrapper(self, *keys, **kwargs):
+                        
             if (hasattr(self, 'config') and self.config is not None) or newconfig is not None:
+                
                 config = newconfig if newconfig is not None else self.config
+                                             
                 res = func(self, *keys, **kwargs)
+                
                 if isinstance(res, pd.DataFrame):
+                    
                     for k, v in config.items():
+                        
                         if isinstance(v, str):
+                        
                             res.columns = res.columns.str.replace(v, k, regex=False)
+                            
                         elif isinstance(v, (list, tuple, set)):
+                            
                             for vv in v:
+                                
                                 res.columns = res.columns.str.replace(vv, k, regex=False)
+
                 return res
+            
             else: 
+                
                 return func(self, *keys, **kwargs)
+
         return wrapper
     
     return decorator
@@ -188,67 +160,53 @@ def translate_config(newconfig=None):
 class Data_Interface(object):
    
     def __init__(self, path, config=None, name=None, comment=None):
-        """
-        Initialize a DataObject instance.
 
-        Args:
-            path (str or Path): The path to the data object.
-            config (str, Path, list, tuple, set, dict, optional): The configuration for the data object.
-                If a string or Path is provided, it is assumed to be a path to a JSON file and will be loaded as a dictionary.
-                If a list, tuple, or set of strings is provided, it will be converted into a dictionary with each string as both the key and value.
-                If a list of dictionaries is provided, the dictionaries will be combined into a single dictionary.
-                If a dictionary is provided, it will be used as is.
-                Defaults to None.
-            name (str, optional): The name of the data object. Defaults to None.
-            comment (str, optional): A comment or description for the data object. Defaults to None.
-        """
+        
         if config is not None: 
+            
             if isinstance(config, (str, Path)):
                 if str(config).endswith('.json'):
+            
                     config = json.load(open(config))
+                    
                 else:
                     raise IOError('Unknown config format, expect json.')
+                
             elif isinstance(config, (list, tuple, set)):
+                
                 if all(isinstance(s, str) for s in config):
                     config = dict((v, v) for v in config)
+                    
                 elif all(isinstance(s, dict) for s in config):
                     config = combine_configs(*list(config))
+                    
                 else:
                     raise TypeError('Can not handle config type.')
+                    
             elif not isinstance(config, dict):
                 raise TypeError('Unknown config format, expect dict')
                 
         if path is not None:
-            path = Path(path).absolute() 
             
+            path = Path(path).absolute() 
+        
         self._name = name
         self.path = path
         self.config = config
         self._comment = comment
         
     def __enter__(self):
-        """
-        Enter method for context manager.
-        """
+        
         return self
     
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        """
-        Exit the context manager and perform necessary cleanup.
-
-        Args:
-            exc_type: The type of the exception raised, if any.
-            exc_value: The exception instance raised, if any.
-            exc_traceback: The traceback for the exception raised, if any.
-
-        Returns:
-            bool: True if the context manager exited successfully, False otherwise.
-        """
+        
         self.close()
-
+        
         if exc_type:
+            
             return False
-
+        
         return True
 
     def __repr__(self):
@@ -264,22 +222,19 @@ class Data_Interface(object):
         return len(self.df)
         
     def __getitem__(self, name):
-        """
-        Retrieve an item from the data object.
-
-        Parameters:
-        - name: str or tuple, the name or index of the item to retrieve
-
-        Returns:
-        - res: any, the retrieved item
-        """
+        
         if isinstance(name, str) and '*' in name:
+
             res = self.search(name)
+        
         else:  
+            
             if isinstance(name, str):
                 res = self.df[name]
             else:
                 res = self.get(*name)
+
+        
         return res
     
     def __setitem__(self, name, value):
@@ -306,12 +261,7 @@ class Data_Interface(object):
     
     @property
     def size(self):
-        """
-        Returns the size of the file associated with the data object.
         
-        Returns:
-            int: The size of the file in bytes.
-        """
         return os.path.getsize(self.path)
     
     @property
@@ -335,15 +285,9 @@ class Data_Interface(object):
     
     @property
     def name(self):
-        """
-        Returns the name of the data object.
         
-        If the `_name` attribute is not set, it returns the stem of the `path` attribute.
-        
-        Returns:
-            str: The name of the data object.
-        """
         if self._name is None:
+            
             assert self.path is not None, 'Expect a name for data object.'
             return self.path.stem
         else:
@@ -373,64 +317,52 @@ class Data_Interface(object):
         return self.df.count()
         
     def get(self, *names):
-        """
-        Retrieves the specified columns from the DataFrame.
-
-        Args:
-            *names: Variable number of column names to retrieve.
-
-        Returns:
-            If only one column name is provided and it matches 't', 'time', or 'index', 
-            returns a DataFrame containing the index values.
-            Otherwise, returns a DataFrame containing the specified columns.
-        """
+        
+        
         if len(names) == 1:
+            
             signame, = names
+            
             if signame.lower() == 't' or signame.lower() == 'time' or signame.lower() == 'index':
+                
                 return pd.DataFrame(np.asarray(self.df.index), index=self.df.index)
+        
         return self.df[list(names)]
     
     
     def search(self, patt, ignore_case=True, raise_error=False):
-        """
-        Search for keys in the data structure that match a given pattern.
-
-        Args:
-            patt (str): The pattern to search for.
-            ignore_case (bool, optional): Whether to ignore case when matching the pattern. Defaults to True.
-            raise_error (bool, optional): Whether to raise a KeyError if no matching keys are found. Defaults to False.
-
-        Returns:
-            list: A list of keys that match the pattern.
-
-        Raises:
-            KeyError: If no matching keys are found and raise_error is set to True.
-        """
-
+        
         found = []
-
-        if ignore_case:
-            patt = patt.lower()
-
+        
+        if ignore_case: patt = patt.lower()
+        
         for key in self.keys():
-
+            
             if ignore_case:
+                
                 key0 = key.lower()
             else:
                 key0 = key
-
+            
             if re.match(patt, key0):
+                
                 found.append(key)
-
+                
+                
         if not found and raise_error:
+            
             raise KeyError(f'Cannot find any signal with pattern "{patt}".')
-
+            
         try:
+            
             ratios = [SequenceMatcher(a=patt, b=f).ratio() for f in found]
+            
             _, found = zip(*sorted(zip(ratios, found))[::-1])
+            
+            
         except ValueError:
             pass
-
+                
         return list(found)
     
 
@@ -458,15 +390,9 @@ class Data_Interface(object):
         return self 
     
     def search_similar(self, name):
-        """
-        Search for keys in the data structure that are similar to the given name.
         
-        Args:
-            name (str): The name to search for similarity.
+        # keys = set(list(chain(self.keys(), self.channels)))
         
-        Returns:
-            list: A list of keys in the data structure, sorted by similarity to the given name.
-        """
         keys = self.keys()
         
         ratios = [SequenceMatcher(a=name, b=k).ratio() for k in keys]
@@ -477,26 +403,17 @@ class Data_Interface(object):
     
     
     def drop(self, *names, nonexist_ok=True):
-        """
-        Drop columns from the DataFrame object.
-
-        Args:
-            *names: Variable length argument list of column names to be dropped.
-            nonexist_ok (bool, optional): If True, no error will be raised if a column does not exist. 
-                Defaults to True.
-
-        Raises:
-            KeyError: If a column does not exist and nonexist_ok is False.
-
-        Returns:
-            self: Returns the modified DataFrame object after dropping the specified columns.
-        """
+        
         keys = []
         
         for name in names:
+            
             if name in self.df:
-                keys.append(name)
+               
+               keys.append(name)
+               
             elif not nonexist_ok:
+                
                 raise KeyError(f'"{name}" does not exist in "{self.name}".')
                 
         self.df.drop(columns=keys, inplace=True)
@@ -509,27 +426,20 @@ class Data_Interface(object):
 
     
     def load(self, *keys, mapping=None):
-        """
-        Load data from the specified keys into the data object.
-
-        Args:
-            *keys: Variable number of keys to load data from.
-            mapping: Optional mapping configuration.
-
-        Returns:
-            dict: The loaded data as a dictionary.
-
-        """
+        
         @translate_config(mapping)
         @extract_channels(mapping)
         def get(self, *keys):
+                        
             return self.get(*keys)
 
+               
         df = get(self, *keys)
-
+        
         for k, v in df.items():
+            
             self.df[k] = v
-
+            
         return df
     
 
@@ -634,12 +544,7 @@ class Data_Interface(object):
         return self.resample()
         
     def to_dict(self):
-        """
-        Converts the data object to a dictionary.
-
-        Returns:
-            dict: A dictionary representation of the data object.
-        """
+                
         out = dict()
         
         out['path'] = str(self.path)
@@ -683,7 +588,11 @@ class Data_Interface(object):
                            comment=self.comment, df=self.df)
             dobj.save(name)
         
-        return self        
+        return self
+    
+
+        
+        
         
     def close(self, clean=True):
 
@@ -699,95 +608,51 @@ class Data_Interface(object):
 
 #%% DATA_OBJECT
 class DATA_OBJECT(Data_Interface):
-    """
-    Represents a data object.
-
-    Args:
-        path (str): The path to the data file.
-        config (dict): The configuration settings for the data object.
-        name (str): The name of the data object.
-        comment (str): Any additional comments or notes.
-        df (pd.DataFrame): The data as a pandas DataFrame.
-
-    Attributes:
-        t (np.ndarray): The index of the DataFrame as a NumPy array.
-
-    Methods:
-        save(name=None): Saves the data object to a file.
-        load(path): Loads the data object from a file.
-
-    """
+    '''
+    
+    '''
+    
 
     def __init__(self, path=None, config=None, name=None, comment=None, df=None):
-        """
-        Initializes a new instance of the DATA_OBJECT class.
-
-        If `df` is None, the data object is loaded from the specified `path`.
-        Otherwise, the data object is created with the provided parameters.
-
-        Args:
-            path (str): The path to the data file.
-            config (dict): The configuration settings for the data object.
-            name (str): The name of the data object.
-            comment (str): Any additional comments or notes.
-            df (pd.DataFrame): The data as a pandas DataFrame.
-
-        """
+        
         if df is None:
+            
             self.load(path)
+            
         else:
             super().__init__(path, config=config, name=name, comment=comment)
             self._df = df
-
-    @property
+            
+    @property   
     def t(self):
-        """
-        Returns the index of the DataFrame as a NumPy array.
-
-        Returns:
-            np.ndarray: The index of the DataFrame.
-
-        """
-        return np.asarray(self.df.index)
-
+        
+        return np.asarray(self.df.index)        
+    
     def save(self, name=None):
-        """
-        Saves the data object to a file.
-
-        If `name` is not provided, the data object is saved with its current name.
-
-        Args:
-            name (str, optional): The name of the saved file. Defaults to None.
-
-        Returns:
-            DATA_OBJECT: The current instance of the data object.
-
-        """
+                
         if name is None:
+            
             name = self.name
+                    
         np.savez(name, **self.to_dict())
+        
         return self
-
+    
     def load(self, path):
-        """
-        Loads the data object from a file.
-
-        Args:
-            path (str): The path to the data file.
-
-        Returns:
-            DATA_OBJECT: The current instance of the data object.
-
-        """
+        
         with np.load(path, allow_pickle=True) as dat:
+            
             dat = np.load(path, allow_pickle=True)
             df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
+            
+            
             self.__init__(path=str(dat['path']),
-                          config=dat['config'].item(),
-                          comment=dat['comment'].item(),
-                          name=dat['name'].item(),
-                          df=df)
-        return self
+                              config=dat['config'].item(),
+                              comment=dat['comment'].item(),
+                              name=dat['name'].item(),
+                              df=df)
+    
+            return self
         
 #%% PANDAS_OBJECT, FINANCE_OBJECT
 
@@ -818,45 +683,16 @@ class PANDAS_OBJECT(Data_Interface):
     
 
 class FINANCE_OBJECT(PANDAS_OBJECT):
-    """
-    A class representing a finance object.
-
-    Attributes:
-        path (str): The path to the finance object.
-        config (dict): The configuration settings for the finance object.
-        name (str): The name of the finance object.
-        comment (str): Any additional comments or notes about the finance object.
-        df (pandas.DataFrame): The data stored in the finance object.
-        time_format (str): The format of the time values in the finance object.
-
-    Methods:
-        get_df(): Retrieves the data from the finance object as a pandas DataFrame.
-    """
-
+    
     def __init__(self, path=None, config=None, name=None, comment=None, 
                  df=None, time_format='%Y%m%d'):
-        """
-        Initializes a new instance of the FINANCE_OBJECT class.
-
-        Args:
-            path (str): The path to the finance object.
-            config (dict): The configuration settings for the finance object.
-            name (str): The name of the finance object.
-            comment (str): Any additional comments or notes about the finance object.
-            df (pandas.DataFrame): The data stored in the finance object.
-            time_format (str): The format of the time values in the finance object.
-        """
+        
         super().__init__(path, config=config, name=name, comment=comment)
         self.time_format = time_format
     
     @translate_config()
     def get_df(self):
-        """
-        Retrieves the data from the finance object as a pandas DataFrame.
-
-        Returns:
-            pandas.DataFrame: The data stored in the finance object.
-        """
+        
         fun = self.__class__.dict_fun[self.path.suffix.lower()]
                 
         df = fun(self.path)
@@ -864,9 +700,10 @@ class FINANCE_OBJECT(PANDAS_OBJECT):
         cols_dat = df.columns[df.columns.str.contains('date')]
                
         for c in cols_dat:
+            
             df[c] = pd.to_datetime(df[c], format=self.time_format)
         
-        return df
+        return df    
 
     
 
