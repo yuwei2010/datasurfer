@@ -1488,6 +1488,8 @@ class AMERES_OBJECT(Data_Interface):
             dict: A dictionary containing parameter information. The keys are the data paths and the values are dictionaries
                   containing the parameter details such as 'Data_Path', 'Param_Id', 'Unit', 'Label', 'Description', and 'Row_Index'.
         """
+        
+        
         fparam = self.path.parent / (self.path.stem+'.ssf')
         out = dict()
 
@@ -1532,16 +1534,18 @@ class AMERES_OBJECT(Data_Interface):
     
     @property
     def t(self):
-        
-        if not len(self.df) and self.config is None:
+            """
+            Returns the index values of the DataFrame stored in the object.
+            If the DataFrame is empty and the config is None, it retrieves the results for the first row.
             
-            t = self.get_results(rows=[0])
-            
-        else:
-            
-            t = self.df.index
-            
-        return np.asarray(t)    
+            Returns:
+                numpy.ndarray: The index values of the DataFrame.
+            """
+            if not len(self.df) and self.config is None:
+                t = self.get_results(rows=[0])
+            else:
+                t = self.df.index
+            return np.asarray(t)
 
     @property
     def channels(self):
