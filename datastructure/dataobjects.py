@@ -1593,25 +1593,30 @@ class AMERES_OBJECT(Data_Interface):
         return df
     
     def get(self, *names):
-        
+        """
+        Retrieve data from the data object.
+
+        Parameters:
+        *names: str
+            Names of the data columns to retrieve.
+
+        Returns:
+        pandas.DataFrame or pandas.Series
+            The requested data columns.
+
+        Raises:
+        None
+        """
         if all(na in self.df.keys() for na in names):
-            
             res = super().get(*names)
-            
         elif len(names) == 1 and (names[0].lower() == 't' 
                                   or names[0].lower() == 'time' 
                                   or names[0].lower() == 'index'):
-            
             if names[0] in self.df.keys():
-                
                 res = self.df[names]
-                
             else:
-                
                 res = pd.DataFrame(self.t, index=self.t, columns= ['time'])
-                        
         else:
-            
             res = self.get_channels(*names)
                                                
         return res
