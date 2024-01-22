@@ -46,7 +46,22 @@ from functools import wraps
 #%% Combine configs
 
 def combine_configs(*cfgs):
-    
+    """
+    Combines multiple configuration dictionaries into a single dictionary.
+
+    Args:
+        *cfgs: Variable number of configuration dictionaries.
+
+    Returns:
+        dict: A dictionary containing the combined configurations.
+
+    Example:
+        >>> cfg1 = {'a': 'apple', 'b': ['banana', 'blueberry']}
+        >>> cfg2 = {'b': 'berry', 'c': 'cherry'}
+        >>> cfg3 = {'d': 'date'}
+        >>> combine_configs(cfg1, cfg2, cfg3)
+        {'a': ['apple'], 'b': ['banana', 'berry', 'blueberry'], 'c': ['cherry'], 'd': ['date']}
+    """
     out = dict()
     
     for k, v in chain(*[cfg.items() for cfg in cfgs]):
@@ -72,7 +87,15 @@ def combine_configs(*cfgs):
 #%% Extract channels
 
 def extract_channels(newconfig=None):
+    """
+    A decorator that extracts channels from the given configuration and passes them as arguments to the decorated function.
     
+    Args:
+        newconfig (dict, optional): A dictionary containing the mapping of channel names. Defaults to None.
+    
+    Returns:
+        function: The decorated function.
+    """
     def decorator(func):
     
         @wraps(func)
@@ -119,6 +142,16 @@ def extract_channels(newconfig=None):
 #%% Translate Config
 
 def translate_config(newconfig=None):
+    """
+    A decorator function that translates column names in the output of a decorated function based on a configuration dictionary.
+    
+    Args:
+        newconfig (dict, optional): A dictionary that maps the original column names to the desired translated column names. 
+            If not provided, the decorator will use the `config` attribute of the decorated object.
+    
+    Returns:
+        function: The decorated function.
+    """
     
     def decorator(func):
     
@@ -158,38 +191,99 @@ def translate_config(newconfig=None):
 #%% Data_Interface
 
 class Data_Interface(object):
+    """
+    A class representing a data interface.
+
+    Parameters:
+    - path (str or Path): The path to the data file.
+    - config (str, Path, list, tuple, set, or dict): The configuration for the data object.
+    - name (str): The name of the data object.
+    - comment (str): Additional comment or description for the data object.
+
+    Attributes:
+    - path (Path): The absolute path to the data file.
+    - config (dict): The configuration for the data object.
+    - name (str): The name of the data object.
+    - comment (str): Additional comment or description for the data object.
+    - df (DataFrame): The data stored in a pandas DataFrame.
+
+    Methods:
+    - __enter__(): Enter method for context management.
+    - __exit__(exc_type, exc_value, exc_traceback): Exit method for context management.
+    - __repr__(): Returns a string representation of the data object.
+    - __str__(): Returns a string representation of the data object.
+    - __len__(): Returns the number of rows in the data object.
+    - __getitem__(name): Returns a column or subset of columns from the data object.
+    - __setitem__(name, value): Sets the value of a column in the data object.
+    - index(): Returns the index of the data object.
+    - meta_info(): Returns metadata information about the data object.
+    - size(): Returns the size of the data file in bytes.
+    - comment(): Returns the comment or description of the data object.
+    - comment(value): Sets the comment or description of the data object.
+    - df(): Returns the data stored in a pandas DataFrame.
+    - name(): Returns the name of the data object.
+    - name(value): Sets the name of the data object.
+    - initialize(): Initializes the data object by loading the data into a DataFrame.
+    - keys(): Returns a list of column names in the data object.
+    - describe(): Returns descriptive statistics of the data object.
+    - count(): Returns the number of non-null values in each column of the data object.
+    - get(*names): Returns a subset of columns from the data object.
+    - search(patt, ignore_case=True, raise_error=False): Searches for columns that match a pattern.
+    - memory_usage(): Returns the memory usage of the data object.
+    - clean_config(): Cleans the configuration by removing keys that do not exist in the data object.
+    - search_similar(name): Searches for column names that are similar to the given name.
+    - drop(*names, nonexist_ok=True): Drops columns from the data object.
+    - search_get(patt, ignore_case=False, raise_error=False): Returns a subset of columns that match a pattern.
+    - load(*keys, mapping=None): Loads additional columns into the data object.
+    - reload(): Reloads the data object by clearing the DataFrame cache.
+    - merge(obj0): Merges another data object into the current data object.
+    - squeeze(*keys): Removes columns from the data object, keeping only the specified columns.
+    - pipe(*funs): Applies a series of functions to the data object.
+    - rename(**kwargs): Renames columns in the data object.
+    - resample(new_index=None): Resamples the data object to a new index.
+    - to_numpy(): Returns the data as a numpy array.
+    - to_dict(): Returns the data as a dictionary.
+    - to_csv(name=None, overwrite=True): Saves the data as a CSV file.
+    - to_excel(name=None, overwrite=True): Saves the data as an Excel file.
+    - save(name, overwrite=True): Saves the data object to a file.
+    - close(clean=True): Closes the data object and cleans up resources.
+    """
+   
    
     def __init__(self, path, config=None, name=None, comment=None):
+        """
+        Initialize a DataObject instance.
 
-        
+        Args:
+            path (str or Path): The path to the data object.
+            config (str, Path, list, tuple, set, dict, optional): The configuration for the data object.
+                If a string or Path is provided, it is assumed to be a path to a JSON file and will be loaded as a dictionary.
+                If a list, tuple, or set of strings is provided, it will be converted into a dictionary with each string as both the key and value.
+                If a list of dictionaries is provided, the dictionaries will be combined into a single dictionary.
+                If a dictionary is provided, it will be used as is.
+                Defaults to None.
+            name (str, optional): The name of the data object. Defaults to None.
+            comment (str, optional): A comment or description for the data object. Defaults to None.
+        """
         if config is not None: 
-            
             if isinstance(config, (str, Path)):
                 if str(config).endswith('.json'):
-            
                     config = json.load(open(config))
-                    
                 else:
                     raise IOError('Unknown config format, expect json.')
-                
             elif isinstance(config, (list, tuple, set)):
-                
                 if all(isinstance(s, str) for s in config):
                     config = dict((v, v) for v in config)
-                    
                 elif all(isinstance(s, dict) for s in config):
                     config = combine_configs(*list(config))
-                    
                 else:
                     raise TypeError('Can not handle config type.')
-                    
             elif not isinstance(config, dict):
                 raise TypeError('Unknown config format, expect dict')
                 
         if path is not None:
-            
             path = Path(path).absolute() 
-        
+            
         self._name = name
         self.path = path
         self.config = config
@@ -331,39 +425,50 @@ class Data_Interface(object):
     
     
     def search(self, patt, ignore_case=True, raise_error=False):
-        
-        found = []
-        
-        if ignore_case: patt = patt.lower()
-        
-        for key in self.keys():
+            """
+            Search for keys in the data structure that match a given pattern.
+
+            Parameters:
+            patt (str): The pattern to search for.
+            ignore_case (bool, optional): Whether to ignore case when matching the pattern. Defaults to True.
+            raise_error (bool, optional): Whether to raise a KeyError if no matching keys are found. Defaults to False.
+
+            Returns:
+            list: A list of keys that match the pattern.
+            """
             
-            if ignore_case:
+            found = []
+            
+            if ignore_case: patt = patt.lower()
+            
+            for key in self.keys():
                 
-                key0 = key.lower()
-            else:
-                key0 = key
-            
-            if re.match(patt, key0):
+                if ignore_case:
+                    
+                    key0 = key.lower()
+                else:
+                    key0 = key
                 
-                found.append(key)
+                if re.match(patt, key0):
+                    
+                    found.append(key)
+                    
+                    
+            if not found and raise_error:
+                
+                raise KeyError(f'Cannot find any signal with pattern "{patt}".')
+                
+            try:
+                
+                ratios = [SequenceMatcher(a=patt, b=f).ratio() for f in found]
+                
+                _, found = zip(*sorted(zip(ratios, found))[::-1])
                 
                 
-        if not found and raise_error:
-            
-            raise KeyError(f'Cannot find any signal with pattern "{patt}".')
-            
-        try:
-            
-            ratios = [SequenceMatcher(a=patt, b=f).ratio() for f in found]
-            
-            _, found = zip(*sorted(zip(ratios, found))[::-1])
-            
-            
-        except ValueError:
-            pass
-                
-        return list(found)
+            except ValueError:
+                pass
+                    
+            return list(found)
     
 
     
@@ -372,27 +477,31 @@ class Data_Interface(object):
         return self.df.memory_usage(deep=True)
     
     def clean_config(self):
-        
+        """
+        Clean the configuration dictionary by removing any keys that are not present in the DataFrame.
+
+        Returns:
+            self: The current instance of the object.
+        """
         if not self.config is None:
-        
             new_cfg = dict()
-            
             keys = self.df.keys()
-            
             for k, v in self.config.items():
-                   
                 if k in keys:
-                    
                     new_cfg[k] = v
-                                            
             self.config = new_cfg
-        
-        return self 
+        return self
     
     def search_similar(self, name):
+        """
+        Searches for keys in the data structure that are similar to the given name.
         
-        # keys = set(list(chain(self.keys(), self.channels)))
+        Args:
+            name (str): The name to search for similarities.
         
+        Returns:
+            list: A list of keys in the data structure that are similar to the given name, sorted in descending order of similarity.
+        """
         keys = self.keys()
         
         ratios = [SequenceMatcher(a=name, b=k).ratio() for k in keys]
@@ -504,40 +613,41 @@ class Data_Interface(object):
         return self
     
     def resample(self, new_index=None):
-        
-        """Return a new DataFrame with all columns values interpolated
-        to the new_index values."""
-        
+        """
+        Return a new DataFrame with all columns values interpolated
+        to the new_index values.
+
+        Parameters:
+        - new_index (array-like, optional): The new index values to interpolate the columns to.
+                                            If not provided, the original DataFrame is returned.
+
+        Returns:
+        - new_obj (DATA_OBJECT): A new instance of the DATA_OBJECT class with the resampled DataFrame.
+        """
         if new_index is not None:
             new_index = np.asarray(new_index)
-            
+
             if new_index.size == 1:
-                
                 idx = self.df.index
                 new_index = np.arange(min(idx), max(idx)+new_index, new_index)
-                
+
             df_out = pd.DataFrame(index=new_index)
             df_out.index.name = self.df.index.name
-        
+
             for colname, col in self.df.items():
-                
                 try:
                     col = col.astype(float)
                     df_out[colname] = np.interp(new_index, self.df.index, col)
                 except (TypeError, ValueError):
-                    
                     warnings.warn(f'"{colname}" can not be resampled.')
         else:
             df_out = self.df
 
-            
-            
         new_obj = DATA_OBJECT(path=str(self.path), config=self.config,
                               name=self.name,
                               comment=self.comment, df=df_out)
 
-    
-        return new_obj 
+        return new_obj
     
     def to_numpy(self):
         
@@ -608,51 +718,95 @@ class Data_Interface(object):
 
 #%% DATA_OBJECT
 class DATA_OBJECT(Data_Interface):
-    '''
-    
-    '''
-    
+    """
+    Represents a data object.
+
+    Args:
+        path (str): The path to the data file.
+        config (dict): Configuration settings for the data object.
+        name (str): The name of the data object.
+        comment (str): Additional comment for the data object.
+        df (pandas.DataFrame): The data as a pandas DataFrame.
+
+    Attributes:
+        t (numpy.ndarray): The index of the DataFrame as a numpy array.
+
+    Methods:
+        save(name=None): Save the data object to a file.
+        load(path): Load the data object from a file.
+
+    """
 
     def __init__(self, path=None, config=None, name=None, comment=None, df=None):
-        
+        """
+        Initializes a new instance of the DATA_OBJECT class.
+
+        If `df` is None, the data object will be loaded from the specified `path`.
+        Otherwise, the data object will be created with the provided arguments.
+
+        Args:
+            path (str): The path to the data file.
+            config (dict): Configuration settings for the data object.
+            name (str): The name of the data object.
+            comment (str): Additional comment for the data object.
+            df (pandas.DataFrame): The data as a pandas DataFrame.
+
+        """
         if df is None:
-            
             self.load(path)
-            
         else:
             super().__init__(path, config=config, name=name, comment=comment)
             self._df = df
-            
-    @property   
+
+    @property
     def t(self):
-        
-        return np.asarray(self.df.index)        
-    
+        """
+        Get the index of the DataFrame as a numpy array.
+
+        Returns:
+            numpy.ndarray: The index of the DataFrame.
+
+        """
+        return np.asarray(self.df.index)
+
     def save(self, name=None):
-                
+        """
+        Save the data object to a file.
+
+        If `name` is not provided, the data object will be saved with its current name.
+
+        Args:
+            name (str, optional): The name of the saved file. Defaults to None.
+
+        Returns:
+            DATA_OBJECT: The current instance of the data object.
+
+        """
         if name is None:
-            
             name = self.name
-                    
         np.savez(name, **self.to_dict())
-        
         return self
-    
+
     def load(self, path):
-        
+        """
+        Load the data object from a file.
+
+        Args:
+            path (str): The path to the data file.
+
+        Returns:
+            DATA_OBJECT: The current instance of the data object.
+
+        """
         with np.load(path, allow_pickle=True) as dat:
-            
             dat = np.load(path, allow_pickle=True)
             df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-            
-            
             self.__init__(path=str(dat['path']),
-                              config=dat['config'].item(),
-                              comment=dat['comment'].item(),
-                              name=dat['name'].item(),
-                              df=df)
-    
-            return self
+                          config=dat['config'].item(),
+                          comment=dat['comment'].item(),
+                          name=dat['name'].item(),
+                          df=df)
+        return self
         
 #%% PANDAS_OBJECT, FINANCE_OBJECT
 
