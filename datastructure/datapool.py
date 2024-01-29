@@ -27,7 +27,7 @@ from tqdm import tqdm
 from itertools import chain
 from functools import reduce, wraps
 
-from dataobjects import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
+from .dataobjects import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
                          ASAMMDF_OBJECT, PANDAS_OBJECT, MATLAB_OBJECT,\
                          AMEGP_OBJECT
 
@@ -578,18 +578,29 @@ class DataPool(object):
         return pd.Series(dict(zip(self.names(), map(os.path.getsize, self.paths().values))), name='File Size')
    
     def file_date(self):
+        """
+        Returns a pandas Series containing the file modification dates of the objects in the datapool.
         
-        
+        Returns:
+            pd.Series: A pandas Series with the file modification dates.
+        """
         ctimes = [datetime.datetime.fromtimestamp(os.path.getmtime(obj.path)) 
                   for obj in self.objs]
         return pd.Series(ctimes, index=self.names(), name='File Date')
     
     def comments(self):
-        
+        """
+        Returns a DataFrame containing the names and comments of the objects in the datapool.
+        """
         return pd.DataFrame(dict((obj.name, obj.comment) for obj in self.objs))
     
     def configs(self):
+        """
+        Returns a DataFrame containing the configurations of all objects in the datapool.
         
+        Returns:
+            pandas.DataFrame: A DataFrame with object names as columns and their corresponding configurations as values.
+        """
         return pd.DataFrame(dict((obj.name, obj.config) for obj in self.objs))
         
     def signals(self, count=None, pbar=False):
@@ -897,6 +908,17 @@ class DataPool(object):
         return sorted(set(chain(*get(self))))
     
     def sort_objects(self, key):
+        """
+        Sorts the objects in the datapool based on the specified key.
+
+        Args:
+            key: The key to sort the objects by.
+
+        Returns:
+            None. The objects in the datapool are sorted in-place.
+        """
+        return list(self.objs[:]).sort(key=lambda obj: obj.key)
+    def sort_objects(self, key):
         
         return list(self.objs[:]).sort(key=lambda obj:obj.key)
     
@@ -976,7 +998,18 @@ class DataPool(object):
         return self
          
     def pop(self, name):
-        
+        """
+        Removes and returns the object with the given name from the datapool.
+
+        Args:
+            name (str): The name of the object to be removed.
+
+        Returns:
+            object: The removed object.
+
+        Raises:
+            ValueError: If the object with the given name does not exist in the datapool.
+        """
         return self.objs.pop(self.objs.index(self.get_object(name)))
         
         
@@ -1322,18 +1355,6 @@ class DataPool(object):
 
 if __name__ == '__main__':
     
-    dp = DataPool(r'D:\01_Python\stock\Analyse_Data\20191128')
-    
-    ps = dp.split_pool(2)
-    
-    from multiprocessing.dummy import Pool
-    
-    def foo(p):
-        
-        return p.keys()
-    
-    p = Pool(2)
-    
-    print(p.map(foo, ps))
+    pass
     
 

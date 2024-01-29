@@ -9,7 +9,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, '.')
-from datapool import DataPool
+from .datapool import DataPool
 from difflib import SequenceMatcher
 
 
