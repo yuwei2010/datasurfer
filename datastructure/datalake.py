@@ -164,13 +164,7 @@ class DataLake(object):
         else:
             raise NameError(f'Can not find any "{name}"')
 if __name__ == '__main__':
-        
-    dk = DataLake(r'C:\30_eATS1p6\33_Measurement_Evaluation\70_Alpen_Fahrt')
-    
-    dp = dk.get_pool('2023 09 26 - 174-67 - Alpen-Fahrt Vormittag')
-    
-    print(dk.paths())
-    
+
     pass
         
         
