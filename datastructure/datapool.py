@@ -720,21 +720,51 @@ class DataPool(object):
     @show_pool_progress('Processing', show=False, set_init=True)
     def iter_signal(self, signame, ignore_error=True, mask=None):
         '''
-        
-            Parameters
-            ----------
-            signame : string, signal name
-                
-            ignore_error : type:bool
-                The default is True.
-                
-            mask : numpy array, optional
-                selection mask. The default is None.
-    
-            Yields
-            ------
-            object of data interface
+        Iterates over the data objects in the datapool and yields data frames for a given signal name.
 
+        Parameters
+        ----------
+        signame : str
+            The name of the signal to iterate over.
+
+        ignore_error : bool, optional
+            If True, any exceptions raised during processing will be ignored and a warning will be issued.
+            If False, exceptions will be raised. Default is True.
+
+        mask : numpy array, optional
+            A selection mask to filter the data objects. Only objects corresponding to True values in the mask will be processed.
+            Default is None, which means all objects will be processed.
+
+        Yields
+        ------
+        pandas.DataFrame
+            A data frame containing the data for the specified signal name.
+
+        Examples
+        --------
+        >>> dp = DataPool()
+        >>> dp.add_data_object(obj1)
+        >>> dp.add_data_object(obj2)
+        >>> dp.add_data_object(obj3)
+
+        >>> for df in dp.iter_signal('temperature'):
+        ...     print(df)
+        ...
+        # Output:
+        #    obj1
+        # 0  25.0
+        # 1  26.0
+        # 2  27.0
+        #
+        #    obj2
+        # 0  30.0
+        # 1  31.0
+        # 2  32.0
+        #
+        #    obj3
+        # 0  35.0
+        # 1  36.0
+        # 2  37.0
         '''
 
         for idx, obj in enumerate(self.objs):
@@ -758,7 +788,6 @@ class DataPool(object):
                     errname = err.__class__.__name__
                     tb = traceback.format_exc(limit=0, chain=False)
                     warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
- 
 
                     df = pd.DataFrame(np.nan * np.ones(obj.__len__()), columns=[obj.name])                        
                     df.index = np.arange(0, obj.__len__())                    
@@ -767,22 +796,36 @@ class DataPool(object):
                 else:
                     raise
 
-    def get_signal(self, signame, ignore_error=True, mask=None):
-        """
-        Retrieves the data for a given signal name.
+    import pandas as pd
 
-        Args:
-            signame (str): The name of the signal to retrieve.
-            ignore_error (bool, optional): Whether to ignore errors if the signal is not found. Defaults to True.
-            mask (str, optional): A mask to filter the data. Defaults to None.
+    class DataPool:
+        def get_signal(self, signame, ignore_error=True, mask=None):
+            """
+            Retrieves the data for a given signal name.
 
-        Returns:
-            pandas.DataFrame: The concatenated data for the given signal.
-        """
-        dats = list(self.iter_signal(
-            signame, ignore_error=ignore_error, mask=mask))
+            Args:
+                signame (str): The name of the signal to retrieve.
+                ignore_error (bool, optional): Whether to ignore errors if the signal is not found. Defaults to True.
+                mask (str, optional): A mask to filter the data. Defaults to None.
 
-        return pd.concat(dats, axis=1)
+            Returns:
+                pandas.DataFrame: The concatenated data for the given signal.
+
+            Examples:
+                >>> dp = DataPool()
+                >>> dp.get_signal('signal1')
+                # Returns the concatenated data for 'signal1'
+
+                >>> dp.get_signal('signal2', ignore_error=False)
+                # Raises an error if 'signal2' is not found
+
+                >>> dp.get_signal('signal3', mask='2022-01-01')
+                # Returns the concatenated data for 'signal3' filtered by the mask '2022-01-01'
+            """
+            dats = list(self.iter_signal(
+                signame, ignore_error=ignore_error, mask=mask))
+
+            return pd.concat(dats, axis=1)
     
 
     def get_signal1D(self, signame, ignore_error=True, mask=None, reindex=True):
