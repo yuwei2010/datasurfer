@@ -707,6 +707,13 @@ class DataPool(object):
         Returns:
             The updated data pool object.
 
+        Examples:
+            # Load signals with keys 'signal1' and 'signal2'
+            dp.load_signals('signal1', 'signal2')
+
+            # Load signals with key 'signal3' and apply a mapping object
+            dp.load_signals('signal3', mapping=my_mapping_object)
+
         """
         @show_pool_progress('Loading', show=pbar)
         def get(self):
