@@ -824,7 +824,7 @@ class PANDAS_OBJECT(Data_Interface):
         '.xlsx': pd.read_excel,
     }
     
-    def __init__(self, path=None, config=None, name=None, comment=None):
+    def __init__(self, path=None, config=None, name=None, comment=None, **kwargs):
         """
         Initializes a new instance of the PANDAS_OBJECT class.
 
@@ -835,6 +835,7 @@ class PANDAS_OBJECT(Data_Interface):
             comment (str): A comment or description for the object.
         """
         super().__init__(path, config=config, name=name, comment=comment)
+        self.kwargs = kwargs
         
     @property   
     def t(self):
@@ -852,8 +853,10 @@ class PANDAS_OBJECT(Data_Interface):
             DataFrame: The loaded data as a Pandas DataFrame.
         """
         fun = self.__class__.dict_fun[self.path.suffix.lower()]
-                
-        df = fun(self.path, index_col=0)
+       
+        kwargs = dict(index_col=0)  
+        kwargs.update(self.kwargs)        
+        df = fun(self.path, **self.kwargs)
         
         return df
     
