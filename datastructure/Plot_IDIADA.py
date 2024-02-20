@@ -650,6 +650,35 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
     ax3.set_title('Histogram Example 3')
     ax3.set_xlabel('Frequency')
     ax3.set_ylabel('Value')
+    
+    # Example 3
+    import datastructure as ds
+    
+    dp = ds.DataPool(['test_files/eATS16_2023-07-03_11-43-42_019.mf4'])
+    obj, = dp
+    dat0 = obj.load("TG202_GetriebedeckelOF").values
+    dat1 = obj.load("TE203_AC1_Busbar_Schraubpunkt").values + 1
+    dat2 = obj.load("TE204_AC2_Bussbar_Mitte").values + 1
+       
+    bins = [45, 45.3, 45.7, 45.9, 46, 46.5]
+    # dat0 = [10, -15, 12, -4, 5]
+
+    fig, ax = plt.subplots()
+    
+    #ax.barh(dat0, bins[:-1])
+    
+    plot_histogram(ax, [[dat0, dat1], [dat0, dat2]], bins,
+                    colors = ['b', 'g', 'b', 'r'],
+                    labels=['parm1', 'parm0','parm1', 'parm2'], yfun=lambda y:y/600, pctfs=8,
+                    rebuildx=True,  pctoffset=0.2, pctfct=0.5, hide_bottom=False, stacked=False)
+    
+    
+    x = np.asarray(ax.get_xticks())
+    xloc = (x[:-1] + x[1:]) / 2
+    ax.set_xticks(xloc)
+    
+    ax.set_xticklabels(list('abcde'))
+    ax.legend()
     """
  
 
@@ -815,33 +844,4 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
 
 if __name__ == '__main__':
     
-
-    import datastructure as ds
-    
-    dp = ds.DataPool(['test_files/eATS16_2023-07-03_11-43-42_019.mf4'])
-    obj, = dp
-    dat0 = obj.load("TG202_GetriebedeckelOF").values
-    dat1 = obj.load("TE203_AC1_Busbar_Schraubpunkt").values + 1
-    dat2 = obj.load("TE204_AC2_Bussbar_Mitte").values + 1
-       
-    bins = [45, 45.3, 45.7, 45.9, 46, 46.5]
-    # dat0 = [10, -15, 12, -4, 5]
-
-    fig, ax = plt.subplots()
-    
-    #ax.barh(dat0, bins[:-1])
-    
-    plot_histogram(ax, [[dat0, dat1], [dat0, dat2]], bins,
-                    colors = ['b', 'g', 'b', 'r'],
-                    labels=['parm1', 'parm0','parm1', 'parm2'], yfun=lambda y:y/600, pctfs=8,
-                    rebuildx=True,  pctoffset=0.2, pctfct=0.5, hide_bottom=False, stacked=False)
-    
-    
-    x = np.asarray(ax.get_xticks())
-    xloc = (x[:-1] + x[1:]) / 2
-    ax.set_xticks(xloc)
-    
-    ax.set_xticklabels(list('abcde'))
-    ax.legend()
-    
-    #ax.set_yticks(np.arange(0, 5000, 600))
+    pass
