@@ -594,6 +594,65 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
                    pct=True, pctfs=8, pctcolor='grey', colors=None, 
                    rebuildx=True, horizontal=False, pctoffset=0, pctfct=0.5,
                    hide_bottom=True, stacked=True, plot_kwargs=None):
+    """
+    Plot a histogram on the given axes.
+
+    Parameters:
+    - ax (matplotlib.axes.Axes): The axes on which to plot the histogram.
+    - data (list): The data to be plotted as a histogram.
+    - bins (int or sequence): The number of bins or the bin edges.
+    - width (float, optional): The width of each bar. If not provided, it is calculated automatically.
+    - labels (list, optional): The labels for each data set.
+    - yfun (function, optional): A function to apply to the y-values of each data set.
+    - pct (bool, optional): Whether to display the percentage on top of each bar.
+    - pctfs (int, optional): The font size of the percentage text.
+    - pctcolor (str, optional): The color of the percentage text.
+    - colors (list, optional): The colors for each data set.
+    - rebuildx (bool, optional): Whether to rebuild the x-axis ticks.
+    - horizontal (bool, optional): Whether to plot the histogram horizontally.
+    - pctoffset (float, optional): The offset of the percentage text from the bar.
+    - pctfct (float, optional): The factor to adjust the position of the percentage text.
+    - hide_bottom (bool, optional): Whether to hide the bottom spine.
+    - stacked (bool, optional): Whether to stack the bars.
+    - plot_kwargs (dict, optional): Additional keyword arguments to pass to the bar plot function.
+
+    Returns:
+    - bs (matplotlib.container.BarContainer): The bar container object.
+    # Example 1
+    data1 = [np.random.normal(0, 1, 1000)]
+    bins1 = np.linspace(-3, 3, 11)
+    labels1 = ['Data 1']
+    fig1, ax1 = plt.subplots()
+    plot_histogram(ax1, data1, bins1, labels=labels1)
+    ax1.legend()
+    ax1.set_title('Histogram Example 1')
+    ax1.set_xlabel('Value')
+    ax1.set_ylabel('Frequency')
+
+    # Example 2
+    data2 = [np.random.normal(0, 1, 1000), np.random.normal(2, 1, 1000)]
+    bins2 = np.linspace(-3, 5, 16)
+    labels2 = ['Data 1', 'Data 2']
+    fig2, ax2 = plt.subplots()
+    plot_histogram(ax2, data2, bins2, labels=labels2, stacked=False)
+    ax2.legend()
+    ax2.set_title('Histogram Example 2')
+    ax2.set_xlabel('Value')
+    ax2.set_ylabel('Frequency')
+
+    # Example 3
+    data3 = [np.random.normal(0, 1, 1000), np.random.normal(2, 1, 1000)]
+    bins3 = np.linspace(-3, 5, 16)
+    labels3 = ['Data 1', 'Data 2']
+    fig3, ax3 = plt.subplots()
+    plot_histogram(ax3, data3, bins3, labels=labels3, horizontal=True)
+    ax3.legend()
+    ax3.set_title('Histogram Example 3')
+    ax3.set_xlabel('Frequency')
+    ax3.set_ylabel('Value')
+    """
+ 
+
     
     n = len(data)
     x = np.asarray(bins)
