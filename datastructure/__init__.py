@@ -2,10 +2,11 @@
 
 __author__ = """Wei Yu (PS-EM/ESY2)"""
 __email__ = 'wei.yu2@de.bosch.com'
-__version__ = '0.9.0'
+
 
 
 from .datapool import DataPool
+from .datalake import DataLake
 
-__all__ = ['DataPool']
-__slots__ = ['DataPool']
+__all__   = ['DataPool', 'DataLake']
+__slots__ = ['DataPool', 'DataLake']

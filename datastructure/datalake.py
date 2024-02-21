@@ -98,6 +98,12 @@ class DataLake(object):
         - A list of strings representing the names of the data pools.
         """
         return [obj.name for obj in self.objs]
+    
+    def items(self):
+        """
+        Returns a list of all items in the datalake.
+        """
+        return self.objs
 
     def paths(self):
         """
@@ -163,6 +169,8 @@ class DataLake(object):
                 return obj
         else:
             raise NameError(f'Can not find any "{name}"')
+        
+        
 if __name__ == '__main__':
 
     pass
