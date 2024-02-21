@@ -490,8 +490,11 @@ class Data_Interface(object):
             for k, v in self.config.items():
                 if k in keys:
                     new_cfg[k] = v
+                    
+            retval = set(self.config.keys()) - set(new_cfg.keys())
             self.config = new_cfg
-        return self
+                  
+        return sorted(retval)
     
     def search_similar(self, name):
         """
@@ -536,18 +539,25 @@ class Data_Interface(object):
 
     
     def load(self, *keys, mapping=None):
+        """
+        Load data from the specified keys into the data object.
+        
+        Args:
+            keys: Variable number of keys to load data from.
+            mapping: Optional mapping configuration for data extraction.
+            
+        Returns:
+            The loaded data as a dictionary.
+        """
         
         @translate_config(mapping)
         @extract_channels(mapping)
         def get(self, *keys):
-                        
             return self.get(*keys)
 
-               
         df = get(self, *keys)
         
         for k, v in df.items():
-            
             self.df[k] = v
             
         return df
