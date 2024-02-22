@@ -618,29 +618,20 @@ class DataPool(object):
             count = max([1, count])
         
         @show_pool_progress('Processing', show=pbar, count=count)
-        class DataPool:
-            def __init__(self, objs):
-                self.objs = objs
-
-            def get(self, count=None):
-                """
-                Retrieves a generator that yields the keys of the objects in the DataPool.
-
-                Args:
-                    count (int, optional): The number of objects to retrieve. If None, retrieves all objects.
-
-                Yields:
-                    dict_keys: The keys of the objects in the DataPool.
-                """
-                if count is not None:
-                    objs = self.objs[:count]
-                else:
-                    objs = self.objs
+        def get(self):
+            
+            if count is not None:
+                objs = self.objs[:count]
                 
-                for obj in objs:
-                    yield obj.keys()
+            else:
+                objs = self.objs
+            
+            for obj in objs:
+                
+                yield obj.keys()
                 
         keys = sorted(set(chain(*get(self))))    
+        
         return keys
     
     def signal_count(self, pbar=True):
@@ -803,32 +794,6 @@ class DataPool(object):
                 else:
                     raise
 
-    import pandas as pd
-
-    class DataPool:
-        def get_signal(self, signame, ignore_error=True, mask=None):
-            """
-            Retrieves the data for a given signal name.
-
-            Args:
-                signame (str): The name of the signal to retrieve.
-                ignore_error (bool, optional): Whether to ignore errors if the signal is not found. Defaults to True.
-                mask (str, optional): A mask to filter the data. Defaults to None.
-
-            Returns:
-                pandas.DataFrame: The concatenated data for the given signal.
-
-            Examples:
-                >>> dp = DataPool()
-                >>> dp.get_signal('signal1')
-                # Returns the concatenated data for 'signal1'
-
-                >>> dp.get_signal('signal2', ignore_error=False)
-                # Raises an error if 'signal2' is not found
-
-                >>> dp.get_signal('signal3', mask='2022-01-01')
-                # Returns the concatenated data for 'signal3' filtered by the mask '2022-01-01'
-            """
             dats = list(self.iter_signal(
                 signame, ignore_error=ignore_error, mask=mask))
 
