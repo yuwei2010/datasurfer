@@ -122,6 +122,8 @@ class DataLake(object):
             out = self.objs[inval]
             
         return out
+    
+    
     def keys(self):
         """
         Returns a list of names of the data pools in the data lake.
@@ -205,6 +207,46 @@ class DataLake(object):
     def iterobjs(self):
         
         return chain(*self.items())
+    
+    def search_object(self, pattern):
+        
+        return [obj for obj in self.iterobjs() if re.match(pattern, obj.name)] 
+    
+    
+    def find_duplicated(self):
+        """
+        Finds duplicated items in the data structure.
+
+        Returns a dictionary where the keys are the duplicated items and the values are lists of items that contain the duplicated item.
+        """
+        names = [obj.name for obj in self.iterobjs()]
+        duplicated = sorted(set([name for name in names if names.count(name) > 1]))
+        return {k: [p for p in self.items() if k in p] for k in duplicated}
+    
+    def compare_value(self, this, that, **kwargs):
+        
+        return this.df.equals(that.df, **kwargs)
+    
+    def merge_pools(self, raise_error=False):
+        
+        out = self.objs[0]
+        
+        for obj in self.objs[1:]:
+            try:   
+                out = out.merge(obj, raise_error=raise_error)
+            except ValueError:
+                
+                objname = set(out.names()) & set(obj.names())
+                raise ValueError(f'Cannot merge "{obj.name}" with "{out.name}" because of data object "{objname}".')    
+            
+        return out
+        
+        
+
+        
+
+    
+
         
 #%%       
 if __name__ == '__main__':

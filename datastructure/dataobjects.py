@@ -426,51 +426,51 @@ class Data_Interface(object):
     
     
     def search(self, patt, ignore_case=True, raise_error=False):
-            """
-            Search for keys in the data structure that match a given pattern.
+        """
+        Search for keys in the data structure that match a given pattern.
 
-            Parameters:
-            patt (str): The pattern to search for.
-            ignore_case (bool, optional): Whether to ignore case when matching the pattern. Defaults to True.
-            raise_error (bool, optional): Whether to raise a KeyError if no matching keys are found. Defaults to False.
+        Parameters:
+        patt (str): The pattern to search for.
+        ignore_case (bool, optional): Whether to ignore case when matching the pattern. Defaults to True.
+        raise_error (bool, optional): Whether to raise a KeyError if no matching keys are found. Defaults to False.
 
-            Returns:
-            list: A list of keys that match the pattern.
-            """
+        Returns:
+        list: A list of keys that match the pattern.
+        """
+        
+        found = []
+        
+        if ignore_case: patt = patt.lower()
+        
+        for key in self.keys():
             
-            found = []
+            if ignore_case:
+                
+                key0 = key.lower()
+            else:
+                key0 = key
             
-            if ignore_case: patt = patt.lower()
+            if re.match(patt, key0):
+                
+                found.append(key)
+                
+                
+        if not found and raise_error:
             
-            for key in self.keys():
+            raise KeyError(f'Cannot find any signal with pattern "{patt}".')
+            
+        try:
+            
+            ratios = [SequenceMatcher(a=patt, b=f).ratio() for f in found]
+            
+            _, found = zip(*sorted(zip(ratios, found))[::-1])
+            
+            
+        except ValueError:
+            pass
                 
-                if ignore_case:
-                    
-                    key0 = key.lower()
-                else:
-                    key0 = key
-                
-                if re.match(patt, key0):
-                    
-                    found.append(key)
-                    
-                    
-            if not found and raise_error:
-                
-                raise KeyError(f'Cannot find any signal with pattern "{patt}".')
-                
-            try:
-                
-                ratios = [SequenceMatcher(a=patt, b=f).ratio() for f in found]
-                
-                _, found = zip(*sorted(zip(ratios, found))[::-1])
-                
-                
-            except ValueError:
-                pass
-                    
-            return list(found)
-    
+        return list(found)
+
 
     
     def memory_usage(self):

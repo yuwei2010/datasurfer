@@ -349,6 +349,10 @@ class DataPool(object):
         
         return iter(self.objs)
     
+    def __contains__(self, name):
+        
+        return name in self.names()
+    
     def __len__(self):
         
         return len(self.objs)    
@@ -971,7 +975,7 @@ class DataPool(object):
         list(get(self))
         return self
 
-    def merge(self, pool0):
+    def merge(self, pool0, raise_error=False):  
         """
         Merges the objects from another datapool into the current datapool.
 
@@ -986,6 +990,8 @@ class DataPool(object):
         for obj in pool0.objs:
             if obj.name not in names:
                 self.objs.append(obj)
+            elif raise_error:
+                raise ValueError(f'Object "{obj.name}" already exists in the datapool.')    
 
         return self
     
