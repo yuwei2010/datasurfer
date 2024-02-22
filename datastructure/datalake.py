@@ -78,18 +78,50 @@ class DataLake(object):
             - pattern: A regular expression pattern used to filter the data pools. Defaults to '.*'.
         """
         patts = kwargs.pop('pattern', r'.*')
+        config = kwargs.pop('config', None)
 
         if not isinstance(patts, (list, tuple, set)):
             patts = [patts]
 
         founds = sorted(collect_dirs(root, *patts))
-        objs = [DataPool([d/f for f in fs], name=d.stem) for d, fs in founds]
+        objs = [DataPool([d/f for f in fs], name=d.stem, config=config) for d, fs in founds]
 
         for obj, (d, _) in zip(objs, founds):
             obj.path = d
 
         self.objs = [obj for obj in objs if len(obj)]
+        
+        
+    def __getitem__(self, inval):
 
+        if isinstance(inval, str):
+            
+            if '*' in inval:
+                
+                if inval.strip()[0] in '#@%':
+                    
+                    patt = inval.strip()[1:]
+                    
+                    out = self.search(patt)
+                else:
+                
+                    out = [self.get_pool(name) for name in self.search(inval)]
+            else:
+
+                out = self.get_pool(inval)
+
+            
+        elif isinstance(inval, (list, tuple, set)):
+            
+
+            out = [self.__getitem__(n) for n in inval]
+                
+
+            
+        else:
+            out = self.objs[inval]
+            
+        return out
     def keys(self):
         """
         Returns a list of names of the data pools in the data lake.
@@ -170,7 +202,11 @@ class DataLake(object):
         else:
             raise NameError(f'Can not find any "{name}"')
         
+    def iterobjs(self):
         
+        return chain(*self.items())
+        
+#%%       
 if __name__ == '__main__':
 
     pass
