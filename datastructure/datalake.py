@@ -93,34 +93,31 @@ class DataLake(object):
         
         
     def __getitem__(self, inval):
+        """
+        Retrieve an item from the datalake.
 
+        Args:
+            inval: The key or keys to retrieve from the datalake. It can be a string, a list, tuple, or set.
+
+        Returns:
+            The retrieved item(s) from the datalake.
+
+        Raises:
+            KeyError: If the specified key(s) do not exist in the datalake.
+        """
         if isinstance(inval, str):
-            
             if '*' in inval:
-                
                 if inval.strip()[0] in '#@%':
-                    
                     patt = inval.strip()[1:]
-                    
                     out = self.search(patt)
                 else:
-                
                     out = [self.get_pool(name) for name in self.search(inval)]
             else:
-
                 out = self.get_pool(inval)
-
-            
         elif isinstance(inval, (list, tuple, set)):
-            
-
             out = [self.__getitem__(n) for n in inval]
-                
-
-            
         else:
             out = self.objs[inval]
-            
         return out
     
     
@@ -237,15 +234,25 @@ class DataLake(object):
             except ValueError:
                 
                 objname = set(out.names()) & set(obj.names())
-                raise ValueError(f'Cannot merge "{obj.name}" with "{out.name}" because of data object "{objname}".')    
+                raise ValueError(f'Cannot merge "{obj.name}" with "{out.name}" because of duplicated data object "{objname}".')    
             
         return out
-        
-        
-
-        
-
     
+    def pop(self, name):
+        """
+        Removes and returns the object with the given name from the datalake.
+
+        Args:
+            name (str): The name of the object to be removed.
+
+        Returns:
+            object: The removed object.
+
+        Raises:
+            ValueError: If the object with the given name does not exist in the datalake.
+        """
+        return self.objs.pop(self.objs.index(self.get_pool(name)))
+        
 
         
 #%%       
