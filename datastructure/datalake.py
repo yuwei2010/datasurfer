@@ -5,10 +5,6 @@ import warnings
 from itertools import chain
 from pathlib import Path
 
-
-import sys
-
-sys.path.insert(0, '.')
 from .datapool import DataPool
 from difflib import SequenceMatcher
 
@@ -144,6 +140,7 @@ class DataLake(object):
         - A list of strings representing the paths to the data pools.
         """
         return [obj.path for obj in self.objs]
+    
 
     def search(self, patt, ignore_case=True, raise_error=False):
         """
@@ -202,12 +199,22 @@ class DataLake(object):
             raise NameError(f'Can not find any "{name}"')
         
     def iterobjs(self):
-        
+        """
+        Returns an iterator that yields all objects in the datalake.
+        """
         return chain(*self.items())
     
     def search_object(self, pattern):
-        
-        return [obj for obj in self.iterobjs() if re.match(pattern, obj.name)] 
+        """
+        Search for objects in the datalake that match the given pattern.
+
+        Args:
+            pattern (str): The regular expression pattern to match against object names.
+
+        Returns:
+            list: A list of objects that match the given pattern.
+        """
+        return [obj for obj in self.iterobjs() if re.match(pattern, obj.name)]
     
     
     def find_duplicated(self):
@@ -221,18 +228,50 @@ class DataLake(object):
         return {k: [p for p in self.items() if k in p] for k in duplicated}
     
     def compare_value(self, this, that, **kwargs):
-        
+        """
+        Compare the values of two DataFrames.
+
+        Args:
+            this (DataFrame): The first DataFrame to compare.
+            that (DataFrame): The second DataFrame to compare.
+            **kwargs: Additional keyword arguments to be passed to the `equals` method.
+
+        Returns:
+            bool: True if the DataFrames have the same values, False otherwise.
+
+        Examples:
+            >>> df1 = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+            >>> df2 = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+            >>> compare_value(df1, df2)
+            True
+
+            >>> df3 = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+            >>> df4 = pd.DataFrame({'A': [1, 2, 3], 'B': [7, 8, 9]})
+            >>> compare_value(df3, df4)
+            False
+        """
         return this.df.equals(that.df, **kwargs)
     
     def merge_pools(self, raise_error=False):
-        
+        """
+        Merge multiple data objects in the pool.
+
+        Args:
+            raise_error (bool, optional): Whether to raise an error if there are duplicated data objects. 
+                Defaults to False.
+
+        Returns:
+            DataObject: The merged data object.
+
+        Raises:
+            ValueError: If there are duplicated data objects and `raise_error` is True.
+        """
         out = self.objs[0]
         
         for obj in self.objs[1:]:
             try:   
                 out = out.merge(obj, raise_error=raise_error)
             except ValueError:
-                
                 objname = set(out.names()) & set(obj.names())
                 raise ValueError(f'Cannot merge "{obj.name}" with "{out.name}" because of duplicated data object "{objname}".')    
             
