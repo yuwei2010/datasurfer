@@ -1,5 +1,3 @@
-
-
 import sys
 
 sys.path.insert(0, r'C:\95_Programming\10_Data_Related\20_Projects\10_Git\10_Datastructure\datastructure')
@@ -7,7 +5,7 @@ sys.path.insert(0, r'C:\95_Programming\10_Data_Related\20_Projects\10_Git\10_Dat
 
 import pandas as pd
 
-from lib_objects import DATA_OBJECT, PANDAS_OBJECT, FINANCE_OBJECT, ASAMMDF_OBJECT
+from lib_objects import DATA_OBJECT, PANDAS_OBJECT, FINANCE_OBJECT, ASAMMDF_OBJECT, MATLAB_OBJECT, MDF_OBJECT, AMERES_OBJECT, AMEGP_OBJECT
 from pathlib import Path
 
 
