@@ -446,7 +446,7 @@ class DataPool(object):
             out = self.__class__(self.select(inval.to_numpy()))
             
         else:
-            out = self.objs[inval]
+            out = self.__class__(self.objs[inval])
             
         return out
     

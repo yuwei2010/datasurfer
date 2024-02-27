@@ -4,10 +4,19 @@ sys.path.insert(0, r'C:\95_Programming\10_Data_Related\20_Projects\10_Git\10_Dat
 
 
 import datastructure as ds
+from multiprocessing import Pool
 
 
 
-dp = ds.DataPool(ds.DataPool(r'C:\95_Programming\10_Data_Related\10_test_files\tushare_csv', 
-                 pattern=r'.*SZ.*\.csv', name='SZ', comment='Shenzhen Stock Exchange', interface=ds.FINANCE_OBJECT)[:2])
+dp = ds.DataPool(r'C:\95_Programming\10_Data_Related\10_test_files\tushare_csv', 
+                 pattern=r'.*SH.*', interface=ds.FINANCE_OBJECT)[:2]
+def fun(x):
 
-print(dp['close'])
+     return x['close']
+ 
+if __name__ == '__main__':
+
+
+    p = Pool(4)
+
+    print(p.map(fun, dp))
