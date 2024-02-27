@@ -23,8 +23,6 @@ from xml.etree.ElementTree import fromstring
 
 from pathlib import Path
 
-
-
 try:
     import asammdf    
     from asammdf import set_global_option
