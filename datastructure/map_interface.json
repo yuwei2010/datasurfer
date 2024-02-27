@@ -1,0 +1,8 @@
+{
+    ".csv": "PANDAS_OBJECT",
+    ".xlsx": "PANDAS_OBJECT",
+    ".mf4": "ASAMMDF_OBJECT",
+    ".mat": "MATLAB_OBJECT",
+    ".results": "AMERES_OBJECT",
+    ".amegp": "AMEGP_OBJECT"
+}

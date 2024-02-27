@@ -7,11 +7,12 @@ Created on Tue Nov  7 13:45:05 2023
 
 
 #%% Import Libraries
-
+import sys
 import os
-#import h5py
 import re
 import datetime
+import json
+import importlib
 
 import pandas as pd
 import numpy as np
@@ -27,9 +28,7 @@ from tqdm import tqdm
 from itertools import chain
 from functools import reduce, wraps
 
-from .dataobjects_bak import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
-                         ASAMMDF_OBJECT, PANDAS_OBJECT, MATLAB_OBJECT,\
-                         AMEGP_OBJECT
+from .lib_objects import Data_Interface
 
 random.seed()
 #%% Collect files
@@ -215,14 +214,14 @@ class DataPool(object):
         signal_count: Returns the number of signals in each object of the DataPool.
     """
     
-    Mapping_Interfaces = {
-        '.csv': PANDAS_OBJECT,
-        '.xlsx': PANDAS_OBJECT,
-        '.mf4': ASAMMDF_OBJECT,
-        '.mat': MATLAB_OBJECT,
-        '.results': AMERES_OBJECT,
-        '.amegp': AMEGP_OBJECT,
-    }
+    # Mapping_Interfaces = {
+    #     '.csv': 'PANDAS_OBJECT',
+    #     '.xlsx': 'PANDAS_OBJECT',
+    #     '.mf4': 'ASAMMDF_OBJECT',
+    #     '.mat': 'MATLAB_OBJECT',
+    #     '.results': 'AMERES_OBJECT',
+    #     '.amegp': 'AMEGP_OBJECT',
+    # }
     
     def __init__(self, datobjects=None, config=None, interface=None, **kwargs):
         """
@@ -242,6 +241,12 @@ class DataPool(object):
             TRotor = pool['tRotor']
         """
 
+        if Path(__file__).parent.joinpath('map_interface.json').exists():
+            sys.path.insert(0, Path(__file__).parent / '..')
+            map_interface = json.load(open(Path(__file__).parent.joinpath('map_interface.json'), 'r', encoding='utf8')) 
+        else:
+            map_interface = dict()
+
         
         self.silent = kwargs.pop('silent', False)
         self.name = kwargs.pop('name', None)
@@ -258,7 +263,7 @@ class DataPool(object):
             
                 patts = kwargs.pop('pattern', None)
                 
-                patts = patts if patts else ['.+\\'+k for k  in self.__class__.Mapping_Interfaces.keys()]
+                patts = patts if patts else ['.+\\'+k for k  in map_interface.keys()]
                 
                 if not isinstance(patts, (list, tuple, set)):
                     patts = [patts]
@@ -302,10 +307,12 @@ class DataPool(object):
                 
             else:
                 key = Path(obj).suffix.lower()
-                try:                   
-                    objs.append(self.__class__.Mapping_Interfaces[key](obj, config=config, **kwargs))
-                except KeyError:
-                    pass        
+                
+                
+                if key in map_interface:
+                    cls = getattr(importlib.import_module('datastructure'), map_interface[key] )               
+                    objs.append(cls(obj, config=config, **kwargs))
+       
                 
         self.objs = sorted(set(objs), key=lambda x:x.name)
         
