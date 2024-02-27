@@ -491,7 +491,7 @@ class DataPool(object):
             
             obj.config = value
             
-    def describe(self, pbar=False):
+    def describe(self, verbose=False, pbar=False):
         """
         Generates a summary DataFrame containing information about the data pool.
 
@@ -511,17 +511,23 @@ class DataPool(object):
                 - Path: File path of the data pool file.
         """
         path = self.paths()
-        signal = self.signal_count(pbar=False)
-        length = pd.Series([obj.__len__() for obj in self.objs], 
-                          index=self.names(), name='Signal Length')
-        count = self.count(pbar=False)
-        size = (self.file_size() / 1e6).round(4)
-        memory = (self.memory_usage(pbar=pbar) / 1e6).round(4)        
         itype = pd.Series([obj.__class__.__name__ for obj in self.objs], 
                           index=self.names(), name='Interface')
         ftype = pd.Series([Path(p).suffix for p in self.paths()], index=self.names(), name='File Type')
-        date = self.file_date()        
-        df = pd.concat([signal, length, count, memory, itype, ftype, size, date, path], axis=1)
+        date = self.file_date() 
+        size = (self.file_size() / 1e6).round(4)     
+           
+        if verbose:
+            signal = self.signal_count(pbar=False)
+            length = pd.Series([obj.__len__() for obj in self.objs], 
+                            index=self.names(), name='Signal Length')
+            count = self.count(pbar=False)
+            
+            memory = (self.memory_usage(pbar=pbar) / 1e6).round(4)        
+        
+            df = pd.concat([signal, length, count, memory, itype, ftype, size, date, path], axis=1)
+        else:
+            df = pd.concat([itype, ftype, size, date, path], axis=1)
                     
         return df
                 
@@ -805,12 +811,36 @@ class DataPool(object):
                 else:
                     raise
 
-            dats = list(self.iter_signal(
-                signame, ignore_error=ignore_error, mask=mask))
 
-            return pd.concat(dats, axis=1)
     
+    def get_signal(self, signame, ignore_error=True, mask=None):
+        """
+        Retrieves the data for a given signal name.
 
+        Args:
+            signame (str): The name of the signal to retrieve.
+            ignore_error (bool, optional): Whether to ignore errors if the signal is not found. Defaults to True.
+            mask (str, optional): A mask to filter the data. Defaults to None.
+
+        Returns:
+            pandas.DataFrame: The concatenated data for the given signal.
+
+        Examples:
+            >>> dp = DataPool()
+            >>> dp.get_signal('signal1')
+            # Returns the concatenated data for 'signal1'
+
+            >>> dp.get_signal('signal2', ignore_error=False)
+            # Raises an error if 'signal2' is not found
+
+            >>> dp.get_signal('signal3', mask='2022-01-01')
+            # Returns the concatenated data for 'signal3' filtered by the mask '2022-01-01'
+        """
+        dats = list(self.iter_signal(
+            signame, ignore_error=ignore_error, mask=mask))
+
+        return pd.concat(dats, axis=1)
+    
     def get_signal1D(self, signame, ignore_error=True, mask=None, reindex=True):
         """
         Retrieve a 1-dimensional signal from the datapool.
