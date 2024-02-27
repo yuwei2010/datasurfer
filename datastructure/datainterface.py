@@ -320,6 +320,12 @@ class DataInterface(object):
     def __setitem__(self, name, value):
         
         self.df[name] = value
+    
+    def apply(self, name, value):
+        
+        self.df[name] = value
+        
+        return self
 
     @property
     def index(self):

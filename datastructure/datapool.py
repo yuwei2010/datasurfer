@@ -1101,7 +1101,8 @@ class Data_Pool(object):
         
         return [obj for obj, msk in zip(self.objs, mask_array) if msk]
     
-    def pipe(self, *funs):
+    @classmethod
+    def pipeline(self, *funs):
         """
         Applies a series of functions to each object in the data pool and yields the result.
 
@@ -1111,38 +1112,41 @@ class Data_Pool(object):
         Yields:
             The modified object after applying all the functions.
         """
-        for obj in self.objs:
+        def wapper(dp=self):
             for fun in funs:
-                fun(obj)
-            yield obj
+                assert hasattr(fun, '__call__'), 'Input value must be callable.'
+                for obj in dp.objs:
+                    fun(obj)
+
+        return wapper
                 
                 
     def deepcopy(self, pbar=True):
-            """
-            Create a deep copy of the DataPool object.
+        """
+        Create a deep copy of the DataPool object.
 
-            Parameters:
-            - pbar (bool): Whether to show a progress bar during the copy process. Default is True.
+        Parameters:
+        - pbar (bool): Whether to show a progress bar during the copy process. Default is True.
 
-            Returns:
-            - DataPool: A new DataPool object that is a deep copy of the original object.
-            """
-            @show_pool_progress('Copying', show=pbar)
-            def fun(self):
+        Returns:
+        - DataPool: A new DataPool object that is a deep copy of the original object.
+        """
+        @show_pool_progress('Copying', show=pbar)
+        def fun(self):
+            
+            for name, dat in self.iter_dict():
+                df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
+                obj = DATA_OBJECT(path=dat['path'],
+                                    config=dat['config'],
+                                    comment=dat['comment'],
+                                    name=dat['name'],
+                                    df=df)                
+                yield obj
                 
-                for name, dat in self.iter_dict():
-                    df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-                    obj = DATA_OBJECT(path=dat['path'],
-                                      config=dat['config'],
-                                      comment=dat['comment'],
-                                      name=dat['name'],
-                                      df=df)                
-                    yield obj
-                    
-                    
-            objs = list(fun(self))
-                    
-            return self.__class__(objs)
+                
+        objs = list(fun(self))
+                
+        return self.__class__(objs)
     
     def iter_dict(self):
         """
