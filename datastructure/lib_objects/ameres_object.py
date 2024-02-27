@@ -7,12 +7,12 @@ import numpy as np
 
 from pathlib import Path
 
-from .data_interface import Data_Interface , translate_config, extract_channels
+from ..datainterface import DataInterface , translate_config, extract_channels
 
 
 
 #%% AMERES_OJBECT
-class AMERES_OBJECT(Data_Interface):
+class AMERES_OBJECT(DataInterface):
     """
     Represents an object for handling AMERES data.
 

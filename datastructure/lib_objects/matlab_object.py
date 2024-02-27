@@ -6,14 +6,14 @@ import numpy as np
 
 import scipy.io
 
-from .data_interface import Data_Interface
+from ..datainterface import DataInterface
 
 
 
 
 #%% MATLAB_OJBECT
 
-class MATLAB_OBJECT(Data_Interface):
+class MATLAB_OBJECT(DataInterface):
     """
     Represents a MATLAB object that can be loaded from a file.
 

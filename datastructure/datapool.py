@@ -28,7 +28,7 @@ from tqdm import tqdm
 from itertools import chain
 from functools import reduce, wraps
 
-from .lib_objects import Data_Interface
+from .datainterface import DataInterface
 
 random.seed()
 #%% Collect files
@@ -176,7 +176,7 @@ def combine_configs(*cfgs):
   
 #%% Data Pool
 
-class DataPool(object):
+class Data_Pool(object):
     """
     A class representing a data pool to process datasets.
     
@@ -294,7 +294,7 @@ class DataPool(object):
         
         for obj in datobjects:
             
-            if isinstance(obj, Data_Interface):
+            if isinstance(obj, DataInterface):
                 
                 if config:
                     
@@ -302,7 +302,7 @@ class DataPool(object):
                 
                 objs.append(obj)
                 
-            elif isinstance(interface, type) and issubclass(interface, Data_Interface):
+            elif isinstance(interface, type) and issubclass(interface, DataInterface):
                 objs.append(interface(obj, config=config, **kwargs))
                 
             else:
@@ -431,7 +431,7 @@ class DataPool(object):
             
             
         elif hasattr(inval, '__call__'):
-            if isinstance(inval, type) and issubclass(inval, Data_Interface):
+            if isinstance(inval, type) and issubclass(inval, DataInterface):
                 
                 out = [obj for obj in self.objs if isinstance(obj, inval)]
             else:

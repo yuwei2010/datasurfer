@@ -1,5 +1,5 @@
 import pandas as pd
-from .data_interface import translate_config
+from ..datainterface import translate_config
 from .pandas_object import PANDAS_OBJECT
 
 

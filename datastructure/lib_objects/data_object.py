@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
-from .data_interface import Data_Interface
+from ..datainterface import DataInterface
 
 
 #%% DATA_OBJECT
-class DATA_OBJECT(Data_Interface):
+class DATA_OBJECT(DataInterface):
     """
     Represents a data object.
 

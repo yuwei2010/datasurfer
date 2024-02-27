@@ -3,11 +3,11 @@
 import re
 import pandas as pd
 from pathlib import Path
-from .data_interface import Data_Interface
+from ..datainterface import DataInterface
 
 
 #%% AMEGP_OJBECT
-class AMEGP_OBJECT(Data_Interface):
+class AMEGP_OBJECT(DataInterface):
     """
     Represents an object for handling AMEGP data.
 

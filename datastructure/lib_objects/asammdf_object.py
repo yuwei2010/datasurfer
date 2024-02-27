@@ -16,10 +16,10 @@ try:
 except:    
     warnings.warn('Can not import "asammdf"')
 
-from .data_interface import Data_Interface, translate_config, extract_channels
+from ..datainterface import DataInterface, translate_config, extract_channels
 
 #%% ASAMMDF_OBJECT
-class ASAMMDF_OBJECT(Data_Interface):
+class ASAMMDF_OBJECT(DataInterface):
     """
     Represents an ASAM MDF object.
 

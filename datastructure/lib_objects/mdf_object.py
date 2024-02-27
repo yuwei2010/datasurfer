@@ -15,10 +15,10 @@ try:
 except:    
     warnings.warn('Can not import "mdfreader"')
 
-from .data_interface import Data_Interface, translate_config, extract_channels
+from ..datainterface import DataInterface, translate_config, extract_channels
 
 #%% MDF_OBJECT
-class MDF_OBJECT(Data_Interface):
+class MDF_OBJECT(DataInterface):
     """
     Represents an MDF object that provides access to MDF file data.
 

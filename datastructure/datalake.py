@@ -5,7 +5,7 @@ import warnings
 from itertools import chain
 from pathlib import Path
 
-from .datapool import DataPool
+from .datapool import Data_Pool
 from difflib import SequenceMatcher
 
 
@@ -51,7 +51,7 @@ def collect_dirs(root, *patts, patt_filter=None):
 
 
 #%%
-class DataLake(object):
+class Data_Lake(object):
     """
     Represents a data lake that contains multiple data pools.
 

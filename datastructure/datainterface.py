@@ -176,7 +176,7 @@ def translate_config(newconfig=None):
 
 #%% Data_Interface
 
-class Data_Interface(object):
+class DataInterface(object):
     """
     A class representing a data interface.
 

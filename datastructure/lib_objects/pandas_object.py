@@ -1,11 +1,11 @@
 
 import numpy as np
 import pandas as pd
-from .data_interface import translate_config, Data_Interface
+from ..datainterface import DataInterface, translate_config
 
 
 #%%
-class PANDAS_OBJECT(Data_Interface):
+class PANDAS_OBJECT(DataInterface):
     """
     A class representing a Pandas object.
 
