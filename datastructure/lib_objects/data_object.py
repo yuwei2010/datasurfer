@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from data_interface import Data_Interface
+from .data_interface import Data_Interface
 
 
 #%% DATA_OBJECT

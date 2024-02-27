@@ -27,7 +27,7 @@ from tqdm import tqdm
 from itertools import chain
 from functools import reduce, wraps
 
-from .dataobjects import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
+from .dataobjects_bak import Data_Interface, DATA_OBJECT, AMERES_OBJECT,\
                          ASAMMDF_OBJECT, PANDAS_OBJECT, MATLAB_OBJECT,\
                          AMEGP_OBJECT
 

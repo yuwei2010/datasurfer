@@ -9,4 +9,3 @@ from .datapool import DataPool
 from .datalake import DataLake
 
 __all__   = ['DataPool', 'DataLake']
-__slots__ = ['DataPool', 'DataLake']

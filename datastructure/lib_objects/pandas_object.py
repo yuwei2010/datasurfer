@@ -1,7 +1,7 @@
 
 import numpy as np
 import pandas as pd
-from data_interface import translate_config, Data_Interface
+from .data_interface import translate_config, Data_Interface
 
 
 #%%
