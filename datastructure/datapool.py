@@ -1112,13 +1112,13 @@ class Data_Pool(object):
         Yields:
             The modified object after applying all the functions.
         """
-        def wapper(dp=self):
+        def wrapper(dp):
             for fun in funs:
                 assert hasattr(fun, '__call__'), 'Input value must be callable.'
                 for obj in dp.objs:
                     fun(obj)
 
-        return wapper
+        return wrapper
                 
                 
     def deepcopy(self, pbar=True):
@@ -1131,6 +1131,8 @@ class Data_Pool(object):
         Returns:
         - DataPool: A new DataPool object that is a deep copy of the original object.
         """
+        
+        from .lib_objects import DATA_OBJECT
         @show_pool_progress('Copying', show=pbar)
         def fun(self):
             
@@ -1213,7 +1215,7 @@ class Data_Pool(object):
                         
                         df = df[columns]
                     
-                    index =  pd.MultiIndex.from_product([[obj.name], df.columns])
+                    index = pd.MultiIndex.from_product([[obj.name], df.columns])
                     
                     df.columns = index
                                     
