@@ -4,5 +4,6 @@
     ".mf4": "ASAMMDF_OBJECT",
     ".mat": "MATLAB_OBJECT",
     ".results": "AMERES_OBJECT",
-    ".amegp": "AMEGP_OBJECT"
+    ".amegp": "AMEGP_OBJECT",
+    ".data": "AMEDATA_OBJECT"
 }

@@ -7,6 +7,7 @@ from .mdf_object import MDF_OBJECT
 from .matlab_object import MATLAB_OBJECT
 from .ameres_object import AMERES_OBJECT
 from .amegp_object import AMEGP_OBJECT
+from .amedata_object import AMEDATA_OBJECT
 
 __all__ = ['DataInterface',
            'DATA_OBJECT', 
@@ -16,4 +17,5 @@ __all__ = ['DataInterface',
            'MDF_OBJECT', 
            'MATLAB_OBJECT',
            'AMERES_OBJECT',
-           'AMEGP_OBJECT']
+           'AMEGP_OBJECT',
+           'AMEDATA_OBJECT']

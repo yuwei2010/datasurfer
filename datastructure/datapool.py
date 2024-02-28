@@ -1102,7 +1102,7 @@ class Data_Pool(object):
         return [obj for obj, msk in zip(self.objs, mask_array) if msk]
     
     @classmethod
-    def pipeline(self, *funs):
+    def pipeline(self, *funs, ignore_error=True):
         """
         Applies a series of functions to each object in the data pool and yields the result.
 
@@ -1116,7 +1116,15 @@ class Data_Pool(object):
             for fun in funs:
                 assert hasattr(fun, '__call__'), 'Input value must be callable.'
                 for obj in dp.objs:
-                    fun(obj)
+                    try:
+                        fun(obj)
+                    except Exception as err:
+                        if ignore_error:
+                            errname = err.__class__.__name__
+                            tb = traceback.format_exc(limit=0, chain=False)
+                            warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                        else:
+                            raise
 
         return wrapper
                 
