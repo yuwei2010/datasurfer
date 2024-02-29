@@ -24,7 +24,7 @@ from xml.etree.ElementTree import fromstring
 from pathlib import Path
 
 from difflib import SequenceMatcher
-from itertools import chain
+from itertools import chain, zip_longest
 from functools import wraps
 
 
@@ -468,14 +468,14 @@ class DataInterface(object):
         
         return self.df.memory_usage(deep=True)
     
-    def clean_config(self):
+    def clean_config(self, replace=False):
         """
         Clean the configuration dictionary by removing any keys that are not present in the DataFrame.
 
         Returns:
             self: The current instance of the object.
         """
-        if not self.config is None:
+        if self.config is not None:
             new_cfg = dict()
             keys = self.df.keys()
             for k, v in self.config.items():
@@ -483,11 +483,12 @@ class DataInterface(object):
                     new_cfg[k] = v
                     
             retval = set(self.config.keys()) - set(new_cfg.keys())
-            self.config = new_cfg
+            if replace:
+                self.config = new_cfg
                   
         return sorted(retval)
     
-    def search_similar(self, name):
+    def search_similar(self, name, channel=True):
         """
         Searches for keys in the data structure that are similar to the given name.
         
@@ -497,7 +498,7 @@ class DataInterface(object):
         Returns:
             list: A list of keys in the data structure that are similar to the given name, sorted in descending order of similarity.
         """
-        keys = self.keys()
+        keys = self.keys() if not (hasattr(self, 'channels') and channel) else self.channels
         
         ratios = [SequenceMatcher(a=name, b=k).ratio() for k in keys]
         
@@ -505,9 +506,55 @@ class DataInterface(object):
         
         return sorted_keys
     
-    def find_missing_config(self):
+    def search_missing_config_items(self, num=5, channel=True, by_key=False):
         
         config = self.config or dict()
+        
+        chns = self.keys() if not (hasattr(self, 'channels') and channel) else self.channels
+        
+        for key, val in config.items():
+            
+            if not isinstance(val, (tuple, list, set)):
+                
+                val = [val]
+                config[key] = val
+                
+            if any(c in chns for c in val):
+                
+                continue     
+            
+            else:
+                if by_key:
+                    found = [self.search_similar(key, channel=channel)]
+                else:
+                    found = [self.search_similar(v, channel=channel) for v in val]            
+                topfound = list(chain(*zip_longest(*found)))[:num]
+
+                
+                while 1:
+                    
+                    select = input(f'Select one of following key for "{key}" or type "n" for None: \n\t' 
+                                + '\n\t'.join(f'{idx}: {s}' for idx, s in enumerate(topfound, start=1)) 
+                                + '\n')
+                    
+                    if select == 'n':
+                        break
+                    if select == 'x':
+                        raise KeyboardInterrupt
+                    else:
+                        try:
+                            idx = int(select) - 1
+                        
+                            k = topfound[idx]
+                            config[key].append(k)   
+                            break
+                        except (IndexError, ValueError):
+                            print('Invalid input, try again')                                                
+                            continue        
+
+        return self.config
+        
+
     
     
     def drop(self, *names, nonexist_ok=True):
