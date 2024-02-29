@@ -80,7 +80,7 @@ class Data_Lake(object):
             patts = [patts]
 
         founds = sorted(collect_dirs(root, *patts))
-        objs = [DataPool([d/f for f in fs], name=d.stem, config=config) for d, fs in founds]
+        objs = [Data_Pool([d/f for f in fs], name=d.stem, config=config) for d, fs in founds]
 
         for obj, (d, _) in zip(objs, founds):
             obj.path = d
@@ -115,6 +115,19 @@ class Data_Lake(object):
         else:
             out = self.objs[inval]
         return out
+    
+    def __iter__(self):
+        """
+        Returns an iterator object that iterates over the elements in the `objs` list.
+        """
+        return iter(self.objs)
+    
+    def __len__(self):
+        
+        return len(self.objs)
+    
+    def size(self):
+        return sum(len(obj) for obj in self.objs)
     
     
     def keys(self):

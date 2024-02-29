@@ -505,6 +505,10 @@ class DataInterface(object):
         
         return sorted_keys
     
+    def find_missing_config(self):
+        
+        config = self.config or dict()
+    
     
     def drop(self, *names, nonexist_ok=True):
         
@@ -696,25 +700,33 @@ class DataInterface(object):
     def save(self, name, overwrite=True):
         
         if overwrite or not Path(name).is_file():
-        
+            
+            from lib_objects import DATA_OBJECT
+            
             dobj = DATA_OBJECT(path=self.path, config=self.config, name=self.name, 
                            comment=self.comment, df=self.df)
             dobj.save(name)
         
         return self
     
-
+    def clean(self):
         
-        
-        
-    def close(self, clean=True):
-
-        if hasattr(self, '_fhandler') and hasattr(self._fhandler, 'close'):
-            
-            self._fhandler.close()  
-            
-            del self._fhandler
-            
-        if clean and hasattr(self, '_df'):
+        if hasattr(self, '_df'):
             
             del self._df
+            
+        return self
+                
+    def close(self, clean=True):
+        """
+        Closes the file handler and performs optional cleanup.
+
+        Args:
+            clean (bool, optional): Flag indicating whether to perform cleanup. Defaults to True.
+        """
+        if hasattr(self, '_fhandler') and hasattr(self._fhandler, 'close'):
+            self._fhandler.close()
+            del self._fhandler
+
+        if clean:
+            self.clean()
