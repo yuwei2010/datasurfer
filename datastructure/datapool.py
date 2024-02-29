@@ -214,14 +214,6 @@ class Data_Pool(object):
         signal_count: Returns the number of signals in each object of the DataPool.
     """
     
-    # Mapping_Interfaces = {
-    #     '.csv': 'PANDAS_OBJECT',
-    #     '.xlsx': 'PANDAS_OBJECT',
-    #     '.mf4': 'ASAMMDF_OBJECT',
-    #     '.mat': 'MATLAB_OBJECT',
-    #     '.results': 'AMERES_OBJECT',
-    #     '.amegp': 'AMEGP_OBJECT',
-    # }
     
     def __init__(self, datobjects=None, config=None, interface=None, **kwargs):
         """
@@ -283,8 +275,8 @@ class Data_Pool(object):
             if all(isinstance(s, (str, Path)) for s in datobjects) and all(Path(s).is_dir() for s in datobjects):
                 
                 datobjects = reduce(lambda x, y: 
-                                    DataPool(x, config=config, interface=interface, **kwargs)
-                                    +DataPool(y, config=config, interface=interface,  **kwargs), datobjects)    
+                                    Data_Pool(x, config=config, interface=interface, **kwargs)
+                                    + Data_Pool(y, config=config, interface=interface,  **kwargs), datobjects)    
 
 
         if datobjects is None:
@@ -312,6 +304,8 @@ class Data_Pool(object):
                 if key in map_interface:
                     cls = getattr(importlib.import_module('datastructure'), map_interface[key] )               
                     objs.append(cls(obj, config=config, **kwargs))
+                else:
+                    raise ValueError(f'Can not find any interface for "{obj}"')
        
                 
         self.objs = sorted(set(objs), key=lambda x:x.name)
