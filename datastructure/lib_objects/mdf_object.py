@@ -76,7 +76,10 @@ class MDF_OBJECT(DataInterface):
             cmmt = self.info['HD']['Comment']
             if cmmt.get('TX') is not None:
                 txt = dict(re.findall(r'(.+):\s+(.+)', cmmt.get('TX')))
-                cmmt.update(txt)
+                if txt:
+                    cmmt.update(txt)
+                else:
+                    cmmt['comment'] = txt
             self._comment = cmmt
         return self._comment
 

@@ -120,6 +120,8 @@ class ASAMMDF_OBJECT(DataInterface):
                     tx, = xmlobj.findall('TX')
                     if tx.text:
                         comment = dict(re.findall(r'(.+):\s+(.+)', tx.text))
+                    if not comment:
+                        comment = {'Comment': tx.text}
                 except ValueError:
                     comment = dict()
                 try:
