@@ -507,36 +507,46 @@ class DataInterface(object):
         return sorted_keys
     
     def search_missing_config_items(self, num=5, channel=True, by_key=False):
-        
+        """
+        Searches for missing configuration items in the data interface.
+
+        Args:
+            num (int): The maximum number of similar items to display for selection. Default is 5.
+            channel (bool): Flag indicating whether to search for missing items in channels. Default is True.
+            by_key (bool): Flag indicating whether to search for similar items by key. Default is False.
+
+        Returns:
+            dict: The updated configuration dictionary.
+        """
+
         config = self.config or dict()
-        
+
         chns = self.keys() if not (hasattr(self, 'channels') and channel) else self.channels
-        
+
         for key, val in config.items():
-            
+
             if not isinstance(val, (tuple, list, set)):
-                
+
                 val = [val]
                 config[key] = val
-                
+
             if any(c in chns for c in val):
-                
-                continue     
-            
+
+                continue
+
             else:
                 if by_key:
                     found = [self.search_similar(key, channel=channel)]
                 else:
-                    found = [self.search_similar(v, channel=channel) for v in val]            
+                    found = [self.search_similar(v, channel=channel) for v in val]
                 topfound = list(chain(*zip_longest(*found)))[:num]
 
-                
                 while 1:
-                    
-                    select = input(f'Select one of following key for "{key}" or type "n" for None: \n\t' 
-                                + '\n\t'.join(f'{idx}: {s}' for idx, s in enumerate(topfound, start=1)) 
-                                + '\n')
-                    
+
+                    select = input(f'Select one of following key for "{key}" or type "n" for None: \n\t'
+                                   + '\n\t'.join(f'{idx}: {s}' for idx, s in enumerate(topfound, start=1))
+                                   + '\n')
+
                     if select == 'n':
                         break
                     if select == 'x':
@@ -544,13 +554,13 @@ class DataInterface(object):
                     else:
                         try:
                             idx = int(select) - 1
-                        
+
                             k = topfound[idx]
-                            config[key].append(k)   
+                            config[key].append(k)
                             break
                         except (IndexError, ValueError):
-                            print('Invalid input, try again')                                                
-                            continue        
+                            print('Invalid input, try again')
+                            continue
 
         return self.config
         
@@ -558,26 +568,44 @@ class DataInterface(object):
     
     
     def drop(self, *names, nonexist_ok=True):
-        
+        """
+        Drop columns from the DataFrame.
+
+        Args:
+            *names: Variable length argument list of column names to be dropped.
+            nonexist_ok (bool, optional): If True, ignore columns that do not exist. If False, raise KeyError for non-existent columns. Defaults to True.
+
+        Returns:
+            self: Returns the modified DataInterface object.
+
+        Raises:
+            KeyError: If a non-existent column is specified and nonexist_ok is False.
+        """
         keys = []
-        
+
         for name in names:
-            
             if name in self.df:
-               
-               keys.append(name)
-               
+                keys.append(name)
             elif not nonexist_ok:
-                
                 raise KeyError(f'"{name}" does not exist in "{self.name}".')
-                
+
         self.df.drop(columns=keys, inplace=True)
-        
+
         return self
     
     def search_get(self, patt, ignore_case=False, raise_error=False):
-               
-       return self.df[self.search(patt, ignore_case, raise_error)]
+        """
+        Returns the subset of the DataFrame that matches the given pattern.
+
+        Args:
+            patt (str): The pattern to search for.
+            ignore_case (bool, optional): Whether to ignore case when searching. Defaults to False.
+            raise_error (bool, optional): Whether to raise an error if no matches are found. Defaults to False.
+
+        Returns:
+            pandas.DataFrame: The subset of the DataFrame that matches the pattern.
+        """
+        return self.df[self.search(patt, ignore_case, raise_error)]
 
     
     def load(self, *keys, mapping=None):

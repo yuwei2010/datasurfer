@@ -270,16 +270,19 @@ class Data_Pool(object):
                 
                 raise IOError(f'Can not find the dir or file "{dpath}".')    
                 
-        elif isinstance(datobjects, (list, set, tuple)) and len(datobjects):
+        elif isinstance(datobjects, (list, set, tuple)):
             
             if all(isinstance(s, (str, Path)) for s in datobjects) and all(Path(s).is_dir() for s in datobjects):
                 
                 datobjects = reduce(lambda x, y: 
                                     Data_Pool(x, config=config, interface=interface, **kwargs)
                                     + Data_Pool(y, config=config, interface=interface,  **kwargs), datobjects)    
+        else:
+                datobjects = [datobjects]
+            
 
 
-        if datobjects is None:
+        if datobjects is None or len(datobjects)==0:
             datobjects = []
             
         objs = []
@@ -288,19 +291,22 @@ class Data_Pool(object):
             
             if isinstance(obj, DataInterface):
                 
-                if config:
-                    
+                if config:               
                     obj.config = config
                 
                 objs.append(obj)
+            elif isinstance(obj, self.__class__):
+                if config:
                 
+                    obj.config = config     
+                objs.extend(obj.objs)        
+                
+                               
             elif isinstance(interface, type) and issubclass(interface, DataInterface):
                 objs.append(interface(obj, config=config, **kwargs))
                 
             else:
-                key = Path(obj).suffix.lower()
-                
-                
+                key = Path(obj).suffix.lower()               
                 if key in map_interface:
                     cls = getattr(importlib.import_module('datastructure'), map_interface[key] )               
                     objs.append(cls(obj, config=config, **kwargs))
@@ -350,9 +356,9 @@ class Data_Pool(object):
         
         return iter(self.objs)
     
-    def __contains__(self, name):
+    def __contains__(self, obj):
         
-        return name in self.names()
+        return obj in self.objs
     
     def __len__(self):
         
@@ -425,6 +431,7 @@ class Data_Pool(object):
             
             
         elif hasattr(inval, '__call__'):
+            
             if isinstance(inval, type) and issubclass(inval, DataInterface):
                 
                 out = [obj for obj in self.objs if isinstance(obj, inval)]
@@ -440,8 +447,9 @@ class Data_Pool(object):
             out = self.__class__(self.select(inval.to_numpy()))
             
         else:
-            out = self.__class__(self.objs[inval])
             
+            out = self.objs[inval]
+
         return out
     
     def __setitem__(self, name, fun):
