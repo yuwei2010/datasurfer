@@ -1,6 +1,6 @@
 import os
 import re
-import warnings
+import pandas as pd
 
 from itertools import chain
 from pathlib import Path
@@ -240,7 +240,13 @@ class Data_Lake(object):
     
         duplicated = sorted(set([name for name in names if names.count(name) > 1]))
         
-        return {k: [p[k].meta_info for p in self.items() if k in p.names()] for k in duplicated}
+        out = {k: [p[k].meta_info for p in self.items() if k in p.names()] for k in duplicated}
+        
+        if as_df:
+            
+            out = pd.DataFrame(dict(((k, col), pd.DataFrame(v).loc[col])  for k, v in out.items() for col in pd.DataFrame(v).index))
+            
+        return out
     
     def compare_value(self, this, that, **kwargs):
         """
@@ -267,7 +273,7 @@ class Data_Lake(object):
         """
         return this.df.equals(that.df, **kwargs)
     
-    def merge_pools(self, raise_error=False):
+    def to_pool(self, name=None, raise_error=False):
         """
         Merge multiple data objects in the pool.
 
@@ -289,7 +295,7 @@ class Data_Lake(object):
             except ValueError:
                 objname = set(out.names()) & set(obj.names())
                 raise ValueError(f'Cannot merge "{obj.name}" with "{out.name}" because of duplicated data object "{objname}".')    
-            
+        out.name = name   
         return out
     
     def pop(self, name):
