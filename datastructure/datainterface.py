@@ -16,6 +16,7 @@ import pandas as pd
 import numpy as np
 import json
 import warnings
+import traceback
 
 
 
@@ -647,8 +648,7 @@ class DataInterface(object):
         if len(keys):
             
             self._df[keys] = obj0[keys]
-            
-            
+                   
         return self
     
     def squeeze(self, *keys):
@@ -662,22 +662,24 @@ class DataInterface(object):
         return self
     
     @classmethod
-    def pipe(self, *funs):
+    def pipeline(self, *funs, ignore_error=True):
         
-        def pipfunc(*inval):
-            
-            outval = None
-            
+        def wrapper(obj):
             for fun in funs:
-                
-                if outval is None:
-                    outval = fun(*inval)
-                else:
-                    outval = fun(outval)
-                
-            return outval
-    
-        return pipfunc
+                assert hasattr(fun, '__call__'), 'Input value must be callable.'
+
+                try:
+                    fun(obj)
+                except Exception as err:
+                    if ignore_error:
+                        errname = err.__class__.__name__
+                        tb = traceback.format_exc(limit=0, chain=False)
+                        warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                    else:
+                        raise
+
+        return wrapper
+
     
     def rename(self, **kwargs):
         
@@ -704,7 +706,7 @@ class DataInterface(object):
         Returns:
         - new_obj (DATA_OBJECT): A new instance of the DATA_OBJECT class with the resampled DataFrame.
         """
-        from data_object import DATA_OBJECT
+        from lib_objects import DATA_OBJECT
         if new_index is not None:
             new_index = np.asarray(new_index)
 
