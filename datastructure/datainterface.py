@@ -334,11 +334,10 @@ class DataInterface(object):
     @property
     def meta_info(self):
         
-        out = dict()
-        
-        out['path'] = str(self.path)
-        out['comment'] = self.comment  
-        out['name'] = self.name
+        out = dict()       
+        out['path'] = str(self.path)        
+        out['name'] = self.name   
+        out.update(self.comment)
         
         if hasattr(self, '_df'):
             out['shape'] = self.df.shape

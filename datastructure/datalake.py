@@ -230,15 +230,17 @@ class Data_Lake(object):
         return [obj for obj in self.iterobjs() if re.match(pattern, obj.name)]
     
     
-    def find_duplicated(self):
+    def find_duplicated(self, as_df=False):
         """
         Finds duplicated items in the data structure.
 
         Returns a dictionary where the keys are the duplicated items and the values are lists of items that contain the duplicated item.
         """
         names = [obj.name for obj in self.iterobjs()]
+    
         duplicated = sorted(set([name for name in names if names.count(name) > 1]))
-        return {k: [p for p in self.items() if k in p] for k in duplicated}
+        
+        return {k: [p[k].meta_info for p in self.items() if k in p.names()] for k in duplicated}
     
     def compare_value(self, this, that, **kwargs):
         """
