@@ -22,7 +22,7 @@ from tqdm import tqdm
 from itertools import chain
 from functools import reduce, wraps
 
-from datasurfer.datainterface import DataInterface
+from .datainterface import DataInterface
 
 random.seed()
 #%% Collect files
@@ -1423,6 +1423,6 @@ class Data_Pool(object):
 
 if __name__ == '__main__':
     
-    dp = Data_Pool()
+    pass
     
 
