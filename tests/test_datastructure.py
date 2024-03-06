@@ -4,9 +4,6 @@
 
 import pytest
 
-import sys
-
-sys.path.insert(0, r'C:\95_Programming\10_Data_Related\20_Projects\10_Git\10_Datastructure')
 import datastructure as ds
 
 
