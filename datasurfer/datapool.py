@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Nov  7 13:45:05 2023
-
-@author: YUW1SI
-"""
-
 
 #%% Import Libraries
 import sys
