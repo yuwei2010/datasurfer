@@ -236,8 +236,9 @@ class Data_Pool(object):
         
         self.silent = kwargs.pop('silent', False)
         self.name = kwargs.pop('name', None)
-                    
-
+        comments = kwargs.pop('comments', {})
+        
+        
         if isinstance(datobjects, (str, Path)): 
             
             dpath = Path(datobjects)
@@ -309,6 +310,7 @@ class Data_Pool(object):
        
                 
         self.objs = sorted(set(objs), key=lambda x:x.name)
+        self.apply_comments(**comments)
         
         self.initialized = False
         
@@ -621,6 +623,23 @@ class Data_Pool(object):
         Returns a DataFrame containing the names and comments of the objects in the datapool.
         """
         return dict((obj.name, obj.comment) for obj in self.objs)
+    
+    def apply_comments(self, **comments):
+        """
+        Apply comments to the objects in the datapool.
+
+        Args:
+            **comments: Keyword arguments mapping object names to comments.
+
+        Returns:
+            self: The modified datapool object.
+        """
+        for name, comment in comments.items():
+            try:
+                self.get_object(name).comment = comment
+            except NameError:
+                pass
+        return self
     
     def configs(self):
         """
@@ -1124,9 +1143,9 @@ class Data_Pool(object):
             The modified object after applying all the functions.
         """
         def wrapper(dp):
-            for fun in funs:
-                assert hasattr(fun, '__call__'), 'Input value must be callable.'
-                for obj in dp.objs:
+            for obj in dp.objs:                            
+                for fun in funs:
+                    assert hasattr(fun, '__call__'), 'Input value must be callable.'    
                     try:
                         fun(obj)
                     except Exception as err:
