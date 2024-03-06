@@ -5,7 +5,7 @@ Credits
 Development Lead
 ----------------
 
-* Wei Yu (PS-EM/ESY2) <wei.yu2@de.bosch.com>
+* Wei Yu
 
 Contributors
 ------------
