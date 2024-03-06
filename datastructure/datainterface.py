@@ -337,8 +337,13 @@ class DataInterface(object):
         
         out = dict()       
         out['path'] = str(self.path)        
-        out['name'] = self.name   
-        out.update(self.comment)
+        out['name'] = self.name  
+        out['size'] = self.size 
+        
+        try:
+            out.update(self.comment)
+        except:
+            pass
         
         if hasattr(self, '_df'):
             out['shape'] = self.df.shape
