@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 class AMEDATA_OBJECT(DataInterface):
-    """
+    """ 
     A class reads AMESim tables.
 
     Attributes:

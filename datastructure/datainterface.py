@@ -639,64 +639,110 @@ class DataInterface(object):
     
 
     def reload(self):
-                   
-       if hasattr(self, '_df'):
-           
-           del self._df
-          
-       return self 
+        """
+        Reloads the data by deleting the existing dataframe and returning the instance.
+
+        Returns:
+            self: The instance of the DataInterface class.
+        """
+        if hasattr(self, '_df'):
+            del self._df
+        return self
    
     def merge(self, obj0):
-        
-        keys = obj0.df.columns.difference(self.df.columns)
-        
-        if len(keys):
+            """
+            Merges the columns of another object into the current object.
+
+            Parameters:
+            - obj0: Another object to merge with.
+
+            Returns:
+            - self: The merged object.
+            """
+            keys = obj0.df.columns.difference(self.df.columns)
             
-            self._df[keys] = obj0[keys]
-                   
-        return self
+            if len(keys):
+                self._df[keys] = obj0[keys]
+                       
+            return self
     
     def squeeze(self, *keys):
-        try:
-            self._df = self.df[list(keys)]
-            
-        except KeyError:
-            new_keys = list(set(self._df.columns) & set(keys))
-            self._df = self.df[new_keys]
-            
-        return self
+            """
+            Selects and returns a new DataFrame containing only the specified columns.
+
+            Parameters:
+            *keys: Variable length argument representing the column names to be selected.
+
+            Returns:
+            self: Returns the modified DataInterface object with the new DataFrame.
+
+            Raises:
+            KeyError: If any of the specified column names are not found in the DataFrame, it raises a KeyError.
+            """
+            try:
+                self._df = self.df[list(keys)]
+                
+            except KeyError:
+                new_keys = list(set(self._df.columns) & set(keys))
+                self._df = self.df[new_keys]
+                
+            return self
     
     @classmethod
     def pipeline(self, *funs, ignore_error=True):
-        
-        def wrapper(obj):
-            for fun in funs:
-                assert hasattr(fun, '__call__'), 'Input value must be callable.'
+            """
+            Executes a series of functions on an object in a pipeline fashion.
 
-                try:
-                    fun(obj)
-                except Exception as err:
-                    if ignore_error:
-                        errname = err.__class__.__name__
-                        tb = traceback.format_exc(limit=0, chain=False)
-                        warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
-                    else:
-                        raise
+            Args:
+                *funs: Variable number of functions to be executed on the object.
+                ignore_error (bool, optional): Flag to indicate whether to ignore errors raised during execution. 
+                                               Defaults to True.
 
-        return wrapper
+            Raises:
+                Exception: If ignore_error is False and an error is raised during execution.
+
+            Returns:
+                None
+            """
+            def wrapper(obj):
+                for fun in funs:
+                    assert hasattr(fun, '__call__'), 'Input value must be callable.'
+
+                    try:
+                        fun(obj)
+                    except Exception as err:
+                        if ignore_error:
+                            errname = err.__class__.__name__
+                            tb = traceback.format_exc(limit=0, chain=False)
+                            warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                        else:
+                            raise
+
+            return wrapper
 
     
     def rename(self, **kwargs):
-        
-        keymap = kwargs#dict((v, k) for k, v in kwargs.items())
-        
+        """
+        Renames the columns of the DataFrame using the provided key-value pairs.
+
+        Args:
+            **kwargs: Key-value pairs where the key represents the current column name and the value represents the new column name.
+
+        Returns:
+            The modified DataFrame object.
+
+        Example:
+            df.rename(column1='new_column1', column2='new_column2')
+
+        """
+        keymap = kwargs
+
         @translate_config(keymap)
         def get(self):
-            
             return self._df
-        
+
         get(self)
-        
+
         return self
     
     def resample(self, new_index=None):
@@ -738,11 +784,21 @@ class DataInterface(object):
         return new_obj
     
     def to_numpy(self):
-        
-        return self.resample()
+            """
+            Converts the data to a NumPy array.
+
+            Returns:
+                numpy.ndarray: The data as a NumPy array.
+            """
+            return self.resample()
         
     def to_dict(self):
-                
+        """
+        Converts the data interface object to a dictionary.
+
+        Returns:
+            dict: A dictionary representation of the data interface object.
+        """
         out = dict()
         
         out['path'] = str(self.path)
@@ -756,21 +812,36 @@ class DataInterface(object):
         return out
     
     def to_csv(self, name=None, overwrite=True):
-        
+        """
+        Export the DataFrame to a CSV file.
+
+        Args:
+            name (str, optional): The name of the CSV file. If not provided, the name will be generated based on the object's name. Defaults to None.
+            overwrite (bool, optional): Whether to overwrite an existing file with the same name. Defaults to True.
+
+        Returns:
+            self: The current instance of the DataInterface object.
+        """
         if name is None:
-            
             name = self.name + '.csv'
             
         if overwrite or not Path(name).is_file():
-            
             self.df.to_csv(name)
         
         return self
 
     def to_excel(self, name=None, overwrite=True):
-        
+        """
+        Export the DataFrame to an Excel file.
+
+        Args:
+            name (str, optional): The name of the Excel file. If not provided, the name will be generated based on the object's name. Defaults to None.
+            overwrite (bool, optional): Whether to overwrite the file if it already exists. Defaults to True.
+
+        Returns:
+            self: The current instance of the DataInterface object.
+        """
         if name is None:
-            
             name = self.name + '.xlsx'
         
         if overwrite or not Path(name).is_file():

@@ -1045,7 +1045,7 @@ class Data_Pool(object):
             DataPool: The current datapool with the merged data.
         """
 
-        names0 = [obj.name for obj in pool0.objs]
+        names0 = pool0.names()
 
         for obj in self.objs:
 
