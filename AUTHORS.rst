@@ -5,7 +5,7 @@ Credits
 Development Lead
 ----------------
 
-* Wei Yu
+* Wei Yu <yuwei2005@gmail.com>
 
 Contributors
 ------------
