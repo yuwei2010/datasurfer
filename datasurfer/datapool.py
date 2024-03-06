@@ -22,7 +22,7 @@ from tqdm import tqdm
 from itertools import chain
 from functools import reduce, wraps
 
-from .datainterface import DataInterface
+from datasurfer.datainterface import DataInterface
 
 random.seed()
 #%% Collect files
@@ -271,7 +271,7 @@ class Data_Pool(object):
                 datobjects = reduce(lambda x, y: 
                                     Data_Pool(x, config=config, interface=interface, **kwargs)
                                     + Data_Pool(y, config=config, interface=interface,  **kwargs), datobjects)    
-        else:
+        elif datobjects is not None:
                 datobjects = [datobjects]
             
 
@@ -302,7 +302,7 @@ class Data_Pool(object):
             else:
                 key = Path(obj).suffix.lower()               
                 if key in map_interface:
-                    cls = getattr(importlib.import_module('datastructure'), map_interface[key] )               
+                    cls = getattr(importlib.import_module('datasurfer'), map_interface[key] )               
                     objs.append(cls(obj, config=config, **kwargs))
                 else:
                     raise ValueError(f'Can not find any interface for "{obj}"')
@@ -1423,6 +1423,6 @@ class Data_Pool(object):
 
 if __name__ == '__main__':
     
-    pass
+    dp = Data_Pool()
     
 

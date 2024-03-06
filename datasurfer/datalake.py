@@ -86,6 +86,7 @@ class Data_Lake(object):
             obj.path = d
 
         self.objs = [obj for obj in objs if len(obj)]
+        self.path = Path(root)
         
         
     def __getitem__(self, inval):
@@ -287,15 +288,17 @@ class Data_Lake(object):
         Raises:
             ValueError: If there are duplicated data objects and `raise_error` is True.
         """
-        out = self.objs[0]
+        out = Data_Pool()
         
-        for obj in self.objs[1:]:
+        for obj in self.objs:
             try:   
                 out = out.merge(obj, raise_error=raise_error)
             except ValueError:
                 objname = set(out.names()) & set(obj.names())
                 raise ValueError(f'Cannot merge "{obj.name}" with "{out.name}" because of duplicated data object "{objname}".')    
-        out.name = name   
+        out.name = name 
+        out.path = self.path.parent
+
         return out
     
     def pop(self, name):
