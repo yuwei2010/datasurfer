@@ -578,16 +578,31 @@ class Data_Pool(object):
         return out
     
     def length(self):
-        
-        return self.__len__()
+            """
+            Returns the length of the data pool.
+            
+            Returns:
+                int: The length of the data pool.
+            """
+            return self.__len__()
     
     
     def paths(self):
-        
+        """
+        Returns a pandas Series containing the file paths of the objects in the datapool.
+
+        Returns:
+            pd.Series: A pandas Series object with the file paths as values and object names as index.
+        """
         return pd.Series([str(obj.path) for obj in self.objs], index=self.names(), name='File Path')
 
     def file_size(self):
-        
+        """
+        Calculate the file size for each file in the datapool.
+
+        Returns:
+            pd.Series: A pandas Series object containing the file sizes, with the file names as the index.
+        """
         return pd.Series(dict(zip(self.names(), map(os.path.getsize, self.paths().values))), name='File Size')
    
     def file_date(self):
@@ -605,7 +620,7 @@ class Data_Pool(object):
         """
         Returns a DataFrame containing the names and comments of the objects in the datapool.
         """
-        return pd.DataFrame(dict((obj.name, obj.comment) for obj in self.objs))
+        return dict((obj.name, obj.comment) for obj in self.objs)
     
     def configs(self):
         """
