@@ -10,7 +10,9 @@ with open('README.md') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [ ]
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
 
 test_requirements = ['pytest>=3', ]
 
@@ -39,6 +41,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/yuw1si/datasurfer',
-    version='1.0.2',
+    version='1.0.4',
     zip_safe=False,
 )
