@@ -15,7 +15,7 @@ requirements = [ ]
 test_requirements = ['pytest>=3', ]
 
 setup(
-    author="Wei Yu (PS-EM/ESY2)",
+    author="Wei Yu",
     author_email='wei.yu2@de.bosch.com',
     python_requires='>=3.6',
     classifiers=[
@@ -38,7 +38,7 @@ setup(
     packages=find_packages(include=['datasurfer', 'datasurfer.*']),
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://github.com/yuw1si/datastructure',
+    url='https://github.com/yuw1si/datasurfer',
     version='1.0.2',
     zip_safe=False,
 )

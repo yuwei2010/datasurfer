@@ -929,14 +929,19 @@ class Data_Pool(object):
             raise NameError(f'Can not find any "{name}"')
             
     
-    def get_testobj(self):
+    def get_testobj(self, idx=None):
         """
-        Returns the test object with the smallest file size for test purpos.
-        
+        Returns the test object with the smallest file size for test purposes.
+
+        Args:
+            idx (int, optional): The index of the test object to retrieve. If not provided, the test object with the smallest file size will be returned.
+
         Returns:
             The test object with the smallest file size.
         """
-        idx = self.file_size().values.argsort()[0]
+        if not mask:
+            idx = self.file_size().values.argsort()[0]
+
         return self.objs[idx]
     
             
