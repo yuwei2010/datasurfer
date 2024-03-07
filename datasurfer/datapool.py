@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Nov  7 13:45:05 2023
-
-@author: YUW1SI
-"""
-
 
 #%% Import Libraries
 import sys
@@ -242,8 +236,9 @@ class Data_Pool(object):
         
         self.silent = kwargs.pop('silent', False)
         self.name = kwargs.pop('name', None)
-                    
-
+        comments = kwargs.pop('comments', {})
+        
+        
         if isinstance(datobjects, (str, Path)): 
             
             dpath = Path(datobjects)
@@ -277,7 +272,7 @@ class Data_Pool(object):
                 datobjects = reduce(lambda x, y: 
                                     Data_Pool(x, config=config, interface=interface, **kwargs)
                                     + Data_Pool(y, config=config, interface=interface,  **kwargs), datobjects)    
-        else:
+        elif datobjects is not None:
                 datobjects = [datobjects]
             
 
@@ -308,13 +303,14 @@ class Data_Pool(object):
             else:
                 key = Path(obj).suffix.lower()               
                 if key in map_interface:
-                    cls = getattr(importlib.import_module('datastructure'), map_interface[key] )               
+                    cls = getattr(importlib.import_module('datasurfer'), map_interface[key] )               
                     objs.append(cls(obj, config=config, **kwargs))
                 else:
                     raise ValueError(f'Can not find any interface for "{obj}"')
        
                 
         self.objs = sorted(set(objs), key=lambda x:x.name)
+        self.apply_comments(**comments)
         
         self.initialized = False
         
@@ -584,16 +580,31 @@ class Data_Pool(object):
         return out
     
     def length(self):
-        
-        return self.__len__()
+            """
+            Returns the length of the data pool.
+            
+            Returns:
+                int: The length of the data pool.
+            """
+            return self.__len__()
     
     
     def paths(self):
-        
+        """
+        Returns a pandas Series containing the file paths of the objects in the datapool.
+
+        Returns:
+            pd.Series: A pandas Series object with the file paths as values and object names as index.
+        """
         return pd.Series([str(obj.path) for obj in self.objs], index=self.names(), name='File Path')
 
     def file_size(self):
-        
+        """
+        Calculate the file size for each file in the datapool.
+
+        Returns:
+            pd.Series: A pandas Series object containing the file sizes, with the file names as the index.
+        """
         return pd.Series(dict(zip(self.names(), map(os.path.getsize, self.paths().values))), name='File Size')
    
     def file_date(self):
@@ -611,7 +622,24 @@ class Data_Pool(object):
         """
         Returns a DataFrame containing the names and comments of the objects in the datapool.
         """
-        return pd.DataFrame(dict((obj.name, obj.comment) for obj in self.objs))
+        return dict((obj.name, obj.comment) for obj in self.objs)
+    
+    def apply_comments(self, **comments):
+        """
+        Apply comments to the objects in the datapool.
+
+        Args:
+            **comments: Keyword arguments mapping object names to comments.
+
+        Returns:
+            self: The modified datapool object.
+        """
+        for name, comment in comments.items():
+            try:
+                self.get_object(name).comment = comment
+            except NameError:
+                pass
+        return self
     
     def configs(self):
         """
@@ -901,14 +929,19 @@ class Data_Pool(object):
             raise NameError(f'Can not find any "{name}"')
             
     
-    def get_testobj(self):
+    def get_testobj(self, idx=None):
         """
-        Returns the test object with the smallest file size for test purpos.
-        
+        Returns the test object with the smallest file size for test purposes.
+
+        Args:
+            idx (int, optional): The index of the test object to retrieve. If not provided, the test object with the smallest file size will be returned.
+
         Returns:
             The test object with the smallest file size.
         """
-        idx = self.file_size().values.argsort()[0]
+        if not mask:
+            idx = self.file_size().values.argsort()[0]
+
         return self.objs[idx]
     
             
@@ -1115,9 +1148,9 @@ class Data_Pool(object):
             The modified object after applying all the functions.
         """
         def wrapper(dp):
-            for fun in funs:
-                assert hasattr(fun, '__call__'), 'Input value must be callable.'
-                for obj in dp.objs:
+            for obj in dp.objs:                            
+                for fun in funs:
+                    assert hasattr(fun, '__call__'), 'Input value must be callable.'    
                     try:
                         fun(obj)
                     except Exception as err:
