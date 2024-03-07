@@ -1,6 +1,6 @@
 """Top-level package for Data Structure."""
 
-__author__ = """Wei Yu (PS-EM/ESY2)"""
+__author__ = """Wei Yu"""
 __email__ = 'wei.yu2@de.bosch.com'
 
 from .datapool import Data_Pool
