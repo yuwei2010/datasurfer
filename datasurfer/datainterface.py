@@ -11,8 +11,6 @@ import json
 import warnings
 import traceback
 
-
-
 from xml.etree.ElementTree import fromstring
 
 from pathlib import Path
@@ -316,31 +314,72 @@ class DataInterface(object):
         self.df[name] = value
     
     def apply(self, name, value):
-        
+        """
+        Applies the given value to the specified column name in the DataFrame.
+
+        Args:
+            name (str): The name of the column to apply the value to.
+            value: The value to apply to the column.
+
+        Returns:
+            self: The updated DataInterface object.
+
+        """
         self.df[name] = value
-        
+        return self
+    def apply_index(self, colname, name=None):
+        """
+        Apply the values of a specified column as the new index of the DataFrame.
+
+        Parameters:
+        colname (str): The name of the column to be used as the new index.
+        name (str, optional): The name to be assigned to the new index.
+
+        Returns:
+        self: The modified DataInterface object with the new index applied.
+        """
+        self.df.index = self.df[colname]
+        if name:
+            self.df.name = name
+
         return self
 
     @property
     def index(self):
-        return np.asarray(self.df.index)
+            """
+            Returns the index of the DataFrame as a NumPy array.
+
+            Returns:
+                numpy.ndarray: The index of the DataFrame.
+            """
+            return np.asarray(self.df.index)
     
     @property
     def meta_info(self):
-        
-        out = dict()       
-        out['path'] = str(self.path)        
-        out['name'] = self.name  
-        out['size'] = self.size 
-        
+        """
+        Returns a dictionary containing metadata information about the data interface object.
+
+        Returns:
+            dict: A dictionary containing the following metadata information:
+                - 'path': The path of the data interface object.
+                - 'name': The name of the data interface object.
+                - 'size': The size of the data interface object.
+                - 'shape' (optional): The shape of the data interface object if it has a DataFrame associated with it.
+                - Additional metadata information from the 'comment' attribute, if available.
+        """
+        out = dict()
+        out['path'] = str(self.path)
+        out['name'] = self.name
+        out['size'] = self.size
+
         try:
             out.update(self.comment)
         except:
             pass
-        
+
         if hasattr(self, '_df'):
             out['shape'] = self.df.shape
-                
+
         return out
     
     @property
@@ -383,34 +422,62 @@ class DataInterface(object):
         self._name = val
         
     def initialize(self):
+        """
+        Initializes the data interface by retrieving the data frame.
         
+        Returns:
+            self: The initialized data interface object.
+        """
         self._df = self.get_df()
         
         return self
     
     def keys(self):
-        
-        return list(self.df.columns)   
+        """
+        Returns a list of column names in the DataFrame.
+
+        Returns:
+            list: A list of column names.
+        """
+        return list(self.df.columns)
     
     def describe(self):
-        
+        """
+        Returns a statistical summary of the DataFrame.
+
+        Returns:
+            pandas.DataFrame: A DataFrame containing various statistical measures such as count, mean, standard deviation, minimum, maximum, and quartiles.
+        """
         return self.df.describe()
     
     def count(self):
-        
+        """
+        Returns the number of rows in the DataFrame.
+
+        Returns:
+            int: The number of rows in the DataFrame.
+        """
         return self.df.count()
         
     def get(self, *names):
-        
-        
+        """
+        Retrieve data from the DataFrame based on the given column names.
+
+        Parameters:
+            *names: str
+                The names of the columns to retrieve from the DataFrame.
+
+        Returns:
+            pandas.DataFrame or pandas.Series
+                The requested data from the DataFrame.
+
+        """
         if len(names) == 1:
-            
             signame, = names
-            
+
             if signame.lower() == 't' or signame.lower() == 'time' or signame.lower() == 'index':
-                
                 return pd.DataFrame(np.asarray(self.df.index), index=self.df.index)
-        
+
         return self.df[list(names)]
     
     
@@ -463,7 +530,12 @@ class DataInterface(object):
 
     
     def memory_usage(self):
-        
+        """
+        Returns the memory usage of the DataFrame.
+
+        Returns:
+            pandas.Series: A Series containing the memory usage of each column in the DataFrame.
+        """
         return self.df.memory_usage(deep=True)
     
     def clean_config(self, replace=False):
@@ -643,75 +715,75 @@ class DataInterface(object):
         return self
    
     def merge(self, obj0):
-            """
-            Merges the columns of another object into the current object.
+        """
+        Merges the columns of another object into the current object.
 
-            Parameters:
-            - obj0: Another object to merge with.
+        Parameters:
+        - obj0: Another object to merge with.
 
-            Returns:
-            - self: The merged object.
-            """
-            keys = obj0.df.columns.difference(self.df.columns)
-            
-            if len(keys):
-                self._df[keys] = obj0[keys]
-                       
-            return self
+        Returns:
+        - self: The merged object.
+        """
+        keys = obj0.df.columns.difference(self.df.columns)
+        
+        if len(keys):
+            self._df[keys] = obj0[keys]
+                    
+        return self
     
     def squeeze(self, *keys):
-            """
-            Selects and returns a new DataFrame containing only the specified columns.
+        """
+        Selects and returns a new DataFrame containing only the specified columns.
 
-            Parameters:
-            *keys: Variable length argument representing the column names to be selected.
+        Parameters:
+        *keys: Variable length argument representing the column names to be selected.
 
-            Returns:
-            self: Returns the modified DataInterface object with the new DataFrame.
+        Returns:
+        self: Returns the modified DataInterface object with the new DataFrame.
 
-            Raises:
-            KeyError: If any of the specified column names are not found in the DataFrame, it raises a KeyError.
-            """
-            try:
-                self._df = self.df[list(keys)]
-                
-            except KeyError:
-                new_keys = list(set(self._df.columns) & set(keys))
-                self._df = self.df[new_keys]
-                
-            return self
+        Raises:
+        KeyError: If any of the specified column names are not found in the DataFrame, it raises a KeyError.
+        """
+        try:
+            self._df = self.df[list(keys)]
+            
+        except KeyError:
+            new_keys = list(set(self._df.columns) & set(keys))
+            self._df = self.df[new_keys]
+            
+        return self
     
     @classmethod
     def pipeline(self, *funs, ignore_error=True):
-            """
-            Executes a series of functions on an object in a pipeline fashion.
+        """
+        Executes a series of functions on an object in a pipeline fashion.
 
-            Args:
-                *funs: Variable number of functions to be executed on the object.
-                ignore_error (bool, optional): Flag to indicate whether to ignore errors raised during execution. 
-                                               Defaults to True.
+        Args:
+            *funs: Variable number of functions to be executed on the object.
+            ignore_error (bool, optional): Flag to indicate whether to ignore errors raised during execution. 
+                                            Defaults to True.
 
-            Raises:
-                Exception: If ignore_error is False and an error is raised during execution.
+        Raises:
+            Exception: If ignore_error is False and an error is raised during execution.
 
-            Returns:
-                None
-            """
-            def wrapper(obj):
-                for fun in funs:
-                    assert hasattr(fun, '__call__'), 'Input value must be callable.'
+        Returns:
+            None
+        """
+        def wrapper(obj):
+            for fun in funs:
+                assert hasattr(fun, '__call__'), 'Input value must be callable.'
 
-                    try:
-                        fun(obj)
-                    except Exception as err:
-                        if ignore_error:
-                            errname = err.__class__.__name__
-                            tb = traceback.format_exc(limit=0, chain=False)
-                            warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
-                        else:
-                            raise
+                try:
+                    fun(obj)
+                except Exception as err:
+                    if ignore_error:
+                        errname = err.__class__.__name__
+                        tb = traceback.format_exc(limit=0, chain=False)
+                        warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                    else:
+                        raise
 
-            return wrapper
+        return wrapper
 
     
     def rename(self, **kwargs):
@@ -777,13 +849,13 @@ class DataInterface(object):
         return new_obj
     
     def to_numpy(self):
-            """
-            Converts the data to a NumPy array.
+        """
+        Converts the data to a NumPy array.
 
-            Returns:
-                numpy.ndarray: The data as a NumPy array.
-            """
-            return self.resample()
+        Returns:
+            numpy.ndarray: The data as a NumPy array.
+        """
+        return self.resample()
         
     def to_dict(self):
         """
