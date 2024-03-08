@@ -20,5 +20,4 @@ class JSON_OBJECT(DataInterface):
         
 if __name__ == '__main__':
     
-    obj = JSON_OBJECT(r'C:\30_eATS1p6\33_Measurement_Evaluation\45_Winter\10_Schweden\50_Master\Valid_Measurement_V2.json')
-    print(obj.df.reset_index())
+    pass
