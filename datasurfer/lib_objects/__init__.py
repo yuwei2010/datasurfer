@@ -8,6 +8,7 @@ from .matlab_object import MATLAB_OBJECT
 from .ameres_object import AMERES_OBJECT
 from .amegp_object import AMEGP_OBJECT
 from .amedata_object import AMEDATA_OBJECT
+from .json_object import JSON_OBJECT
 
 __all__ = ['DataInterface',
            'DATA_OBJECT', 
@@ -18,4 +19,5 @@ __all__ = ['DataInterface',
            'MATLAB_OBJECT',
            'AMERES_OBJECT',
            'AMEGP_OBJECT',
-           'AMEDATA_OBJECT']
+           'AMEDATA_OBJECT',
+           'JSON_OBJECT']
