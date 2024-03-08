@@ -733,7 +733,7 @@ class DataInterface(object):
             del self._df
         return self
    
-    def merge(self, obj0, reset_index=True):
+    def merge(self, obj0, reset_index=False):
         """
         Merges the columns of another object into the current object.
 
