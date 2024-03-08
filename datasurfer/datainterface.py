@@ -757,7 +757,7 @@ class DataInterface(object):
         return self
     
     @classmethod
-    def pipeline(self, *funs, ignore_error=True):
+    def pipeline(self, *funs, ignore_error=True, asiterator=False):
         """
         Executes a series of functions on an object in a pipeline fashion.
 
@@ -777,7 +777,7 @@ class DataInterface(object):
                 assert hasattr(fun, '__call__'), 'Input value must be callable.'
 
                 try:
-                    fun(obj)
+                    yield fun(obj)
                 except Exception as err:
                     if ignore_error:
                         errname = err.__class__.__name__
@@ -785,8 +785,10 @@ class DataInterface(object):
                         warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
                     else:
                         raise
-
-        return wrapper
+        if asiterator:
+            return wrapper
+        else:
+            return list(wrapper)
 
     
     def rename(self, **kwargs):

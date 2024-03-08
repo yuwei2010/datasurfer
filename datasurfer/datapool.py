@@ -1137,7 +1137,7 @@ class Data_Pool(object):
         return [obj for obj, msk in zip(self.objs, mask_array) if msk]
     
     @classmethod
-    def pipeline(*funs, pbar=True, ignore_error=True):
+    def pipeline(*funs, pbar=True, ignore_error=True, asiterator=False):
         """
         Applies a series of functions to each object in the data pool and yields the result.
 
@@ -1164,10 +1164,13 @@ class Data_Pool(object):
                                 warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
                             else:
                                 raise
-                    yield
-            list(fun(dp))
-        return wrapper
-                
+                    yield obj
+                    
+            if asiterator:
+                return fun(dp)
+            else:
+                return list(fun(dp))
+        return wrapper      
                 
     def deepcopy(self, pbar=True):
         """
