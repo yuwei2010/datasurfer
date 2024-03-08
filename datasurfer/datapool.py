@@ -22,7 +22,7 @@ from tqdm import tqdm
 from itertools import chain
 from functools import reduce, wraps
 
-from .datainterface import DataInterface
+from datasurfer.datainterface import DataInterface
 
 random.seed()
 #%% Collect files
@@ -290,6 +290,7 @@ class Data_Pool(object):
                     obj.config = config
                 
                 objs.append(obj)
+                
             elif isinstance(obj, self.__class__):
                 if config:
                 
@@ -300,7 +301,7 @@ class Data_Pool(object):
             elif isinstance(interface, type) and issubclass(interface, DataInterface):
                 objs.append(interface(obj, config=config, **kwargs))
                 
-            else:
+            elif isinstance(obj, (str, Path)):
                 key = Path(obj).suffix.lower()               
                 if key in map_interface:
                     cls = getattr(importlib.import_module('datasurfer'), map_interface[key] )               
@@ -441,6 +442,10 @@ class Data_Pool(object):
         elif isinstance(inval, (pd.Series, pd.DataFrame)):
             
             out = self.__class__(self.select(inval.to_numpy()))
+        
+        elif isinstance(inval, slice):
+            
+            out = self.__class__(self.objs[inval])
             
         else:
             

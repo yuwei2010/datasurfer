@@ -785,10 +785,7 @@ class DataInterface(object):
                         warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
                     else:
                         raise
-        if asiterator:
-            return wrapper
-        else:
-            return list(wrapper)
+        return wrapper
 
     
     def rename(self, **kwargs):
