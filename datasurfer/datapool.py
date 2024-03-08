@@ -1137,7 +1137,7 @@ class Data_Pool(object):
         return [obj for obj, msk in zip(self.objs, mask_array) if msk]
     
     @classmethod
-    def pipeline(self, *funs, ignore_error=True):
+    def pipeline(*funs, pbar=True, ignore_error=True):
         """
         Applies a series of functions to each object in the data pool and yields the result.
 
@@ -1147,20 +1147,25 @@ class Data_Pool(object):
         Yields:
             The modified object after applying all the functions.
         """
+        if not all(hasattr(fun, '__call__') for fun in funs):
+            raise ValueError('Input values must be callable.')
+    
         def wrapper(dp):
-            for obj in dp.objs:                            
-                for fun in funs:
-                    assert hasattr(fun, '__call__'), 'Input value must be callable.'    
-                    try:
-                        fun(obj)
-                    except Exception as err:
-                        if ignore_error:
-                            errname = err.__class__.__name__
-                            tb = traceback.format_exc(limit=0, chain=False)
-                            warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
-                        else:
-                            raise
-
+            @show_pool_progress('Processing', show=pbar)
+            def fun(dp):
+                for obj in dp.objs:                            
+                    for fun in funs: 
+                        try:
+                            fun(obj)
+                        except Exception as err:
+                            if ignore_error:
+                                errname = err.__class__.__name__
+                                tb = traceback.format_exc(limit=0, chain=False)
+                                warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                            else:
+                                raise
+                    yield
+            list(fun(dp))
         return wrapper
                 
                 
@@ -1177,8 +1182,7 @@ class Data_Pool(object):
         
         from .lib_objects import DATA_OBJECT
         @show_pool_progress('Copying', show=pbar)
-        def fun(self):
-            
+        def fun(self):            
             for name, dat in self.iter_dict():
                 df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
                 obj = DATA_OBJECT(path=dat['path'],
@@ -1236,36 +1240,36 @@ class Data_Pool(object):
         return self
     
     def to_dataframe(self, columns=None, pbar=True):
-            """
-            Convert the objects in the datapool to a pandas DataFrame.
+        """
+        Convert the objects in the datapool to a pandas DataFrame.
 
-            Args:
-                columns (list, optional): List of column names to include in the DataFrame. Defaults to None.
-                pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+        Args:
+            columns (list, optional): List of column names to include in the DataFrame. Defaults to None.
+            pbar (bool, optional): Whether to show a progress bar. Defaults to True.
 
-            Returns:
-                pandas.DataFrame: The combined DataFrame of all objects in the datapool.
-            """
+        Returns:
+            pandas.DataFrame: The combined DataFrame of all objects in the datapool.
+        """
+        
+        @show_pool_progress('Processing', show=pbar)
+        def fun(self):
             
-            @show_pool_progress('Processing', show=pbar)
-            def fun(self):
+            for obj in self.objs:
                 
-                for obj in self.objs:
+                df = obj.df.reset_index()
+                
+                if columns is not None:
                     
-                    df = obj.df.reset_index()
-                    
-                    if columns is not None:
-                        
-                        df = df[columns]
-                    
-                    index = pd.MultiIndex.from_product([[obj.name], df.columns])
-                    
-                    df.columns = index
-                                    
-                    yield df
+                    df = df[columns]
+                
+                index = pd.MultiIndex.from_product([[obj.name], df.columns])
+                
+                df.columns = index
+                                
+                yield df
 
-            dfs = list(fun(self))
-            return pd.concat(dfs, axis=1)
+        dfs = list(fun(self))
+        return pd.concat(dfs, axis=1)
                 
     def to_csvs(self, wdir, pbar=True):
         """
