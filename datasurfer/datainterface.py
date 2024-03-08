@@ -346,6 +346,20 @@ class DataInterface(object):
             self.df.name = name
 
         return self
+    
+    def reset_index(self):
+        """
+        Resets the index of the DataFrame to the default integer index.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            self: The modified DataInterface object with the index reset.
+        """
+        self.df.reset_index(inplace=True)
+        return self
 
     @property
     def index(self):
@@ -692,7 +706,9 @@ class DataInterface(object):
         Returns:
             The loaded data as a dictionary.
         """
-        
+        if not keys:       
+            keys = mapping.values()
+            
         @translate_config(mapping)
         @extract_channels(mapping)
         def get(self, *keys):
@@ -717,7 +733,7 @@ class DataInterface(object):
             del self._df
         return self
    
-    def merge(self, obj0):
+    def merge(self, obj0, reset_index=True):
         """
         Merges the columns of another object into the current object.
 
@@ -730,6 +746,10 @@ class DataInterface(object):
         keys = obj0.df.columns.difference(self.df.columns)
         
         if len(keys):
+            if reset_index:
+                self.reset_index()
+                obj0.reset_index()
+                
             self._df[keys] = obj0[keys]
                     
         return self
@@ -824,7 +844,7 @@ class DataInterface(object):
         Returns:
         - new_obj (DATA_OBJECT): A new instance of the DATA_OBJECT class with the resampled DataFrame.
         """
-        from lib_objects import DATA_OBJECT
+        from datasurfer import DATA_OBJECT
         if new_index is not None:
             new_index = np.asarray(new_index)
 
@@ -920,7 +940,7 @@ class DataInterface(object):
         
         if overwrite or not Path(name).is_file():
             
-            from lib_objects import DATA_OBJECT
+            from datasurfer import DATA_OBJECT
             
             dobj = DATA_OBJECT(path=self.path, config=self.config, name=self.name, 
                            comment=self.comment, df=self.df)

@@ -944,7 +944,7 @@ class Data_Pool(object):
         Returns:
             The test object with the smallest file size.
         """
-        if not mask:
+        if not idx:
             idx = self.file_size().values.argsort()[0]
 
         return self.objs[idx]
