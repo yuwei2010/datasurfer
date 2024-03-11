@@ -777,7 +777,7 @@ class DataInterface(object):
         return self
     
     @classmethod
-    def pipeline(self, *funs, ignore_error=True, asiterator=False):
+    def pipeline(self, *funs, ignore_error=True):
         """
         Executes a series of functions on an object in a pipeline fashion.
 
