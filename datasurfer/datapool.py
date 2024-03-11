@@ -401,7 +401,7 @@ class Data_Pool(object):
                     
                     patt = inval.strip()[1:]
                     
-                    out = self.search_signal(patt)
+                    out = self.search_signal(patt, ignore_case=True)
                 else:
                 
                     out = [self.get_object(name) for name in self.search_object(inval)]
