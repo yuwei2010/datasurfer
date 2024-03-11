@@ -869,8 +869,7 @@ class Data_Pool(object):
             >>> dp.get_signal('signal2', ignore_error=False)
             # Raises an error if 'signal2' is not found
 
-            >>> dp.get_signal('signal3', mask='2022-01-01')
-            # Returns the concatenated data for 'signal3' filtered by the mask '2022-01-01'
+            
         """
         dats = list(self.iter_signal(
             signame, ignore_error=ignore_error, mask=mask))
