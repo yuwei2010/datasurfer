@@ -128,6 +128,12 @@ class Data_Lake(object):
         return len(self.objs)
     
     def size(self):
+        """
+        Returns the total size of the objects in the datalake.
+
+        Returns:
+            int: The total size of the objects in the datalake.
+        """
         return sum(len(obj) for obj in self.objs)
     
     
