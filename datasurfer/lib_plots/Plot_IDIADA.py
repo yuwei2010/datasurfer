@@ -685,6 +685,7 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
     
     n = len(data)
     x = np.asarray(bins)
+    
     plot_kwargs = plot_kwargs or {} 
     
     
@@ -814,7 +815,7 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
     if not horizontal:    
         ax.set_xticks(x)
         ax.set_xticklabels(bins)
-        ax.grid(b=True, which='major', linestyle='--', axis='y')
+        ax.grid(visible=True, which='major', linestyle='--', axis='y')
         ax.xaxis.set_tick_params(gridOn=False) 
         ax.xaxis.set_tick_params(which='minor', bottom=False)
         if hide_bottom:
@@ -822,7 +823,7 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
     else:
         ax.set_yticks(x)
         ax.set_yticklabels(bins)            
-        ax.grid(b=True, which='major', linestyle='--', axis='x')
+        ax.grid(visible=True, which='major', linestyle='--', axis='x')
         ax.yaxis.set_tick_params(gridOn=False) 
         ax.yaxis.set_tick_params(which='minor', bottom=False)
         if hide_bottom:
