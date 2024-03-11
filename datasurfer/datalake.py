@@ -5,7 +5,7 @@ import pandas as pd
 from itertools import chain
 from pathlib import Path
 
-from .datapool import Data_Pool
+from datasurfer.datapool import Data_Pool
 from difflib import SequenceMatcher
 
 
