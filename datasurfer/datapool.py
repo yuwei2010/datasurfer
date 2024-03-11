@@ -259,6 +259,7 @@ class Data_Pool(object):
                 
             elif dpath.is_file():
                 
+                
                 datobjects = self.__class__([]).load(datobjects).objs
                 
             else:
@@ -1247,6 +1248,19 @@ class Data_Pool(object):
 
         return self
     
+    def to_json(self):
+        
+        out = dict()
+        
+        for name, feature in (('path', self.paths()),
+                             ('comment', self.comments())):
+            
+            for key, value in feature.items():
+                out.setdefault(key, dict())[name] = value
+        
+        out = json.dumps(out, indent=4)        
+        return out
+    
     def to_dataframe(self, columns=None, pbar=True):
         """
         Convert the objects in the datapool to a pandas DataFrame.
@@ -1369,6 +1383,22 @@ class Data_Pool(object):
         self.initialized = True
         return self
     
+    @staticmethod
+    def load_json(name, **kwargs):
+        
+        with open(name, 'r') as file:
+            
+            data = json.load(file)
+            
+        _, values = zip(*data.items())
+        
+        paths = [val['path'] for val in values]
+        comments = dict((key, val['comment']) for key, val in data.items())
+        
+        dp = Data_Pool(paths, comments=comments, **kwargs)    
+
+        return dp
+        
     def load(self, name, keys=None, pbar=True, count=None):
         """
         Load data from a numpy .npz file and create DATA_OBJECT instances.
@@ -1383,6 +1413,7 @@ class Data_Pool(object):
             self: The updated instance of the class.
 
         """
+        from datasurfer import DATA_OBJECT
         with np.load(name, allow_pickle=True) as npz:
             npzkeys = npz.keys()
             
