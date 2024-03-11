@@ -1497,7 +1497,12 @@ class Data_Pool(object):
 
         return None
 
-
+    @property
+    def statplot(self):
+        
+        from datasurfer.lib_plots import Stat_Plots
+        
+        return Stat_Plots(self)
 
 
 
