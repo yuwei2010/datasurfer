@@ -4,7 +4,7 @@
 
 import pytest
 
-import datastructure as ds
+import datasurfer as ds
 
 
 @pytest.fixture
@@ -23,4 +23,4 @@ def test_content(response: None):
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
 
 
-print(dir(ds.dataobjects))
+

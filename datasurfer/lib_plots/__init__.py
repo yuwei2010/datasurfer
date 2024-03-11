@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 from collections import abc
 from datasurfer.lib_plots.plot_collection import plot_histogram
 
-
-
 class Stat_Plots(object):
     
     def __init__(self, dp):
