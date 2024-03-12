@@ -381,6 +381,10 @@ class Data_Pool(object):
         
         return self.__class__(objs)
     
+    def __eq__(self, pool0):
+        
+        return all(obj in pool0.objs for obj in self.objs) and all(obj in self.objs for obj in pool0.objs)
+    
     
     def __getitem__(self, inval):
         """
@@ -1515,7 +1519,12 @@ class Data_Pool(object):
 
     @property
     def statplot(self):
-        
+        """
+        Generate a statistical plot using the Stat_Plots class.
+
+        Returns:
+            Stat_Plots: An instance of the Stat_Plots class.
+        """
         from datasurfer.lib_plots import Stat_Plots
         
         return Stat_Plots(self)
