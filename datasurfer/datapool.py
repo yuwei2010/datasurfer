@@ -567,7 +567,12 @@ class Data_Pool(object):
         return self.keys()
     
     def sorted(self):
-        
+        """
+        Sorts the objects in the datapool based on their names.
+
+        Returns:
+            self: The sorted datapool object.
+        """
         self.objs.sort(key=lambda x: x.name)
         return self
     
@@ -576,23 +581,28 @@ class Data_Pool(object):
         return self.objs
     
     def types(self):
+        """
+        Returns a dictionary containing the objects in the datapool grouped by their class types.
         
+        Returns:
+            dict: A dictionary where the keys are the class names and the values are lists of objects
+                    belonging to that class.
+        """
         out = dict()
         
         for obj in self.objs:
-            
             out.setdefault(obj.__class__.__name__, []).append(obj)
             
         return out
     
     def length(self):
-            """
-            Returns the length of the data pool.
-            
-            Returns:
-                int: The length of the data pool.
-            """
-            return self.__len__()
+        """
+        Returns the length of the data pool.
+        
+        Returns:
+            int: The length of the data pool.
+        """
+        return self.__len__()
     
     
     def paths(self):
