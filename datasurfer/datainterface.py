@@ -168,6 +168,30 @@ def translate_config(newconfig=None):
     
     return decorator
 
+#%%
+def parse_config(config):
+    
+    if isinstance(config, (str, Path)):
+        if str(config).lower().endswith('.json'):
+            config = json.load(open(config))
+        elif str(config).lower().endswith('.yaml') or str(config).lower().endswith('.yml'):
+            import yaml
+            config = yaml.safe_load(open(config))
+        else:
+            raise IOError('Unknown config format, expect json or yaml.')
+    elif isinstance(config, (list, tuple, set)):
+        if all(isinstance(s, str) for s in config):
+            config = dict((v, v) for v in config)
+        elif all(isinstance(s, dict) for s in config):
+            config = combine_configs(*list(config))
+        else:
+            raise TypeError('Can not handle config type.')
+    elif (not isinstance(config, dict)) and (config is not None):
+
+        raise TypeError('Unknown config format, expect dict')
+    
+    return config
+
 #%% Data_Interface
 
 class DataInterface(object):
@@ -245,31 +269,13 @@ class DataInterface(object):
             name (str, optional): The name of the data object. Defaults to None.
             comment (str, optional): A comment or description for the data object. Defaults to None.
         """
-        if config is not None: 
-            if isinstance(config, (str, Path)):
-                if str(config).lost().endswith('.json'):
-                    config = json.load(open(config))
-                elif str(config).lower().endswith('.yaml') or str(config).lower().endswith('.yml'):
-                    import yaml
-                    config = yaml.safe_load(open(config))
-                else:
-                    raise IOError('Unknown config format, expect json.')
-            elif isinstance(config, (list, tuple, set)):
-                if all(isinstance(s, str) for s in config):
-                    config = dict((v, v) for v in config)
-                elif all(isinstance(s, dict) for s in config):
-                    config = combine_configs(*list(config))
-                else:
-                    raise TypeError('Can not handle config type.')
-            elif not isinstance(config, dict):
-                raise TypeError('Unknown config format, expect dict')
-                
+          
         if path is not None:
             path = Path(path).absolute() 
             
         self._name = name
         self.path = path
-        self.config = config
+        self._config = parse_config(config)
         self._comment = comment
         
     def __enter__(self):
@@ -317,6 +323,15 @@ class DataInterface(object):
     def __setitem__(self, name, value):
         
         self.df[name] = value
+    
+    @property
+    def config(self):
+        return self._config
+    @config.setter
+    def config(self, val):
+        
+                
+        self._config = parse_config(val)  
     
     def apply(self, name, value):
         """
@@ -875,6 +890,24 @@ class DataInterface(object):
 
         return new_obj
     
+    def fill_missing_keys(self, config=None):
+        
+        config = config or self.config
+               
+        config = combine_configs(parse_config(config))
+        
+        missing_keys = [k for k in config if k not in self.df.columns]
+        
+        for mk in missing_keys:        
+            sigs = config[mk]
+            for sig in sigs:
+                for k, vs in config.items():
+                    
+                    if sig in vs and k in self.df.columns:
+                        self.df[mk] = self.df[k]
+            
+        return self
+    
     def to_numpy(self):
         """
         Converts the data to a NumPy array.
@@ -974,3 +1007,4 @@ class DataInterface(object):
 
         if clean:
             self.clean()
+# %%

@@ -1414,7 +1414,7 @@ class Data_Pool(object):
         return self
     
     @staticmethod
-    def load_json(name, **kwargs):
+    def load_def(name, **kwargs):
         """
         Load data from a JSON file and create a Data_Pool object.
 
@@ -1425,13 +1425,18 @@ class Data_Pool(object):
         Returns:
         - dp (Data_Pool): The Data_Pool object created from the loaded data.
         """
-        with open(name, 'r') as file:
-            data = json.load(file)
+        if name.lower().endswith('.json'):
+            with open(name, 'r') as file:
+                data = json.load(file)
+        elif name.lower().endswith('.yaml') or name.lower().endswith('.yml'):
+            import yaml
+            with open(name, 'r') as file:
+                data = yaml.safe_load(file)
             
         _, values = zip(*data.items())
         
         paths = [val['path'] for val in values]
-        comments = dict((key, val['comment']) for key, val in data.items())
+        comments = dict((key, val.get('comment', None)) for key, val in data.items())
         
         dp = Data_Pool(paths, comments=comments, **kwargs)    
 
@@ -1534,7 +1539,16 @@ class Data_Pool(object):
         gc.collect()
 
         return None
-
+    
+    def fill_missing_keys(self, config=None, pbar=True):
+        @show_pool_progress('Processing', show=pbar)
+        def get(self):
+            for obj in self.objs:               
+                obj.fill_missing_keys(config=config)
+                yield
+        
+        list(get(self))
+        return self
     @property
     def plot(self):
         """
