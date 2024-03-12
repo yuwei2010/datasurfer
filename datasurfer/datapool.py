@@ -673,7 +673,8 @@ class Data_Pool(object):
         """
         for name, comment in comments.items():
             try:
-                self.get_object(name).comment = comment
+                if comment:
+                    self.get_object(name).comment = comment
             except NameError:
                 pass
         return self
