@@ -1536,16 +1536,16 @@ class Data_Pool(object):
         return None
 
     @property
-    def statplot(self):
+    def plot(self):
         """
         Generate a statistical plot using the Stat_Plots class.
 
         Returns:
             Stat_Plots: An instance of the Stat_Plots class.
         """
-        from datasurfer.lib_plots import Stat_Plots
+        from datasurfer.lib_plots import Plots
         
-        return Stat_Plots(self)
+        return Plots(self)
 
 
 

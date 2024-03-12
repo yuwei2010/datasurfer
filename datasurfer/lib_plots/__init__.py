@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from collections import abc
 from datasurfer.lib_plots.plot_collection import plot_histogram
 
-class Stat_Plots(object):
+class Plots(object):
     """
     A class for generating statistical plots.
     
