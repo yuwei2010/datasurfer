@@ -17,6 +17,7 @@ import traceback
 
 from pathlib import Path
 from tqdm import tqdm
+from collections import abc
    
 from itertools import chain
 from functools import reduce, wraps
@@ -166,6 +167,23 @@ def combine_configs(*cfgs):
             out[k] = sorted(v)
             
     return out
+
+#%%
+def check_config_duplication(cfg):
+    
+    vals = list()
+    for val in cfg.values():
+        
+        if isinstance(val, str):
+            vals.append(val)
+        if isinstance(val, abc.Sequence) and not isinstance(val, str):
+            vals.extend(list(val))
+    
+    stat = dict()
+    [stat.setdefault(vals.count(s), set([])).add(s) for s in vals]
+    
+    return stat
+
   
 #%% Data Pool
 

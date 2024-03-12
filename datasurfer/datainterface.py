@@ -19,49 +19,51 @@ from difflib import SequenceMatcher
 from itertools import chain, zip_longest
 from functools import wraps
 
+from datasurfer.datapool import combine_configs
+
 
 
 #%% Combine configs
 
-def combine_configs(*cfgs):
-    """
-    Combines multiple configuration dictionaries into a single dictionary.
+# def combine_configs(*cfgs):
+#     """
+#     Combines multiple configuration dictionaries into a single dictionary.
 
-    Args:
-        *cfgs: Variable number of configuration dictionaries.
+#     Args:
+#         *cfgs: Variable number of configuration dictionaries.
 
-    Returns:
-        dict: A dictionary containing the combined configurations.
+#     Returns:
+#         dict: A dictionary containing the combined configurations.
 
-    Example:
-        >>> cfg1 = {'a': 'apple', 'b': ['banana', 'blueberry']}
-        >>> cfg2 = {'b': 'berry', 'c': 'cherry'}
-        >>> cfg3 = {'d': 'date'}
-        >>> combine_configs(cfg1, cfg2, cfg3)
-        {'a': ['apple'], 'b': ['banana', 'berry', 'blueberry'], 'c': ['cherry'], 'd': ['date']}
-    """
-    out = dict()
+#     Example:
+#         >>> cfg1 = {'a': 'apple', 'b': ['banana', 'blueberry']}
+#         >>> cfg2 = {'b': 'berry', 'c': 'cherry'}
+#         >>> cfg3 = {'d': 'date'}
+#         >>> combine_configs(cfg1, cfg2, cfg3)
+#         {'a': ['apple'], 'b': ['banana', 'berry', 'blueberry'], 'c': ['cherry'], 'd': ['date']}
+#     """
+#     out = dict()
     
-    for k, v in chain(*[cfg.items() for cfg in cfgs]):
+#     for k, v in chain(*[cfg.items() for cfg in cfgs]):
         
-        if isinstance(v, str):   
+#         if isinstance(v, str):   
              
-            out.setdefault(k, set()).add(v)
+#             out.setdefault(k, set()).add(v)
             
-        else:
-            if k in out:
-                out[k] = out[k].union(set(v))
-            else:
-                out[k] = set(v)
+#         else:
+#             if k in out:
+#                 out[k] = out[k].union(set(v))
+#             else:
+#                 out[k] = set(v)
                 
             
-    if not out:
-        out = None
-    else:
-        for k, v in out.items():
-            out[k] = sorted(v)
+#     if not out:
+#         out = None
+#     else:
+#         for k, v in out.items():
+#             out[k] = sorted(v)
             
-    return out
+#     return out
 #%% Extract channels
 
 def extract_channels(newconfig=None):
@@ -245,8 +247,11 @@ class DataInterface(object):
         """
         if config is not None: 
             if isinstance(config, (str, Path)):
-                if str(config).endswith('.json'):
+                if str(config).lost().endswith('.json'):
                     config = json.load(open(config))
+                elif str(config).lower().endswith('.yaml') or str(config).lower().endswith('.yml'):
+                    import yaml
+                    config = yaml.safe_load(open(config))
                 else:
                     raise IOError('Unknown config format, expect json.')
             elif isinstance(config, (list, tuple, set)):
