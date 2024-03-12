@@ -7,7 +7,6 @@ import re
 import datetime
 import json
 import importlib
-
 import pandas as pd
 import numpy as np
 import warnings
@@ -1394,9 +1393,17 @@ class Data_Pool(object):
     
     @staticmethod
     def load_json(name, **kwargs):
-        
+        """
+        Load data from a JSON file and create a Data_Pool object.
+
+        Parameters:
+        - name (str): The name of the JSON file to load.
+        - **kwargs: Additional keyword arguments to pass to the Data_Pool constructor.
+
+        Returns:
+        - dp (Data_Pool): The Data_Pool object created from the loaded data.
+        """
         with open(name, 'r') as file:
-            
             data = json.load(file)
             
         _, values = zip(*data.items())
