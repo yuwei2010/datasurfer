@@ -4,7 +4,8 @@ import matplotlib.ticker as ticker
 import pandas as pd
 from collections import abc
 from functools import wraps
-from datasurfer.lib_plots.plot_collection import plot_histogram, plot_dendrogram
+from datasurfer.lib_plots.plot_collection import plot_histogram, plot_dendrogram, plot_parallel_coordinate
+from datasurfer.lib_plots.plot_utils import parallel_coordis
 
 figparams = {'figsize': (8, 6), 
              'dpi': 120,}
@@ -77,7 +78,7 @@ class Plots(object):
     - dp: A pandas DataFrame containing the data.
     """
     
-    def __init__(self, dp):
+    def __init__(self, dp=None):
         """
         Initialize the Stat_Plots object.
         
@@ -172,7 +173,7 @@ class Plots(object):
     
     @define_ax
     @parse_data
-    def line(self, *keys, ax=None, setax=True, **kwargs):
+    def line(self, *keys, ax=None, **kwargs):
         
         if len(keys) == 2:
         
@@ -184,11 +185,26 @@ class Plots(object):
     
      
     @define_ax
-    def dendrogram(self, df, ax=None, setax=True, **kwargs):   
+    def dendrogram(self, df, ax=None,  **kwargs):   
         
         plot_dendrogram(ax, df.dropna(), **kwargs)
         
         return ax
+    
+    @define_ax
+    def parallel_coordinate(self, df, ax=None,  **kwargs):
+        default = dict(facecolor='none', lw=0.5, alpha=0.5, edgecolor='g')
+        default.update(kwargs)
+        plot_parallel_coordinate(host=ax, df=df.dropna(), **default)
+        
+        return ax
+    
+    @define_ax
+    def parallel_coordis(self, df, **kwargs):
+        
+        parallel_coordis(df.values.T, **kwargs)
+        
+        return self
        
 if __name__ == '__main__':
     

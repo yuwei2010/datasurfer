@@ -45,7 +45,29 @@ def plot_dendrogram(ax, df, method='centroid'):
 
     
 #%%
-def plot_parallel_coordinate(fig, host, df, **kwargs):
+def plot_parallel_coordinate(host, df, **kwargs):
+    """
+    Plots parallel coordinates for a given DataFrame.
+
+    Parameters:
+    - host: The main axis to plot on.
+    - df: The DataFrame containing the data to be plotted.
+    - **kwargs: Additional keyword arguments for customizing the plot.
+
+    Returns:
+    - axes: A list of axes used for the plot.
+
+    """
+    ynames = list(df.columns)
+    ys = np.array(df)
+    
+    ymins = kwargs.pop('ymins', ys.min(axis=0))    
+    ymaxs = kwargs.pop('ymaxs', ys.max(axis=0))
+    
+    axes = kwargs.pop('axes', [host] + [host.twinx() for i in range(ys.shape[1] - 1)])
+
+    # Rest of the code...
+def plot_parallel_coordinate(host, df, **kwargs):
       
     ynames = list(df.columns)
     ys = np.array(df)
