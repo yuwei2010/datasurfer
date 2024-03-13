@@ -22,48 +22,6 @@ from functools import wraps
 from datasurfer.datapool import combine_configs
 
 
-
-#%% Combine configs
-
-# def combine_configs(*cfgs):
-#     """
-#     Combines multiple configuration dictionaries into a single dictionary.
-
-#     Args:
-#         *cfgs: Variable number of configuration dictionaries.
-
-#     Returns:
-#         dict: A dictionary containing the combined configurations.
-
-#     Example:
-#         >>> cfg1 = {'a': 'apple', 'b': ['banana', 'blueberry']}
-#         >>> cfg2 = {'b': 'berry', 'c': 'cherry'}
-#         >>> cfg3 = {'d': 'date'}
-#         >>> combine_configs(cfg1, cfg2, cfg3)
-#         {'a': ['apple'], 'b': ['banana', 'berry', 'blueberry'], 'c': ['cherry'], 'd': ['date']}
-#     """
-#     out = dict()
-    
-#     for k, v in chain(*[cfg.items() for cfg in cfgs]):
-        
-#         if isinstance(v, str):   
-             
-#             out.setdefault(k, set()).add(v)
-            
-#         else:
-#             if k in out:
-#                 out[k] = out[k].union(set(v))
-#             else:
-#                 out[k] = set(v)
-                
-            
-#     if not out:
-#         out = None
-#     else:
-#         for k, v in out.items():
-#             out[k] = sorted(v)
-            
-#     return out
 #%% Extract channels
 
 def extract_channels(newconfig=None):
@@ -891,8 +849,18 @@ class DataInterface(object):
         return new_obj
     
     def fill_missing_keys(self, config=None):
+            """
+            Fills in missing keys in the configuration dictionary.
+
+            Args:
+                config (dict, optional): The configuration dictionary to fill in missing keys for.
+                    If not provided, the method will use the default configuration.
+
+            Returns:
+                dict: The updated configuration dictionary with missing keys filled in.
+            """
         
-        config = config or self.config
+1       config = config or self.config
                
         config = combine_configs(parse_config(config))
         
