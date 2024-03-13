@@ -282,6 +282,14 @@ class DataInterface(object):
     def __setitem__(self, name, value):
         
         self.df[name] = value
+        
+    def __contains__(self, name):
+        
+        return name in self.df.columns  
+    
+    def __iter__(self):
+        
+        return self.df.items()
     
     @property
     def config(self):

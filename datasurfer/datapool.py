@@ -453,17 +453,18 @@ class Data_Pool(object):
             
             if isinstance(inval, type) and issubclass(inval, DataInterface):
                 
-                out = [obj for obj in self.objs if isinstance(obj, inval)]
+                out = self.__class__([obj for obj in self.objs if isinstance(obj, inval)])
             else:
-                out = self.__class__(self.select(self.which(inval)))
+                out = self.__class__(self.select(inval))
+
         
         elif isinstance(inval, np.ndarray) and inval.dtype=='bool':
             
             out = self.__class__(self.select(inval))
             
-        elif isinstance(inval, (pd.Series, pd.DataFrame)):
+        elif isinstance(inval, pd.Series):
             
-            out = self.__class__(self.select(inval.to_numpy()))
+            out = self.__class__(self.select(inval))
         
         elif isinstance(inval, slice):
             
@@ -1169,9 +1170,16 @@ class Data_Pool(object):
         '''
             return data objects from pool according to mask.
         '''
-        assert len(mask_array) == len(self.objs), "The length of the mask array does not match the number of data objects."
-        
-        return [obj for obj, msk in zip(self.objs, mask_array) if msk]
+        if isinstance(mask_array, (dict, pd.Series)):
+            out = [self.get_object(name) for name, bool in mask_array.items() if bool]
+        elif hasattr(mask_array, '__call__'):
+
+            out = [obj for obj in self if mask_array(obj)]
+        else:
+            assert len(mask_array) == len(self.objs), "The length of the mask array does not match the number of data objects."
+            
+            out = [obj for obj, msk in zip(self.objs, mask_array) if msk]
+        return out
     
     @classmethod
     def pipeline(*funs, pbar=True, ignore_error=True, asiterator=False):
