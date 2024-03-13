@@ -1576,6 +1576,7 @@ class Data_Pool(object):
         
         list(get(self))
         return self
+    
     @property
     def plot(self):
         """

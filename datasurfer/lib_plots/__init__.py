@@ -1,7 +1,73 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import pandas as pd
 from collections import abc
-from datasurfer.lib_plots.plot_collection import plot_histogram
+from functools import wraps
+from datasurfer.lib_plots.plot_collection import plot_histogram, plot_dendrogram
+
+figparams = {'figsize': (8, 6), 
+             'dpi': 120,}
+
+def set_ax(ax):
+    
+    ax.minorticks_on()
+    ax.set_axisbelow(True)
+    ax.grid(which='major', ls='--')
+    ax.grid(which='minor', ls=':')
+    return ax
+    
+axisfunc = set_ax
+
+def define_ax(func):
+    
+    @wraps(func)
+    def wrapper(self, *keys, **kwargs): 
+          
+        ax = kwargs.pop('ax', None)
+        setax = kwargs.pop('setax', False)
+        
+        if not ax:
+            _, ax = plt.subplots(**figparams)        
+        
+        ax = func(self, *keys, ax=ax, **kwargs)
+        if setax:
+            axisfunc(ax)
+        
+        return ax
+    return wrapper
+    
+def parse_data(func):   
+    @wraps(func)
+    def wrapper(self, *keys, **kwargs):
+        
+        dp = self.dp
+        def get(keys):
+            out = []
+            for key in keys:
+                if isinstance(key, str):
+                    out.append(dp[[key]].dropna().to_numpy().ravel())
+                elif isinstance(key, pd.Series):
+                    out.append(key.dropna().to_numpy())
+                elif isinstance(key, pd.DataFrame):
+                    out.extend(key.dropna().to_numpy().T)
+                elif isinstance(key, np.ndarray):
+                    out.append(key)
+                elif isinstance(key, abc.Sequence):
+                    out.append(get(key))
+                else:
+                    raise ValueError('keys must be strings or numpy arrays')
+                
+            return out
+        if all(isinstance(key, str) for key in keys):
+            out = self.dp[keys].dropna().to_numpy().T    
+        else:        
+            out = get(keys)
+
+        return func(self, *out, **kwargs)
+    
+    return wrapper
+    
 
 class Plots(object):
     """
@@ -19,7 +85,32 @@ class Plots(object):
         - dp: A pandas DataFrame containing the data.
         """
         self.dp = dp
+    
+    def set_figparam(self, **kwargs):
+        """
+        Set the figure parameters for the plots.
         
+        Parameters:
+        - **kwargs: The keyword arguments to be passed to the matplotlib figure function.
+        """
+        global figparams
+        figparams = kwargs
+        return self
+    
+    def set_axisfunc(self, func):
+        """
+        Set the function to be used for formatting the axes of the plots.
+        
+        Parameters:
+        - func: The function to be used for formatting the axes of the plots.
+        """
+        assert callable(func), 'func must be a callable function'
+        global axisfunc
+        axisfunc = func
+        return self
+        
+    @define_ax   
+    @parse_data
     def histogram(self, *keys, ax=None, bins=None, **kwargs):
         """
         Generate a histogram plot.
@@ -39,10 +130,11 @@ class Plots(object):
         if all(isinstance(key, str) for key in keys):
             data = self.dp[keys].dropna().to_numpy().T
         else:
-            data = np.array(keys)
+            data = keys
         
         if ax is None:           
             _, ax = plt.subplots()
+            
             
         if bins is None:
             bins = np.linspace(np.min(data), np.max(data), 10)
@@ -57,10 +149,47 @@ class Plots(object):
             raise ValueError('bins must be an int or a sequence of values')
 
         
-        plot_histogram(ax, data, bins, **kwargs)
+        plot_histogram(ax, keys, bins, **kwargs)
+               
+        return ax
+    
+    @define_ax
+    @parse_data
+    def scatter(self, *keys, ax=None, setax=True, **kwargs):
+        
+        if len(keys) == 2:
+        
+            ax.scatter(keys[0], keys[1], **kwargs)
+            
+        elif len(keys) == 3:
+            ax.scatter(keys[0], keys[1], c=keys[2], **kwargs)   
+        elif len(keys) == 4:
+            ax.scatter(keys[0], keys[1], c=keys[2], s=keys[3], **kwargs)    
+        else:
+            raise ValueError('keys must contain 2-4 elements')
         
         return ax
     
+    @define_ax
+    @parse_data
+    def line(self, *keys, ax=None, setax=True, **kwargs):
+        
+        if len(keys) == 2:
+        
+            ax.plot(keys[0], keys[1], **kwargs)
+        else:
+            raise ValueError('keys must contain 2 elements')
+        
+        return ax
+    
+     
+    @define_ax
+    def dendrogram(self, df, ax=None, setax=True, **kwargs):   
+        
+        plot_dendrogram(ax, df.dropna(), **kwargs)
+        
+        return ax
+       
 if __name__ == '__main__':
     
     pass
