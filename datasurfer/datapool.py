@@ -1414,6 +1414,24 @@ class Data_Pool(object):
         self.initialized = True
         return self
     
+    def save_def(self, name):
+        
+        out = dict()
+        
+        for obj in self.objs:
+            out[obj.name] = dict()
+            out[obj.name]['path'] = str(obj.path)
+            if obj.comment:
+                out[obj.name]['comment'] = obj.comment
+            
+        if name.lower().endswith('.json'):
+            with open(name, 'w') as file:
+                json.dump(out, file, indent=4)
+        elif name.lower().endswith('.yaml') or name.lower().endswith('.yml'):
+            import yaml
+            with open(name, 'w') as file:
+                yaml.safe_dump(out, file)            
+    
     @staticmethod
     def load_def(name, **kwargs):
         """

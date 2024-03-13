@@ -19,7 +19,7 @@ from difflib import SequenceMatcher
 from itertools import chain, zip_longest
 from functools import wraps
 
-from datasurfer.datapool import combine_configs
+
 
 
 #%% Extract channels
@@ -141,6 +141,7 @@ def parse_config(config):
         if all(isinstance(s, str) for s in config):
             config = dict((v, v) for v in config)
         elif all(isinstance(s, dict) for s in config):
+            from datasurfer.datapool import combine_configs
             config = combine_configs(*list(config))
         else:
             raise TypeError('Can not handle config type.')
@@ -849,23 +850,23 @@ class DataInterface(object):
         return new_obj
     
     def fill_missing_keys(self, config=None):
-            """
-            Fills in missing keys in the configuration dictionary.
+        """
+        Fills in missing keys in the configuration dictionary.
 
-            Args:
-                config (dict, optional): The configuration dictionary to fill in missing keys for.
-                    If not provided, the method will use the default configuration.
+        Args:
+            config (dict, optional): The configuration dictionary to fill in missing keys for.
+                If not provided, the method will use the default configuration.
 
-            Returns:
-                dict: The updated configuration dictionary with missing keys filled in.
-            """
-        
-1       config = config or self.config
-               
+        Returns:
+            dict: The updated configuration dictionary with missing keys filled in.
+        """
+        from datasurfer.datapool import combine_configs
+        config = config or self.config
+                
         config = combine_configs(parse_config(config))
-        
+
         missing_keys = [k for k in config if k not in self.df.columns]
-        
+
         for mk in missing_keys:        
             sigs = config[mk]
             for sig in sigs:
