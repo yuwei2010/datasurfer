@@ -44,26 +44,37 @@ def parse_data(func):
         
         def get(keys):
             out = []
+            lbls = []
             for key in keys:
                 if isinstance(key, str):
                     out.append(self.dp[[key]].dropna().to_numpy().ravel())
+                    lbls.append(key)
                 elif isinstance(key, pd.Series):
                     out.append(key.dropna().to_numpy())
+                    lbls.append(key.name)
                 elif isinstance(key, pd.DataFrame):
                     out.extend(key.dropna().to_numpy().T)
+                    lbls.extend(key.columns)
                 elif isinstance(key, np.ndarray):
                     out.append(key)
+                    lbls.append(None)
                 elif isinstance(key, abc.Sequence):
-                    out.append(get(key))
+                    o, ls = get(key)
+                    out.append(o)
+                    lbls.extend(ls)
                 else:
                     raise ValueError('keys must be strings or numpy arrays')
                 
-            return out
+            return out, lbls
         
         if all(isinstance(key, str) for key in keys):
             out = self.dp[keys].dropna().to_numpy().T    
+            lbls = keys
         else:        
-            out = get(keys)
+            out, lbls = get(keys)
+        
+        if ('labels' not in kwargs) and all(lbl is not None for lbl in lbls) :
+            kwargs['labels'] = lbls     
 
         return func(self, *out, **kwargs)
     
@@ -132,6 +143,7 @@ class Plots(object):
             data = self.dp[keys].dropna().to_numpy().T
         else:
             data = keys
+
         
         if ax is None:           
             _, ax = plt.subplots()
@@ -157,11 +169,23 @@ class Plots(object):
     @define_ax
     @parse_data
     def scatter(self, *keys, ax=None, setax=True, **kwargs):
+        """
+        Create a scatter plot.
+
+        Parameters:
+        - keys: The data to be plotted. Must contain 2-4 elements.
+        - ax: The matplotlib Axes object to plot on. If not provided, a new figure and axes will be created.
+        - setax: A boolean indicating whether to set the x and y axis labels. Default is True.
+        - labels: A list of labels for the x and y axis. If provided, the x and y axis labels will be set accordingly.
+        - kwargs: Additional keyword arguments to be passed to the scatter function.
+
+        Returns:
+        - ax: The matplotlib Axes object containing the scatter plot.
+        """
+        labels = kwargs.pop('labels', None) 
         
         if len(keys) == 2:
-        
             ax.scatter(keys[0], keys[1], **kwargs)
-            
         elif len(keys) == 3:
             ax.scatter(keys[0], keys[1], c=keys[2], **kwargs)   
         elif len(keys) == 4:
@@ -169,42 +193,89 @@ class Plots(object):
         else:
             raise ValueError('keys must contain 2-4 elements')
         
+        if labels:
+            ax.set_xlabel(labels[0])   
+            ax.set_ylabel(labels[1])
+        
         return ax
     
     @define_ax
     @parse_data
     def line(self, *keys, ax=None, **kwargs):
+        """
+        Plot a line graph.
+
+        Parameters:
+        - keys: Tuple of two elements representing the x and y values.
+        - ax: Optional matplotlib Axes object to plot on.
+        - labels: Optional tuple of x and y axis labels.
+
+        Returns:
+        - ax: The matplotlib Axes object with the line graph plotted.
+        """
+        labels = kwargs.pop('labels', None)
         
         if len(keys) == 2:
-        
-            ax.plot(keys[0], keys[1], **kwargs)
+            ax.plot(keys[0], keys[1], **kwargs)           
         else:
             raise ValueError('keys must contain 2 elements')
         
+        if labels:
+            ax.set_xlabel(labels[0])   
+            ax.set_ylabel(labels[1])        
         return ax
-    
      
     @define_ax
-    def dendrogram(self, df, ax=None,  **kwargs):   
-        
-        plot_dendrogram(ax, df.dropna(), **kwargs)
-        
+    @parse_data
+    def dendrogram(self, *keys, ax=None, **kwargs):
+        """
+        Generate a dendrogram plot.
+
+        Parameters:
+            *keys: Variable length argument list of keys.
+            ax: Optional matplotlib Axes object to plot on.
+            **kwargs: Additional keyword arguments to pass to the plot_dendrogram function.
+
+        Returns:
+            ax: The matplotlib Axes object containing the dendrogram plot.
+        """
+        labels = kwargs.pop('labels')
+        df = pd.DataFrame(dict(zip(labels, keys)))        
+        plot_dendrogram(ax, df.dropna(), **kwargs)       
         return ax
     
     @define_ax
-    def parallel_coordinate(self, df, ax=None,  **kwargs):
+    @parse_data
+    def parallel_coordinate(self, *keys, ax=None, **kwargs):
+        """
+        Plots a parallel coordinate plot based on the given keys.
+
+        Parameters:
+            *keys: The keys used to create the parallel coordinate plot.
+            ax (optional): The matplotlib Axes object to plot on.
+            **kwargs: Additional keyword arguments to customize the plot.
+
+        Returns:
+            The matplotlib Axes object containing the parallel coordinate plot.
+        """
+        labels = kwargs.pop('labels')
+        df = pd.DataFrame(dict(zip(labels, keys)))            
         default = dict(facecolor='none', lw=0.3, alpha=0.5, edgecolor='g')
-        default.update(kwargs)
+        default.update(kwargs)        
         plot_parallel_coordinate(host=ax, df=df.dropna(), **default)
         
         return ax
     
     @define_ax
-    def parallel_coordis(self, df, **kwargs):
-        
+    @parse_data
+    def parallel_coordis(self, *keys, **kwargs):
+        labels = kwargs.pop('labels')
+        df = pd.DataFrame(dict(zip(labels, keys)))               
         parallel_coordis(df.values.T, **kwargs)
         
         return self
+    
+    
        
 if __name__ == '__main__':
     
