@@ -42,12 +42,11 @@ def parse_data(func):
     @wraps(func)
     def wrapper(self, *keys, **kwargs):
         
-        dp = self.dp
         def get(keys):
             out = []
             for key in keys:
                 if isinstance(key, str):
-                    out.append(dp[[key]].dropna().to_numpy().ravel())
+                    out.append(self.dp[[key]].dropna().to_numpy().ravel())
                 elif isinstance(key, pd.Series):
                     out.append(key.dropna().to_numpy())
                 elif isinstance(key, pd.DataFrame):
@@ -60,6 +59,7 @@ def parse_data(func):
                     raise ValueError('keys must be strings or numpy arrays')
                 
             return out
+        
         if all(isinstance(key, str) for key in keys):
             out = self.dp[keys].dropna().to_numpy().T    
         else:        
@@ -193,7 +193,7 @@ class Plots(object):
     
     @define_ax
     def parallel_coordinate(self, df, ax=None,  **kwargs):
-        default = dict(facecolor='none', lw=0.5, alpha=0.5, edgecolor='g')
+        default = dict(facecolor='none', lw=0.3, alpha=0.5, edgecolor='g')
         default.update(kwargs)
         plot_parallel_coordinate(host=ax, df=df.dropna(), **default)
         
