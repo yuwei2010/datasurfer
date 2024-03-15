@@ -314,7 +314,7 @@ class DataInterface(object):
         """
         self.df[name] = value
         return self
-    def set_index(self, colname, name=None, replace=False):
+    def set_index(self, colname, name=None, drop=False):
         """
         Apply the values of a specified column as the new index of the DataFrame.
 
@@ -325,7 +325,7 @@ class DataInterface(object):
         Returns:
         self: The modified DataInterface object with the new index applied.
         """
-        if replace: 
+        if drop: 
             self.df.set_index(colname, inplace=True)
         else:     
             self.df.index = self.df[colname]

@@ -6,12 +6,80 @@ Created on Mon Jul 31 13:35:49 2023
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as tck
 import warnings
 from matplotlib.path import Path
 import matplotlib.patches as patches
 from scipy.cluster.hierarchy import dendrogram, linkage
+from datasurfer.lib_plots.plot_utils import trigrid
 
+#%%
 
+def plot_violin(ax, df, ldata=None, rdata=None, **kwargs):
+    def calc_violin_data(w, y0):
+        from scipy import interpolate
+        w0, inv_idx = np.unique(w, return_inverse=True)  
+                    
+        fct = (w0-w0.min()) / w0.ptp()            
+        x1 = x0.ptp() * fct + x0.min()                       
+        x2 = x1[inv_idx]            
+        
+        f = interpolate.interp1d(x0, y0, kind='linear', bounds_error=False, fill_value='extrapolate')
+        y2 = f(x2)
+        
+        return y2
+
+    labels = df.columns
+    arr = df.dropna().to_numpy()  
+    
+    facecolor = kwargs.pop('facecolor', 'green') 
+    edgecolor = kwargs.pop('edgecolor', 'black')
+    alpha = kwargs.pop('alpha', 0.5)  
+    levels = kwargs.pop('levels', 10)
+    cmap = kwargs.pop('cmap', 'viridis')
+    
+    vits = ax.violinplot(arr, **kwargs)
+    ax.set_axisbelow(True)
+    ax.set_xticks(np.arange(1, len(labels)+1))
+    ax.set_xticklabels(labels)    
+    ax.spines['bottom'].set_visible(False) 
+    ax.spines['top'].set_visible(False) 
+    ax.spines['right'].set_visible(False) 
+    ax.yaxis.set_minor_locator(tck.AutoMinorLocator())
+    ax.grid(visible=True, which='major', linestyle='--', axis='y')   
+
+    cbs = []
+    for body, x0 in zip(vits['bodies'], arr.T):
+
+        body.set_facecolor(facecolor)
+        body.set_edgecolor(edgecolor)
+        body.set_alpha(alpha)  
+        
+        p, = body.get_paths()
+        arr = p.vertices
+        u, w = arr.T
+        
+        if ldata is not None: 
+            
+            u0 = u.clip(u.min(), u.mean())
+            tris = trigrid(u0, w)    
+            y2 = calc_violin_data(w, ldata)
+            cb = ax.tricontourf(tris, y2, levels=levels, cmap=cmap)
+            cbs.append(cb)                        
+
+        if rdata is not None:
+            u0 = u.clip(u.mean(), u.max())
+            tris = trigrid(u0, w)    
+            y2 = calc_violin_data(w, rdata)
+            cb = ax.tricontourf(tris, y2, levels=levels, cmap=cmap)
+            cbs.append(cb)            
+            
+        
+    
+    return vits, cbs
+    
+    
+    
 #%%
 
 def plot_dendrogram(ax, df, method='centroid'):
