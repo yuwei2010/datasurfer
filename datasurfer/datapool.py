@@ -549,9 +549,10 @@ class Data_Pool(object):
                             index=self.names(), name='Signal Length')
             count = self.count(pbar=False)
             
-            memory = (self.memory_usage(pbar=pbar) / 1e6).round(4)        
+            memory = (self.memory_usage(pbar=pbar) / 1e6).round(4) 
+            comments = pd.Series(self.comments(), name='Comment')      
         
-            df = pd.concat([signal, length, count, memory, itype, ftype, size, date, path], axis=1)
+            df = pd.concat([comments, signal, length, count, memory, itype, ftype, size, date, path], axis=1)
         else:
             df = pd.concat([itype, ftype, size, date, path], axis=1)
                     
@@ -1171,7 +1172,8 @@ class Data_Pool(object):
             return data objects from pool according to mask.
         '''
         if isinstance(mask_array, (dict, pd.Series)):
-            out = [self.get_object(name) for name, bool in mask_array.items() if bool]
+            
+            out = [self.get_object(name) for name, bool in mask_array.items() if (name in self.names() and bool)]
         elif hasattr(mask_array, '__call__'):
 
             out = [obj for obj in self if mask_array(obj)]
