@@ -16,6 +16,7 @@ class PANDAS_OBJECT(DataInterface):
     dict_fun = {
         '.csv':  pd.read_csv,
         '.xlsx': pd.read_excel,
+        '.xls':  pd.read_excel,        
     }
     
     def __init__(self, path=None, config=None, name=None, comment=None, **kwargs):
@@ -30,6 +31,9 @@ class PANDAS_OBJECT(DataInterface):
         """
         super().__init__(path, config=config, name=name, comment=comment)
         self.kwargs = kwargs
+        
+        if self.path.suffix.lower() in ('.xlsx', '.xls'):
+            self.sheet_names = pd.ExcelFile(self.path).sheet_names
         
     @property   
     def t(self):

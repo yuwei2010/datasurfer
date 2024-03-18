@@ -1266,7 +1266,16 @@ class Data_Pool(object):
             out['columns'] = obj.df.columns
             
             yield obj.name, out
-            
+    
+    def rename(self, **kwargs):
+        for key, val in kwargs.items():
+            try:
+                self.get_object(val).name = key
+            except NameError:
+                pass
+                
+        return self 
+               
     def rename_signals(self, **kwargs):
         """
         Renames signals in the datapool.

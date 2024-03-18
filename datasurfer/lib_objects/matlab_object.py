@@ -6,7 +6,7 @@ import numpy as np
 
 import scipy.io
 
-from ..datainterface import DataInterface
+from datasurfer.datainterface import DataInterface
 
 
 
@@ -93,6 +93,18 @@ class MATLAB_OBJECT(DataInterface):
             pandas.DataFrame: The DataFrame containing the loaded data.
 
         """
+        
         dat = dict((k, self.fhandler[k].ravel()[0].ravel()) for k in self.fhandler.dtype.fields.keys())
-        df = pd.DataFrame(dat)
+        df = pd.DataFrame()
+
+        for key, value in dat.items():
+            try:
+                df[key] = value
+            except ValueError:
+                if len(value) == 1:
+                    df[key] = value[0]
+                else:
+                    raise ValueError(f'Can not convert "{key}" to DataFrame')
+
         return df
+# %%

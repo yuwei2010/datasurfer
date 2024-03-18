@@ -214,7 +214,6 @@ class Plots(object):
         - ax: The matplotlib Axes object with the line graph plotted.
         """
         labels = kwargs.pop('labels', None)
-        
         if len(keys) == 2:
             ax.plot(keys[0], keys[1], **kwargs)           
         else:

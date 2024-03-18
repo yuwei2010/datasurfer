@@ -984,4 +984,9 @@ class DataInterface(object):
 
         if clean:
             self.clean()
+    @property
+    def plot(self):        
+        from datasurfer.lib_plots import Plots
+        
+        return Plots(self)
 # %%
