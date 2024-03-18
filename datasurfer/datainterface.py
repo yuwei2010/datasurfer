@@ -334,7 +334,7 @@ class DataInterface(object):
 
         return self
     
-    def reset_index(self):
+    def reset_index(self, ):
         """
         Resets the index of the DataFrame to the default integer index.
 
