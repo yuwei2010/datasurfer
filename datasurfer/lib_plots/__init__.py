@@ -214,14 +214,19 @@ class Plots(object):
         - ax: The matplotlib Axes object with the line graph plotted.
         """
         labels = kwargs.pop('labels', None)
-        if len(keys) == 2:
-            ax.plot(keys[0], keys[1], **kwargs)           
+        if len(keys) == 1:
+            ax.plot(keys[0], **kwargs)  
+            if labels:
+                ax.set_ylabel(labels[0]) 
+        elif len(keys) == 2:
+            ax.plot(keys[0], keys[1], **kwargs) 
+            if labels:
+                ax.set_xlabel(labels[0])   
+                ax.set_ylabel(labels[1])           
         else:
             raise ValueError('keys must contain 2 elements')
         
-        if labels:
-            ax.set_xlabel(labels[0])   
-            ax.set_ylabel(labels[1])        
+       
         return ax
      
     @define_ax

@@ -1433,7 +1433,7 @@ class Data_Pool(object):
         self.initialized = True
         return self
     
-    def save_def(self, name):
+    def save_def(self, name=None):
         
         out = dict()
         
@@ -1442,17 +1442,19 @@ class Data_Pool(object):
             out[obj.name]['path'] = str(obj.path)
             if obj.comment:
                 out[obj.name]['comment'] = obj.comment
-            
-        if name.lower().endswith('.json'):
-            with open(name, 'w') as file:
-                json.dump(out, file, indent=4)
-        elif name.lower().endswith('.yaml') or name.lower().endswith('.yml'):
-            import yaml
-            with open(name, 'w') as file:
-                yaml.safe_dump(out, file)            
+        if name:   
+            if name.lower().endswith('.json'):
+                with open(name, 'w') as file:
+                    json.dump(out, file, indent=4)
+            elif name.lower().endswith('.yaml') or name.lower().endswith('.yml'):
+                import yaml
+                with open(name, 'w') as file:
+                    yaml.safe_dump(out, file)
+                
+        return out            
     
     @staticmethod
-    def load_def(name, **kwargs):
+    def load_def(path, **kwargs):
         """
         Load data from a JSON file and create a Data_Pool object.
 
@@ -1463,13 +1465,18 @@ class Data_Pool(object):
         Returns:
         - dp (Data_Pool): The Data_Pool object created from the loaded data.
         """
-        if name.lower().endswith('.json'):
-            with open(name, 'r') as file:
-                data = json.load(file)
-        elif name.lower().endswith('.yaml') or name.lower().endswith('.yml'):
-            import yaml
-            with open(name, 'r') as file:
-                data = yaml.safe_load(file)
+        if isinstance(path, str):
+            if path.lower().endswith('.json'):
+                with open(path, 'r') as file:
+                    data = json.load(file)
+            elif path.lower().endswith('.yaml') or path.lower().endswith('.yml'):
+                import yaml
+                with open(path, 'r') as file:
+                    data = yaml.safe_load(file)
+        elif isinstance(path, dict):
+            data = path
+        else:
+            raise ValueError('Input value must be a string or a dictionary.')
             
         _, values = zip(*data.items())
         

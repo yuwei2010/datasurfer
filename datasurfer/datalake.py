@@ -2,6 +2,7 @@ import os
 import re
 import pandas as pd
 
+from collections import abc
 from itertools import chain
 from pathlib import Path
 
@@ -64,7 +65,7 @@ class Data_Lake(object):
     - objs: A list of DataPool objects representing the data pools in the data lake.
     """
 
-    def __init__(self, root, **kwargs):
+    def __init__(self, root=None, **kwargs):
         """
         Initializes a new instance of the DataLake class.
 
@@ -78,16 +79,32 @@ class Data_Lake(object):
 
         if not isinstance(patts, (list, tuple, set)):
             patts = [patts]
+        if isinstance(root, str):
+            founds = sorted(collect_dirs(root, *patts))
+            objs = [Data_Pool([d/f for f in fs], name=d.stem, config=config) for d, fs in founds]
 
-        founds = sorted(collect_dirs(root, *patts))
-        objs = [Data_Pool([d/f for f in fs], name=d.stem, config=config) for d, fs in founds]
-
-        for obj, (d, _) in zip(objs, founds):
-            obj.path = d
+            for obj, (d, _) in zip(objs, founds):
+                obj.path = d
+            self.path = Path(root)
+        elif isinstance(root, abc.Sequence) and all(isinstance(r, Data_Pool) for r in root):
+            objs = root
+        elif root is None:
+            objs = []
+        else:
+            raise ValueError('root must be a string or a sequence of DataPool objects.')
 
         self.objs = [obj for obj in objs if len(obj)]
-        self.path = Path(root)
         
+    def __setitem__(self, name, obj):
+        """
+        Adds a data pool to the data lake.
+
+        Args:
+            name (str): The name of the data pool.
+            obj (DataPool): The data pool to be added.
+        """
+        obj.name = name
+        self.objs.append(obj)    
         
     def __getitem__(self, inval):
         """
@@ -321,7 +338,55 @@ class Data_Lake(object):
             ValueError: If the object with the given name does not exist in the datalake.
         """
         return self.objs.pop(self.objs.index(self.get_pool(name)))
+    
+    def save_def(self, name=None):
+                
+        out = dict()
         
+        for dp in self.objs:
+            out[dp.name] = dict()
+            for obj in dp:
+                out[dp.name][obj.name] = dict()
+                out[dp.name][obj.name]['path'] = str(obj.path)
+                if obj.comment:
+                    out[dp.name][obj.name]['comment'] = obj.comment
+        
+        if name:  
+            if name.lower().endswith('.json'):
+                import json
+                with open(name, 'w') as file:
+                    json.dump(out, file, indent=4)
+            elif name.lower().endswith('.yaml') or name.lower().endswith('.yml'):
+                import yaml
+                with open(name, 'w') as file:
+                    yaml.safe_dump(out, file)  
+        return out
+    @staticmethod
+    def load_def(path, **kwargs):
+        
+        if isinstance(path, str):
+            
+            if path.lower().endswith('.json'):
+                import json
+                with open(path, 'r') as file:
+                    data = json.load(file)
+                    
+            elif path.lower().endswith('.yaml') or path.lower().endswith('.yml'):
+                import yaml
+                with open(path, 'r') as file:
+                    data = yaml.safe_load(file)
+                    
+        elif isinstance(path, dict):
+            data = path
+        else:
+            raise ValueError('Input value must be a string or a dictionary.')
+        
+        dlk = Data_Lake()    
+        for name, values in data.items():
+            dp = Data_Pool.load_def(values, name=name, **kwargs)
+            dlk.objs.append(dp)
+            
+        return dlk
 
         
 #%%       
