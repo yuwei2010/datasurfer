@@ -488,7 +488,7 @@ class Data_Pool(object):
             AssertionError: If the input value is not callable.
         """
         assert hasattr(fun, '__call__'), 'Input value must be callable.'
-
+        
         self.apply(name, fun)
 
     @property
@@ -661,7 +661,7 @@ class Data_Pool(object):
         """
         Returns a DataFrame containing the names and comments of the objects in the datapool.
         """
-        return dict((obj.name, obj.comment) for obj in self.objs)
+        return pd.Series(dict((obj.name, obj.comment) for obj in self.objs), name='Comment')
     
     def apply_comments(self, **comments):
         """
@@ -1183,7 +1183,7 @@ class Data_Pool(object):
             out = [obj for obj, msk in zip(self.objs, mask_array) if msk]
         return out
     
-    @classmethod
+    @staticmethod
     def pipeline(*funs, pbar=True, ignore_error=True, asiterator=False):
         """
         Applies a series of functions to each object in the data pool and yields the result.
@@ -1475,6 +1475,8 @@ class Data_Pool(object):
                     data = yaml.safe_load(file)
         elif isinstance(path, dict):
             data = path
+        elif isinstance(path, pd.DataFrame):
+            data = path.to_dict()
         else:
             raise ValueError('Input value must be a string or a dictionary.')
             

@@ -12,6 +12,7 @@ import warnings
 import traceback
 
 from xml.etree.ElementTree import fromstring
+from abc import abstractmethod
 
 from pathlib import Path
 
@@ -334,7 +335,7 @@ class DataInterface(object):
 
         return self
     
-    def reset_index(self, ):
+    def reset_index(self, drop=True):
         """
         Resets the index of the DataFrame to the default integer index.
 
@@ -345,7 +346,7 @@ class DataInterface(object):
         Returns:
             self: The modified DataInterface object with the index reset.
         """
-        self.df.reset_index(inplace=True)
+        self.df.reset_index(inplace=True, drop=drop)
         return self
 
     @property
@@ -424,6 +425,10 @@ class DataInterface(object):
     def name(self, val):
         
         self._name = val
+        
+    @abstractmethod
+    def get_df(self):
+        pass
         
     def initialize(self):
         """

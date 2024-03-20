@@ -95,6 +95,8 @@ class Data_Lake(object):
 
         self.objs = [obj for obj in objs if len(obj)]
         
+
+        
     def __setitem__(self, name, obj):
         """
         Adds a data pool to the data lake.
@@ -103,6 +105,7 @@ class Data_Lake(object):
             name (str): The name of the data pool.
             obj (DataPool): The data pool to be added.
         """
+        assert isinstance(obj, Data_Pool), 'The object must be a DataPool object.'
         obj.name = name
         self.objs.append(obj)    
         
@@ -215,6 +218,7 @@ class Data_Lake(object):
             pass
 
         return list(found)
+
 
     def get_pool(self, name):
         """
