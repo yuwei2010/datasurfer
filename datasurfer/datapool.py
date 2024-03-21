@@ -362,6 +362,7 @@ class Data_Pool(object):
         obj_names = [obj.__class__.__name__ for obj in self.objs]
         obj_types = set(obj_names)
         s = ';'.join(f'{typ}({obj_names.count(typ)})' for typ in obj_types)
+        
         if self.name:
             return f'<{self.__class__.__name__}"{self.name}"@{s}>'
         else:

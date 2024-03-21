@@ -94,7 +94,11 @@ class Data_Lake(object):
             raise ValueError('root must be a string or a sequence of DataPool objects.')
 
         self.objs = [obj for obj in objs if len(obj)]
-               
+        
+    def __repr__(self):
+        return f'<DataLake@{self.objs}>'
+        
+              
     def __setitem__(self, name, obj):
         """
         Adds a data pool to the data lake.
