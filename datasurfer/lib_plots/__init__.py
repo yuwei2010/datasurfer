@@ -16,6 +16,7 @@ def set_ax(ax):
     ax.set_axisbelow(True)
     ax.grid(which='major', ls='--')
     ax.grid(which='minor', ls=':')
+    
     return ax
     
 axisfunc = set_ax

@@ -76,6 +76,7 @@ class Data_Lake(object):
         """
         patts = kwargs.pop('pattern', r'.*')
         config = kwargs.pop('config', None)
+        self.name = kwargs.pop('name', None)
 
         if not isinstance(patts, (list, tuple, set)):
             patts = [patts]
@@ -86,6 +87,9 @@ class Data_Lake(object):
             for obj, (d, _) in zip(objs, founds):
                 obj.path = d
             self.path = Path(root)
+            if self.name is None:
+                self.name = self.path.stem
+            
         elif isinstance(root, abc.Sequence) and all(isinstance(r, Data_Pool) for r in root):
             objs = root
         elif root is None:
@@ -96,7 +100,11 @@ class Data_Lake(object):
         self.objs = [obj for obj in objs if len(obj)]
         
     def __repr__(self):
-        return f'<DataLake@{self.objs}>'
+        
+        if self.name:
+            return f'<DataLake"{self.name}"@{tuple(self.objs)}>'
+        else:
+            return f'<DataLake@{tuple(self.objs)}>'
         
               
     def __setitem__(self, name, obj):

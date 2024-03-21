@@ -11,7 +11,6 @@ import json
 import warnings
 import traceback
 
-from xml.etree.ElementTree import fromstring
 from abc import abstractmethod
 
 from pathlib import Path
@@ -156,7 +155,7 @@ def parse_config(config):
 
 class DataInterface(object):
     """
-    A class representing a data interface.
+    A class representing parent class of all data interfaces.
 
     Parameters:
     - path (str or Path): The path to the data file.
@@ -969,11 +968,14 @@ class DataInterface(object):
         return self
     
     def clean(self):
+        """
+        Cleans the data by deleting the internal DataFrame object.
         
+        Returns:
+            self: The DataInterface object after cleaning.
+        """
         if hasattr(self, '_df'):
-            
             del self._df
-            
         return self
                 
     def close(self, clean=True):
