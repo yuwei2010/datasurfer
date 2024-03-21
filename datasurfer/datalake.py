@@ -94,9 +94,7 @@ class Data_Lake(object):
             raise ValueError('root must be a string or a sequence of DataPool objects.')
 
         self.objs = [obj for obj in objs if len(obj)]
-        
-
-        
+               
     def __setitem__(self, name, obj):
         """
         Adds a data pool to the data lake.
@@ -263,17 +261,22 @@ class Data_Lake(object):
         Finds duplicated items in the data structure.
 
         Returns a dictionary where the keys are the duplicated items and the values are lists of items that contain the duplicated item.
+
+        Parameters:
+        - as_df (bool): If True, the output will be returned as a pandas DataFrame.
+
+        Returns:
+        - dict or pandas.DataFrame: If `as_df` is False, returns a dictionary. If `as_df` is True, returns a pandas DataFrame.
         """
         names = [obj.name for obj in self.iterobjs()]
-    
+
         duplicated = sorted(set([name for name in names if names.count(name) > 1]))
-        
+
         out = {k: [p[k].meta_info for p in self.items() if k in p.names()] for k in duplicated}
-        
+
         if as_df:
-            
             out = pd.DataFrame(dict(((k, col), pd.DataFrame(v).loc[col])  for k, v in out.items() for col in pd.DataFrame(v).index))
-            
+
         return out
     
     def compare_value(self, this, that, **kwargs):
@@ -344,9 +347,24 @@ class Data_Lake(object):
         return self.objs.pop(self.objs.index(self.get_pool(name)))
     
     def save_def(self, name=None):
-                
+        """
+        Save the definition of the data objects in the datalake to a file.
+
+        Args:
+            name (str): The name of the file to save the definition to. If not provided, the definition will not be saved.
+
+        Returns:
+            dict: A dictionary containing the definition of the data objects in the datalake.
+
+        Raises:
+            None
+
+        Example usage:
+            datalake = DataLake()
+            datalake.save_def('definition.json')
+        """
         out = dict()
-        
+
         for dp in self.objs:
             out[dp.name] = dict()
             for obj in dp:
@@ -354,8 +372,8 @@ class Data_Lake(object):
                 out[dp.name][obj.name]['path'] = str(obj.path)
                 if obj.comment:
                     out[dp.name][obj.name]['comment'] = obj.comment
-        
-        if name:  
+
+        if name:
             if name.lower().endswith('.json'):
                 import json
                 with open(name, 'w') as file:
@@ -363,11 +381,26 @@ class Data_Lake(object):
             elif name.lower().endswith('.yaml') or name.lower().endswith('.yml'):
                 import yaml
                 with open(name, 'w') as file:
-                    yaml.safe_dump(out, file)  
+                    yaml.safe_dump(out, file)
         return out
+    
     @staticmethod
     def load_def(path, **kwargs):
-        
+        """
+        Load data definition from a file or a dictionary and create a Data_Lake object.
+
+        Args:
+            path (str or dict): The path to the file containing the data definition in JSON or YAML format,
+                                or a dictionary representing the data definition.
+            **kwargs: Additional keyword arguments to be passed to the Data_Pool.load_def method.
+
+        Returns:
+            Data_Lake: A Data_Lake object containing the loaded data definition.
+
+        Raises:
+            ValueError: If the input value is not a string or a dictionary.
+
+        """
         if isinstance(path, str):
             
             if path.lower().endswith('.json'):

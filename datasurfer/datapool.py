@@ -1434,9 +1434,21 @@ class Data_Pool(object):
         return self
     
     def save_def(self, name=None):
-        
+        """
+        Save the definitions of objects in the datapool to a file.
+
+        Args:
+            name (str): The name of the file to save the definitions to. If not provided, the definitions will not be saved.
+
+        Returns:
+            dict: A dictionary containing the saved definitions.
+
+        Raises:
+            None
+
+        """
         out = dict()
-        
+
         for obj in self.objs:
             out[obj.name] = dict()
             out[obj.name]['path'] = str(obj.path)
@@ -1450,8 +1462,8 @@ class Data_Pool(object):
                 import yaml
                 with open(name, 'w') as file:
                     yaml.safe_dump(out, file)
-                
-        return out            
+
+        return out
     
     @staticmethod
     def load_def(path, **kwargs):
@@ -1588,6 +1600,16 @@ class Data_Pool(object):
         return None
     
     def fill_missing_keys(self, config=None, pbar=True):
+        """
+        Fills missing keys in the datapool objects using the provided config.
+
+        Args:
+            config (dict, optional): The configuration dictionary containing the missing keys and their values. Defaults to None.
+            pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+
+        Returns:
+            self: The updated datapool object.
+        """
         @show_pool_progress('Processing', show=pbar)
         def get(self):
             for obj in self.objs:               
