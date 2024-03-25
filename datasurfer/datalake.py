@@ -136,13 +136,16 @@ class Data_Lake(object):
             if '*' in inval:
                 if inval.strip()[0] in '#@%':
                     patt = inval.strip()[1:]
-                    out = self.search(patt)
+                    out =  sorted(set(chain(*[obj.search_signal(patt) for obj in self.objs])))
                 else:
-                    out = [self.get_pool(name) for name in self.search(inval)]
+                    out = self.__class__([self.get_pool(name) for name in self.search(inval)])
             else:
                 out = self.get_pool(inval)
         elif isinstance(inval, (list, tuple, set)):
-            out = self.__class__([self.__getitem__(n) for n in inval])
+            out = self.__class__([self.get_pool(n) for n in inval])
+            
+        elif isinstance(inval, slice):
+            out = self.__class__(self.objs[inval])
         else:
             out = self.objs[inval]
         return out
@@ -248,6 +251,23 @@ class Data_Lake(object):
                 return obj
         else:
             raise NameError(f'Can not find any "{name}"')
+        
+    def get_signals(self, *signals):
+        
+        out = dict((obj.name, obj.get_signals(*signals)) for obj in self.objs)
+        
+        return out
+    
+    def get_signal1Ds(self, *signals, as_df=True):
+        
+        out = dict((obj.name, obj.get_signal1Ds(*signals)) for obj in self.objs)
+        
+        if as_df:
+            reform = {(outerKey, innerKey): values for outerKey, innerDict 
+                      in out.items() for innerKey, values in innerDict.items()}
+            out = pd.DataFrame(reform)
+        
+        return out
         
     def iterobjs(self):
         """

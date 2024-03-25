@@ -426,28 +426,24 @@ class Data_Pool(object):
                     out = self.search_signal(patt, ignore_case=True)
                 else:
                 
-                    out = [self.get_object(name) for name in self.search_object(inval)]
+                    out = self.__class__([self.get_object(name) for name in self.search_object(inval)])
             else:
                 if inval in self.keys():
                     out = self.get_object(inval)
+                elif inval.strip()[0] in '#@%':
+                    out = self.get_signal(inval.strip()[1:])
                 else:
-                    out = self.get_signal(inval)
+                    raise KeyError(f'Can not find any "{inval}"')
             
         elif isinstance(inval, (list, tuple, set)):
             
-            out = []
             
             if all(na in self.keys() for na in inval):
                 
-                out = [self.get_object(n) for n in inval]
+                out = self.__class__([self.get_object(n) for n in inval])
                 
             else:
-                
-                for n in inval:
-                    
-                    out.append(self.get_signal1D(n))
-                    
-                out = pd.concat(out, axis=1)
+                out = self.get_signal1Ds(*inval)
             
             
         elif hasattr(inval, '__call__'):
@@ -932,6 +928,15 @@ class Data_Pool(object):
         if reindex:
             out.index = np.arange(len(out))
 
+        return out
+    
+    def get_signal1Ds(self, *signals, ignore_error=True, mask=None):
+        out = []
+        for sig in signals:
+            
+            out.append(self.get_signal1D(sig, ignore_error=ignore_error, mask=mask))
+            
+        out = pd.concat(out, axis=1)
         return out
     
     def get_signals(self, *signames, ignore_error=True, mask=None):

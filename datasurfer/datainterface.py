@@ -275,8 +275,7 @@ class DataInterface(object):
                 res = self.df[name]
             else:
                 res = self.get(*name)
-
-        
+       
         return res
     
     def __setitem__(self, name, value):
