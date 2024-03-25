@@ -142,7 +142,7 @@ class Data_Lake(object):
             else:
                 out = self.get_pool(inval)
         elif isinstance(inval, (list, tuple, set)):
-            out = [self.__getitem__(n) for n in inval]
+            out = self.__class__([self.__getitem__(n) for n in inval])
         else:
             out = self.objs[inval]
         return out
@@ -397,7 +397,7 @@ class Data_Lake(object):
         return out
     
     @staticmethod
-    def load_def(path, **kwargs):
+    def from_def(path, **kwargs):
         """
         Load data definition from a file or a dictionary and create a Data_Lake object.
 
