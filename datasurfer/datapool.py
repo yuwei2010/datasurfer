@@ -753,7 +753,7 @@ class Data_Pool(object):
         return pd.Series(dict(get(self)), name='Signal Size')
     
     
-    def initialize(self, pbar=True):
+    def initialize(self, buffer=None, pbar=True):
         """
         Initializes the datapool by calling the `initialize` method on each object in the datapool.
 
@@ -763,9 +763,10 @@ class Data_Pool(object):
         @show_pool_progress('Initializing', show=pbar, set_init=True)
         def get(self):
             for obj in self.objs:
-                obj.initialize()
+                obj.initialize()               
                 yield
-
+                
+        buffer = {} if buffer is None else buffer
         list(get(self))
 
         return self
@@ -1472,7 +1473,7 @@ class Data_Pool(object):
         return out
     
     @staticmethod
-    def load_def(path, **kwargs):
+    def from_def(path, **kwargs):
         """
         Load data from a JSON file and create a Data_Pool object.
 

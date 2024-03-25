@@ -435,7 +435,9 @@ class DataInterface(object):
         Returns:
             self: The initialized data interface object.
         """
-        self._df = self.get_df()
+        
+        if not hasattr(self, '_df'):
+            self._df = self.get_df()
         
         return self
     

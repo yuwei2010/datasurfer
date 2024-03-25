@@ -98,6 +98,7 @@ class Data_Lake(object):
             raise ValueError('root must be a string or a sequence of DataPool objects.')
 
         self.objs = [obj for obj in objs if len(obj)]
+        assert all(self.keys()), 'Data pool names must be unique.'
         
     def __repr__(self):
         
@@ -452,7 +453,7 @@ class Data_Lake(object):
         
         dlk = Data_Lake()    
         for name, values in data.items():
-            dp = Data_Pool.load_def(values, name=name, **kwargs)
+            dp = Data_Pool.from_def(values, name=name, **kwargs)
             dlk.objs.append(dp)
             
         return dlk
