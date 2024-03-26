@@ -153,6 +153,9 @@ class Data_Lake(object):
         """
         return [obj.path for obj in self.objs]
     
+    def signals(self):
+
+        return sorted(set(chain(*[obj.signals() for obj in self.objs])))
 
     def search(self, patt, ignore_case=True, raise_error=False):
         """
@@ -458,6 +461,7 @@ class Data_Lake(object):
                 dp.initialize(pbar=pbar)
             
         return self
+    
 #%%       
 if __name__ == '__main__':
 
