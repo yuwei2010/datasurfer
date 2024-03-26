@@ -908,6 +908,21 @@ class Data_Pool(object):
 
         return pd.concat(dats, axis=1)
     
+    def get_signals(self, *signames, ignore_error=True, mask=None):
+        """
+        Retrieves the values of multiple signals from the datapool.
+
+        Args:
+            *signames: Variable-length argument list of signal names.
+            ignore_error (bool): Flag indicating whether to ignore errors when retrieving signals.
+            mask: Optional mask to apply to the retrieved signals.
+
+        Returns:
+            dict: A dictionary mapping signal names to their corresponding values.
+        """
+        return dict((signame, self.get_signal(signame, ignore_error=ignore_error, mask=mask))
+                    for signame in signames)
+    
     def get_signal1D(self, signame, ignore_error=True, mask=None, reindex=True):
         """
         Retrieve a 1-dimensional signal from the datapool.
@@ -940,20 +955,7 @@ class Data_Pool(object):
         out = pd.concat(out, axis=1)
         return out
     
-    def get_signals(self, *signames, ignore_error=True, mask=None):
-        """
-        Retrieves the values of multiple signals from the datapool.
 
-        Args:
-            *signames: Variable-length argument list of signal names.
-            ignore_error (bool): Flag indicating whether to ignore errors when retrieving signals.
-            mask: Optional mask to apply to the retrieved signals.
-
-        Returns:
-            dict: A dictionary mapping signal names to their corresponding values.
-        """
-        return dict((signame, self.get_signal(signame, ignore_error=ignore_error, mask=mask))
-                    for signame in signames)
     
     def get_object(self, name):
         """
@@ -1191,7 +1193,7 @@ class Data_Pool(object):
         return out
     
     @staticmethod
-    def pipeline(*funs, pbar=True, ignore_error=True, asiterator=False):
+    def pipeline(*funs, pbar=True, ignore_error=True, asiterator=True):
         """
         Applies a series of functions to each object in the data pool and yields the result.
 
@@ -1203,7 +1205,8 @@ class Data_Pool(object):
         """
         if not all(hasattr(fun, '__call__') for fun in funs):
             raise ValueError('Input values must be callable.')
-    
+        if asiterator: pbar=False
+        
         def wrapper(dp):
             @show_pool_progress('Processing', show=pbar)
             def fun(dp):

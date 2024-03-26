@@ -458,7 +458,41 @@ class Data_Lake(object):
             
         return dlk
 
+    @staticmethod
+    def pipeline(*funs, pbar=True, ignore_error=True, asiterator=True):
+        """
+        Applies a series of functions to each object in the data pool and yields the result.
+
+        Args:
+            *funs: Variable number of functions to be applied to each object.
+
+        Yields:
+            The modified object after applying all the functions.
+        """
+        if not all(hasattr(fun, '__call__') for fun in funs):
+            raise ValueError('Input values must be callable.')    
         
+        def wrapper(dlk):
+            @show_pool_progress('Processing', show=pbar)
+            def fun(dlk):
+                for obj in dp.objs:                            
+                    for fun in funs: 
+                        try:
+                            fun(obj)
+                        except Exception as err:
+                            if ignore_error:
+                                errname = err.__class__.__name__
+                                tb = traceback.format_exc(limit=0, chain=False)
+                                warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                            else:
+                                raise
+                    yield obj
+                    
+            if asiterator:
+                return fun(dp)
+            else:
+                return list(fun(dp))
+        return wrapper       
 #%%       
 if __name__ == '__main__':
 

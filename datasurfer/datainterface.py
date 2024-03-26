@@ -250,6 +250,10 @@ class DataInterface(object):
             return False
         
         return True
+    
+    def __eq__(self, other):
+        
+        return (self.__class__ == other.__class__) and (self.path == other.path) and (self.name == other.name)
 
     def __repr__(self):
         
@@ -768,8 +772,8 @@ class DataInterface(object):
             
         return self
     
-    @classmethod
-    def pipeline(self, *funs, ignore_error=True):
+    @staticmethod
+    def pipeline(*funs, ignore_error=True):
         """
         Executes a series of functions on an object in a pipeline fashion.
 
@@ -784,10 +788,11 @@ class DataInterface(object):
         Returns:
             None
         """
+        if not all(hasattr(fun, '__call__') for fun in funs):
+            raise ValueError('Input values must be callable.')
+        
         def wrapper(obj):
             for fun in funs:
-                assert hasattr(fun, '__call__'), 'Input value must be callable.'
-
                 try:
                     yield fun(obj)
                 except Exception as err:
