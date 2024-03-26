@@ -1,55 +1,13 @@
-import os
 import re
 import pandas as pd
 
 from collections import abc
 from itertools import chain
 from pathlib import Path
-
 from datasurfer.datapool import Data_Pool
 from difflib import SequenceMatcher
 
-
-#%%
-def collect_dirs(root, *patts, patt_filter=None):
-    """
-    Collects directories and their corresponding files under the given root directory.
-
-    Args:
-        root (str or list or tuple or set): The root directory or a collection of root directories.
-        *patts (str): Patterns to match against directory names.
-        patt_filter (list or None): Patterns to filter out directory names. Defaults to None.
-
-    Yields:
-        tuple: A tuple containing the path of the directory and a list of files in that directory.
-
-    Examples:
-        >>> for path, files in collect_dirs('/path/to/root', 'dir*', patt_filter=['dir2']):
-        ...     print(f"Directory: {path}")
-        ...     print(f"Files: {files}")
-        ...
-        Directory: /path/to/root/dir1
-        Files: ['file1.txt', 'file2.txt']
-        Directory: /path/to/root/dir3
-        Files: ['file3.txt', 'file4.txt']
-    """
-
-    patt_filter = patt_filter or [r'^\..*']
-
-    if isinstance(root, (list, tuple, set)):
-        root = chain(*root)
-
-    for r, _, fs in os.walk(root):
-        d = Path(r).stem
-        ismatch = (any(re.match(patt, d) for patt in patts) 
-                    and (not any(re.match(patt, d) for patt in patt_filter)))
-
-        if ismatch:
-            path = Path(r)
-            if fs:
-                yield path, fs
-                
-
+from datasurfer.datautil import collect_dirs, show_pool_progress
 
 #%%
 class Data_Lake(object):
@@ -475,24 +433,27 @@ class Data_Lake(object):
         def wrapper(dlk):
             @show_pool_progress('Processing', show=pbar)
             def fun(dlk):
-                for obj in dp.objs:                            
-                    for fun in funs: 
-                        try:
-                            fun(obj)
-                        except Exception as err:
-                            if ignore_error:
-                                errname = err.__class__.__name__
-                                tb = traceback.format_exc(limit=0, chain=False)
-                                warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
-                            else:
-                                raise
-                    yield obj
+                for dp in dlk.objs:   
+
+                    yield Data_Pool.pipeline(*funs, pbar=False, ignore_error=ignore_error, asiterator=False)(dp)
                     
             if asiterator:
-                return fun(dp)
+                return fun(dlk)
             else:
-                return list(fun(dp))
-        return wrapper       
+                return list(fun(dlk))
+            
+        return wrapper   
+    
+    def initialize(self, pbar=True):
+        
+        buffer = []
+        
+        for dp in self.objs:
+            buffer.extend(dp.initialize(buffer=buffer, pbar=pbar).objs)
+            
+            buffer = list(set(buffer))
+            
+        return self
 #%%       
 if __name__ == '__main__':
 

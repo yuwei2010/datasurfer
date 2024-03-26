@@ -1,3 +1,14 @@
+import os
+import re
+import warnings
+import json
+import pandas as pd
+
+from functools import wraps
+from pathlib import Path
+from itertools import chain
+from collections import abc
+from tqdm import tqdm
 
 #%%
 def collect_files(root, *patts, warn_if_double=True, ignore_double=False):
@@ -62,7 +73,7 @@ def show_pool_progress(msg, show=False, set_init=True, count=None):
                     
             res = func(self, *args, **kwargs)
 
-            flag_pbar = (not self.silent) and (not self.initialized or show)
+            flag_pbar = (hasattr(self, 'silent') and not self.silent) and (not self.initialized or show)
             
             if count is None:                
                 num = len(self.objs)
@@ -156,3 +167,171 @@ def check_config_duplication(cfg):
     [stat.setdefault(vals.count(s), set([])).add(s) for s in vals]
     
     return stat
+
+#%% Extract channels
+
+def extract_channels(newconfig=None):
+    """
+    A decorator that extracts channels from the given configuration and passes them as arguments to the decorated function.
+    
+    Args:
+        newconfig (dict, optional): A dictionary containing the mapping of channel names. Defaults to None.
+    
+    Returns:
+        function: The decorated function.
+    """
+    def decorator(func):
+    
+        @wraps(func)
+        def wrapper(self, *keys, **kwargs):
+            
+            mapping = dict() if newconfig is None else newconfig
+            
+            config = mapping if self.config is None else self.config
+
+            foo = lambda k: config[k] if k in config else k
+            newkeys = [foo(k) for k in keys]
+            
+            channels = self.channels if hasattr(self, 'channels') else self.df.columns
+            
+            outkeys = []
+            
+            for k in newkeys:
+
+                if isinstance(k, str): 
+                    
+                    if k in channels:
+                        
+                        outkeys.append(k)
+                    else:
+                        
+                        warnings.warn(f'"{k}" not found.')
+                else:
+                    
+                    for kk in k:
+                        
+                        if kk in channels:
+                            
+                            outkeys.append(kk)
+                            break
+                    else:
+                        warnings.warn(f'"{k}" not found.')
+                        
+            return func(self, *outkeys, **kwargs)             
+            
+        return wrapper
+    
+    return decorator
+
+#%% Translate Config
+
+def translate_config(newconfig=None):
+    """
+    A decorator function that translates column names in the output of a decorated function based on a configuration dictionary.
+    
+    Args:
+        newconfig (dict, optional): A dictionary that maps the original column names to the desired translated column names. 
+            If not provided, the decorator will use the `config` attribute of the decorated object.
+    
+    Returns:
+        function: The decorated function.
+    """
+    
+    def decorator(func):
+    
+        @wraps(func)
+        def wrapper(self, *keys, **kwargs):
+                        
+            if (hasattr(self, 'config') and self.config is not None) or newconfig is not None:
+                
+                config = newconfig if newconfig is not None else self.config
+                                             
+                res = func(self, *keys, **kwargs)
+                
+                if isinstance(res, pd.DataFrame):
+                    
+                    for k, v in config.items():
+                        
+                        if isinstance(v, str):
+                        
+                            res.columns = res.columns.str.replace(v, k, regex=False)
+                            
+                        elif isinstance(v, (list, tuple, set)):
+                            
+                            for vv in v:
+                                
+                                res.columns = res.columns.str.replace(vv, k, regex=False)
+
+                return res
+            
+            else: 
+                
+                return func(self, *keys, **kwargs)
+
+        return wrapper
+    
+    return decorator
+
+#%%
+def parse_config(config):
+    
+    if isinstance(config, (str, Path)):
+        if str(config).lower().endswith('.json'):
+            config = json.load(open(config))
+        elif str(config).lower().endswith('.yaml') or str(config).lower().endswith('.yml'):
+            import yaml
+            config = yaml.safe_load(open(config))
+        else:
+            raise IOError('Unknown config format, expect json or yaml.')
+    elif isinstance(config, (list, tuple, set)):
+        if all(isinstance(s, str) for s in config):
+            config = dict((v, v) for v in config)
+        elif all(isinstance(s, dict) for s in config):
+            from datasurfer.datapool import combine_configs
+            config = combine_configs(*list(config))
+        else:
+            raise TypeError('Can not handle config type.')
+    elif (not isinstance(config, dict)) and (config is not None):
+
+        raise TypeError('Unknown config format, expect dict')
+    
+    return config
+
+#%%
+def collect_dirs(root, *patts, patt_filter=None):
+    """
+    Collects directories and their corresponding files under the given root directory.
+
+    Args:
+        root (str or list or tuple or set): The root directory or a collection of root directories.
+        *patts (str): Patterns to match against directory names.
+        patt_filter (list or None): Patterns to filter out directory names. Defaults to None.
+
+    Yields:
+        tuple: A tuple containing the path of the directory and a list of files in that directory.
+
+    Examples:
+        >>> for path, files in collect_dirs('/path/to/root', 'dir*', patt_filter=['dir2']):
+        ...     print(f"Directory: {path}")
+        ...     print(f"Files: {files}")
+        ...
+        Directory: /path/to/root/dir1
+        Files: ['file1.txt', 'file2.txt']
+        Directory: /path/to/root/dir3
+        Files: ['file3.txt', 'file4.txt']
+    """
+
+    patt_filter = patt_filter or [r'^\..*']
+
+    if isinstance(root, (list, tuple, set)):
+        root = chain(*root)
+
+    for r, _, fs in os.walk(root):
+        d = Path(r).stem
+        ismatch = (any(re.match(patt, d) for patt in patts) 
+                    and (not any(re.match(patt, d) for patt in patt_filter)))
+
+        if ismatch:
+            path = Path(r)
+            if fs:
+                yield path, fs

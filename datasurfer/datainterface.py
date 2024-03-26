@@ -7,149 +7,15 @@ import os
 import re
 import pandas as pd
 import numpy as np
-import json
 import warnings
 import traceback
 
 from abc import abstractmethod
-
 from pathlib import Path
-
 from difflib import SequenceMatcher
 from itertools import chain, zip_longest
-from functools import wraps
+from datasurfer.datautil import parse_config, translate_config, extract_channels
 
-
-
-
-#%% Extract channels
-
-def extract_channels(newconfig=None):
-    """
-    A decorator that extracts channels from the given configuration and passes them as arguments to the decorated function.
-    
-    Args:
-        newconfig (dict, optional): A dictionary containing the mapping of channel names. Defaults to None.
-    
-    Returns:
-        function: The decorated function.
-    """
-    def decorator(func):
-    
-        @wraps(func)
-        def wrapper(self, *keys, **kwargs):
-            
-            mapping = dict() if newconfig is None else newconfig
-            
-            config = mapping if self.config is None else self.config
-
-            foo = lambda k: config[k] if k in config else k
-            newkeys = [foo(k) for k in keys]
-            
-            channels = self.channels if hasattr(self, 'channels') else self.df.columns
-            
-            outkeys = []
-            
-            for k in newkeys:
-
-                if isinstance(k, str): 
-                    
-                    if k in channels:
-                        
-                        outkeys.append(k)
-                    else:
-                        
-                        warnings.warn(f'"{k}" not found.')
-                else:
-                    
-                    for kk in k:
-                        
-                        if kk in channels:
-                            
-                            outkeys.append(kk)
-                            break
-                    else:
-                        warnings.warn(f'"{k}" not found.')
-                        
-            return func(self, *outkeys, **kwargs)             
-            
-        return wrapper
-    
-    return decorator
-
-#%% Translate Config
-
-def translate_config(newconfig=None):
-    """
-    A decorator function that translates column names in the output of a decorated function based on a configuration dictionary.
-    
-    Args:
-        newconfig (dict, optional): A dictionary that maps the original column names to the desired translated column names. 
-            If not provided, the decorator will use the `config` attribute of the decorated object.
-    
-    Returns:
-        function: The decorated function.
-    """
-    
-    def decorator(func):
-    
-        @wraps(func)
-        def wrapper(self, *keys, **kwargs):
-                        
-            if (hasattr(self, 'config') and self.config is not None) or newconfig is not None:
-                
-                config = newconfig if newconfig is not None else self.config
-                                             
-                res = func(self, *keys, **kwargs)
-                
-                if isinstance(res, pd.DataFrame):
-                    
-                    for k, v in config.items():
-                        
-                        if isinstance(v, str):
-                        
-                            res.columns = res.columns.str.replace(v, k, regex=False)
-                            
-                        elif isinstance(v, (list, tuple, set)):
-                            
-                            for vv in v:
-                                
-                                res.columns = res.columns.str.replace(vv, k, regex=False)
-
-                return res
-            
-            else: 
-                
-                return func(self, *keys, **kwargs)
-
-        return wrapper
-    
-    return decorator
-
-#%%
-def parse_config(config):
-    
-    if isinstance(config, (str, Path)):
-        if str(config).lower().endswith('.json'):
-            config = json.load(open(config))
-        elif str(config).lower().endswith('.yaml') or str(config).lower().endswith('.yml'):
-            import yaml
-            config = yaml.safe_load(open(config))
-        else:
-            raise IOError('Unknown config format, expect json or yaml.')
-    elif isinstance(config, (list, tuple, set)):
-        if all(isinstance(s, str) for s in config):
-            config = dict((v, v) for v in config)
-        elif all(isinstance(s, dict) for s in config):
-            from datasurfer.datapool import combine_configs
-            config = combine_configs(*list(config))
-        else:
-            raise TypeError('Can not handle config type.')
-    elif (not isinstance(config, dict)) and (config is not None):
-
-        raise TypeError('Unknown config format, expect dict')
-    
-    return config
 
 #%% Data_Interface
 
@@ -254,7 +120,10 @@ class DataInterface(object):
     def __eq__(self, other):
         
         return (self.__class__ == other.__class__) and (self.path == other.path) and (self.name == other.name)
-
+    
+    def __hash__(self):
+        return hash((self.path, self.name, self.__class__))
+    
     def __repr__(self):
         
         return f'<{self.__class__.__name__}@{self.name}>'   
@@ -432,15 +301,16 @@ class DataInterface(object):
     def get_df(self):
         pass
         
-    def initialize(self):
+    def initialize(self, buffer=None):
         """
         Initializes the data interface by retrieving the data frame.
         
         Returns:
             self: The initialized data interface object.
         """
-        
-        if not hasattr(self, '_df'):
+        if buffer is not None:
+            self._df = buffer
+        elif not hasattr(self, '_df'):
             self._df = self.get_df()
         
         return self
@@ -842,6 +712,7 @@ class DataInterface(object):
         - new_obj (DATA_OBJECT): A new instance of the DATA_OBJECT class with the resampled DataFrame.
         """
         from datasurfer import DATA_OBJECT
+        
         if new_index is not None:
             new_index = np.asarray(new_index)
 

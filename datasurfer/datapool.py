@@ -11,178 +11,17 @@ import pandas as pd
 import numpy as np
 import warnings
 import random
-
 import gc
 import traceback
 
 from pathlib import Path
-from tqdm import tqdm
-from collections import abc
-   
 from itertools import chain
-from functools import reduce, wraps
+from functools import reduce
 
 from datasurfer.datainterface import DataInterface
-
+from datasurfer.datautil import collect_files, combine_configs, show_pool_progress
+    
 random.seed()
-#%% Collect files
-
-def collect_files(root, *patts, warn_if_double=True, ignore_double=False):
-    '''
-    Gather files from the data directory that match patterns
-    
-    Parameters:
-        root (str): The root directory to start searching for files.
-        *patts (str): Variable number of patterns in the format of regular expressions.
-        warn_if_double (bool, optional): If True, a warning will be raised if files with the same name exist. Defaults to True.
-        ignore_double (bool, optional): If True, files with the same name will be ignored and not returned. Defaults to False.
-        
-    Yields:
-        Path: An iterator of found file paths.
-        
-    Usage:
-        # Collect csv files in the current folder, return a list
-        collection = list(collect_files('.', r'.*\.csv', warn_if_double=True))
-    '''
-    if isinstance(root, (list, tuple, set)):
-        root = chain(*root)
-    
-    found = {}
-       
-    for r, ds, fs in os.walk(root):
-        for f in fs:
-            ismatch = any(re.match(patt, f) for patt in patts)
-            
-            if ismatch: 
-                path = (Path(r) / f)
-                
-                if warn_if_double and f in found:
-                    dirs = '\n\t'.join(found[f])
-                    warnings.warn(f'"{path}" exists already in:\n{dirs}')
-                    
-                if (f not in found) or (not ignore_double) :
-                    yield path
-                    
-                found.setdefault(f, []).append(r)
-                
-                
-                
-#%% Show_Pool_Progress_bar
-def show_pool_progress(msg, show=False, set_init=True, count=None):
-    """
-    Decorator function that adds progress bar functionality to a method in a data pool object.
-
-    Parameters:
-    - msg (str): The message to display in the progress bar.
-    - show (bool): Whether to show the progress bar or not. Default is False.
-    - set_init (bool): Whether to set the 'initialized' attribute of the data pool object to True after the method is executed. Default is True.
-    - count (int): The total count of objects to iterate over. If None, the count is determined by the length of the data pool object. Default is None.
-
-    Returns:
-    - The decorated method.
-    """
-    
-    def decorator(func):
-    
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-                    
-            res = func(self, *args, **kwargs)
-
-            flag_pbar = (not self.silent) and (not self.initialized or show)
-            
-            if count is None:                
-                num = len(self.objs)
-            else:
-                num = count
-                
-            rng = range(num)
-            
-            if flag_pbar:
-                pbar = tqdm(rng)
-                iterator = pbar
-            else:
-                iterator = rng
-             
-            for idx in iterator:
-                
-                if flag_pbar: 
-                
-                    if count is None:
-
-                        pbar.set_description(f'{msg} "{self.objs[idx].name}"')
-                        
-                    else:
-                        
-                        pbar.set_description(f'{msg}')
-            
-                yield next(res)
-                
-            if set_init:
-                
-                self.initialized = True
-                        
-        return wrapper
-    
-    return decorator
-
-
-#%% Combine configs
-
-def combine_configs(*cfgs):
-    """
-    Combines multiple configuration dictionaries into a single dictionary.
-
-    Args:
-        *cfgs: Variable number of configuration dictionaries.
-
-    Returns:
-        dict: A dictionary containing the combined configurations.
-
-    Example:
-        >>> cfg1 = {'a': 'apple', 'b': 'banana'}
-        >>> cfg2 = {'a': 'avocado', 'c': 'cherry'}
-        >>> combine_configs(cfg1, cfg2)
-        {'a': ['apple', 'avocado'], 'b': ['banana'], 'c': ['cherry']}
-    """
-    out = dict()
-    
-    for k, v in chain(*[cfg.items() for cfg in cfgs]):
-        
-        if isinstance(v, str):   
-             
-            out.setdefault(k, set()).add(v)
-            
-        else:
-            if k in out:
-                out[k] = out[k].union(set(v))
-            else:
-                out[k] = set(v)
-                
-            
-    if not out:
-        out = None
-    else:
-        for k, v in out.items():
-            out[k] = sorted(v)
-            
-    return out
-
-#%%
-def check_config_duplication(cfg):
-    
-    vals = list()
-    for val in cfg.values():
-        
-        if isinstance(val, str):
-            vals.append(val)
-        if isinstance(val, abc.Sequence) and not isinstance(val, str):
-            vals.extend(list(val))
-    
-    stat = dict()
-    [stat.setdefault(vals.count(s), set([])).add(s) for s in vals]
-    
-    return stat
 
   
 #%% Data Pool
@@ -292,9 +131,7 @@ class Data_Pool(object):
                                     + Data_Pool(y, config=config, interface=interface,  **kwargs), datobjects)    
         elif datobjects is not None:
                 datobjects = [datobjects]
-            
-
-
+        
         if datobjects is None or len(datobjects)==0:
             datobjects = []
             
@@ -326,8 +163,7 @@ class Data_Pool(object):
                     objs.append(cls(obj, config=config, **kwargs))
                 else:
                     raise ValueError(f'Can not find any interface for "{obj}"')
-       
-                
+      
         self.objs = sorted(set(objs), key=lambda x:x.name)
         self.apply_comments(**comments)
         
@@ -429,11 +265,10 @@ class Data_Pool(object):
                     out = self.__class__([self.get_object(name) for name in self.search_object(inval)])
             else:
                 if inval in self.keys():
-                    out = self.get_object(inval)
-                elif inval.strip()[0] in '#@%':
-                    out = self.get_signal(inval.strip()[1:])
+                    out = self.get_object(inval)                    
                 else:
-                    raise KeyError(f'Can not find any "{inval}"')
+                    out = self.get_signal(inval.strip())
+                    
             
         elif isinstance(inval, (list, tuple, set)):
             
@@ -556,25 +391,25 @@ class Data_Pool(object):
         return df
                 
     def memory_usage(self, pbar=True):
-            """
-            Calculate the memory usage of each object in the datapool.
+        """
+        Calculate the memory usage of each object in the datapool.
 
-            Parameters:
-            - pbar (bool): Whether to show a progress bar during calculation. Default is True.
+        Parameters:
+        - pbar (bool): Whether to show a progress bar during calculation. Default is True.
 
-            Returns:
-            - s (pd.Series): Series containing the memory usage of each object.
-            """
+        Returns:
+        - s (pd.Series): Series containing the memory usage of each object.
+        """
+        
+        @show_pool_progress('Calculating', show=pbar)
+        def fun(self):
             
-            @show_pool_progress('Calculating', show=pbar)
-            def fun(self):
+            for obj in self.objs:
                 
-                for obj in self.objs:
-                    
-                    yield obj.name, obj.memory_usage().sum()
-            
-            s = pd.Series(dict(fun(self)), name='Memory Usage')
-            return s
+                yield obj.name, obj.memory_usage().sum()
+        
+        s = pd.Series(dict(fun(self)), name='Memory Usage')
+        return s
 
     def keys(self):
         """
@@ -763,10 +598,11 @@ class Data_Pool(object):
         @show_pool_progress('Initializing', show=pbar, set_init=True)
         def get(self):
             for obj in self.objs:
-                obj.initialize()               
+                bf = None if obj not in buffer else buffer[buffer.index(obj)]
+                obj.initialize(buffer=bf)               
                 yield
                 
-        buffer = {} if buffer is None else buffer
+        buffer = [] if buffer is None else buffer
         list(get(self))
 
         return self
@@ -1211,16 +1047,17 @@ class Data_Pool(object):
             @show_pool_progress('Processing', show=pbar)
             def fun(dp):
                 for obj in dp.objs:                            
-                    for fun in funs: 
-                        try:
-                            fun(obj)
-                        except Exception as err:
-                            if ignore_error:
-                                errname = err.__class__.__name__
-                                tb = traceback.format_exc(limit=0, chain=False)
-                                warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
-                            else:
-                                raise
+                    # for fun in funs: 
+                    #     try:
+                    #         fun(obj)
+                    #     except Exception as err:
+                    #         if ignore_error:
+                    #             errname = err.__class__.__name__
+                    #             tb = traceback.format_exc(limit=0, chain=False)
+                    #             warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                    #         else:
+                    #             raise
+                    list(DataInterface.pipeline(*funs, ignore_error=ignore_error)(obj))
                     yield obj
                     
             if asiterator:
