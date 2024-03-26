@@ -1239,39 +1239,52 @@ def locate_tick(axis, base_major=None, base_minor=None):
     
     
 #%%---------------------------------------------------------------------------#
-if __name__ == '__main__':
+# if __name__ == '__main__':
     
 
-    titles = [s.strip().capitalize() for s 
-              in open('pareto_overview.csv', 'r').readline().strip('#').split(';')]
+#     titles = [s.strip().capitalize() for s 
+#               in open('pareto_overview.csv', 'r').readline().strip('#').split(';')]
     
-    array = np.loadtxt('pareto_overview.csv', delimiter=';')
+#     array = np.loadtxt('pareto_overview.csv', delimiter=';')
 
-    array = array[(array[:, 7] < 55) & (array[:, 8] < 2)]
-    array = (array - array.min(axis=0)) / (array.max(axis=0) - array.min(axis=0))    
+#     array = array[(array[:, 7] < 55) & (array[:, 8] < 2)]
+#     array = (array - array.min(axis=0)) / (array.max(axis=0) - array.min(axis=0))    
     
     
-    fig = plt.figure(tight_layout=True, figsize=(14, 7), dpi=120)
+#     fig = plt.figure(tight_layout=True, figsize=(14, 7), dpi=120)
     
-    ax0 = fig.add_subplot(111, projection=register_radar(titles=titles[-6:]))
-#    
-    ax0.plot(array[:3, -6:], labels=['Design {}'.format(i) for i in range(len(array))])
+#     ax0 = fig.add_subplot(111, projection=register_radar(titles=titles[-6:]))
+   
+#     ax0.plot(array[:3, -6:], labels=['Design {}'.format(i) for i in range(len(array))])
 
 #    ax.plot()
-    ax0.plot(array[6, -6:], label='sum')
+#     ax0.plot(array[6, -6:], label='sum')
 
-    ax0.grid(True, color='b', ls=':')
+#     ax0.grid(True, color='b', ls=':')
     
-    ax0.set_ylim(0, 1)
-    ax0.set_xlim(0, 2*np.pi)
+#     ax0.set_ylim(0, 1)
+#     ax0.set_xlim(0, 2*np.pi)
 
-    ax0.legend(loc=1).draggable(True)
+#     ax0.legend(loc=1).draggable(True)
     
 #    ax = fig.add_subplot(212)
-#    
+   
 #    parallel_coordinates(array[:20], titles=titles, color='blue', alpha=1, linewidth=0.2)
 #    print('\n'.join(sorted(dir(ax.xaxis.get_ticklabels()[0]))))
+#     plt.show()
+    
+    
+if __name__ == '__main__':
+
+    fig = plt.figure(dpi=120)
+    
+    ax = fig.add_subplot(111, projection=reg_radar(['A', 'B', 'C', 'D', 'E']))
+#    ax.rgrid(lw=1, linestyle='--',  alpha=0.4)
+    
+    lines = ax.plot([0.5, 0.4, 0.6, 0.8, 1])
+    
+    ax.fill_lines(lines, alpha=0.5, label='boo')
+    ax.set_zebra( lw= 1)
+    #ax.set_rlabel('E', list('abcde'), color='b')
+    ax.legend()
     plt.show()
-    
-    
-    
