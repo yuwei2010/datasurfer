@@ -598,7 +598,7 @@ class Data_Pool(object):
         @show_pool_progress('Initializing', show=pbar, set_init=True)
         def get(self):
             for obj in self.objs:
-                bf = None if obj not in buffer else buffer[buffer.index(obj)]
+                bf = None if obj not in buffer else buffer[buffer.index(obj)].df
                 obj.initialize(buffer=bf)               
                 yield
                 
