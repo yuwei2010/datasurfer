@@ -444,14 +444,18 @@ class Data_Lake(object):
             
         return wrapper   
     
-    def initialize(self, pbar=True):
+    def initialize(self, use_buffer=True, pbar=True):
         
         buffer = []
         
         for dp in self.objs:
-            buffer.extend(dp.initialize(buffer=buffer, pbar=pbar).objs)
             
-            buffer = list(set(buffer))
+            if use_buffer:
+                buffer.extend(dp.initialize(buffer=buffer, pbar=pbar).objs)
+                
+                buffer = list(set(buffer))
+            else:
+                dp.initialize(pbar=pbar)
             
         return self
 #%%       
