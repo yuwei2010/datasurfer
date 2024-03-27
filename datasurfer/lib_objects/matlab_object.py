@@ -106,4 +106,5 @@ class MATLAB_OBJECT(DataInterface):
                     raise ValueError(f'Can not convert "{key}" to DataFrame')
 
         return df
+    
 # %%
