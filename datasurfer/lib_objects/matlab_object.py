@@ -91,8 +91,7 @@ class MATLAB_OBJECT(DataInterface):
         Returns:
             pandas.DataFrame: The DataFrame containing the loaded data.
 
-        """
-        
+        """        
         dat = dict((k, self.fhandler[k].ravel()[0].ravel()) for k in self.fhandler.dtype.fields.keys())
         df = pd.DataFrame()
 
