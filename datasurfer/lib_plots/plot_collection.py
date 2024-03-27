@@ -785,7 +785,6 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
     if width is None:        
         width = min(np.diff(x)) * 0.5 / n   
 
-
     offsets = np.linspace(-(n-1)*width/2, (n-1)*width/2, n)
     bottom  = np.zeros([n, len(bins)-1], dtype=float)    
 
@@ -805,11 +804,10 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
             
             arr2d = [np.asarray(d) for d in dat]
         
-        for idx1, arr1d in enumerate(arr2d):
+        for arr1d in arr2d:
             
             if arr1d.size == len(bins) - 1:            
                 y = arr1d
-                #x = bins
                 
             else:               
                 y, _ = np.histogram(arr1d, bins)
@@ -983,11 +981,9 @@ def radar(titles, **title_opts):
         
         return plt.Polygon(verts, closed=True, edgecolor='k')
     
-    TITLES = list(titles)
-
-    
-    THETA = np.linspace(0, 2*np.pi, len(TITLES), endpoint=False) + np.pi/2
-    
+    TITLES = list(titles)   
+    THETA = np.linspace(0, 2*np.pi, len(TITLES), endpoint=False) + np.pi/2 
+    FRAME = title_opts.pop('frame', 'polygon')
     
     class RadarAxes(PolarAxes):
     
@@ -1008,24 +1004,20 @@ def radar(titles, **title_opts):
             title_opts_ = dict(fontsize=12, weight="bold", color="black")
             
             title_opts_.update(title_opts)
-
             self.set_thetagrids(np.degrees(THETA).astype(np.float32), 
-                                 labels=TITLES, **title_opts_)
-            self.set_xlim(0, np.pi*2)
+                                labels=TITLES, **title_opts_) 
+
+            self.set_xlim(np.pi/2, np.pi*2 + np.pi/2)
             self.set_ylim(0, 1)
-            
-            print(self.get_xticks())
-            # self.set_xticks(np.arange(0, len(TITLES)) * np.pi/3)
-            # self.set_xticklabels(TITLES)
-            print(self.xaxis.get_ticklabels())
 
-            # self.set_yticklabels([])
-            # for tick, d in zip(self.xaxis.get_ticklabels(), THETA):
 
-            #     if np.pi / 2 < d < np.pi * 1.5:
-            #         tick.set_ha('right')
-            #     elif np.pi * 1.5 < d:
-            #         tick.set_ha('left')
+            self.set_yticklabels([])
+            for tick, d in zip(self.xaxis.get_ticklabels(), THETA):
+
+                if np.pi / 2 < d < np.pi * 1.5:
+                    tick.set_ha('right')
+                elif np.pi * 1.5 < d:
+                    tick.set_ha('left')
 
         def _gen_axes_patch(self):
             
@@ -1033,21 +1025,23 @@ def radar(titles, **title_opts):
         
     
         def _gen_axes_spines(self):
-
-            # The following is a hack to get the spines (i.e. the axes frame)
-            # to draw correctly for a polygon frame.
-    
-            # spine_type must be 'left', 'right', 'top', 'bottom', or `circle`.
-            spine_type = 'circle'
-            verts = unit_poly_verts(THETA)
-            # close off polygon by repeating first vertex
-            verts.append(verts[0])
-            path = Path(verts)
-    
-            spine = Spine(self, spine_type, path)
-            spine.set_transform(self.transAxes)
-            
-            return {'polar': spine}
+            if FRAME == 'circle':
+                return super()._gen_axes_spines()
+            else:
+                # The following is a hack to get the spines (i.e. the axes frame)
+                # to draw correctly for a polygon frame.
+        
+                # spine_type must be 'left', 'right', 'top', 'bottom', or `circle`.
+                spine_type = 'circle'
+                verts = unit_poly_verts(THETA)
+                # close off polygon by repeating first vertex
+                verts.append(verts[0])
+                path = Path(verts)
+        
+                spine = Spine(self, spine_type, path)
+                spine.set_transform(self.transAxes)
+                
+                return {'polar': spine}
             
         def rgrid(self, b=True, count=5, **kwargs):
             
@@ -1148,7 +1142,7 @@ def radar(titles, **title_opts):
             fmt = kwargs.pop('fmt', str)
             origin = kwargs.pop('include_origin', False)
             
-            array = np.dstack(p.vertices for p in self._rgrids[0].get_paths())
+            array = np.dstack([p.vertices for p in self._rgrids[0].get_paths()])
             
 
             idx = TITLES.index(title)
@@ -1177,6 +1171,7 @@ def radar(titles, **title_opts):
             assert dim == self.dim
             
             yarray = np.concatenate([yarray, yarray[:, :1]], axis=1)
+
             
             if clustered:
                 
@@ -1214,13 +1209,14 @@ if __name__ == '__main__':
     
     fig = plt.figure(dpi=120)
     
-    ax = fig.add_subplot(111, projection=radar(['A', 'B', 'C', 'D', 'E', 'F']))
-#    ax.rgrid(lw=1, linestyle='--',  alpha=0.4)
+    ax = fig.add_subplot(111, projection=radar(['A', 'B', 'C', 'DYE', 'E', 'FICE']))
+    ax.rgrid(lw=1, linestyle='--',  alpha=0.4)
     
-    lines = ax.plot([0.5, 0.4, 0.6, 0.8, 0.6, 0.3])
-    
-    # ax.fill_lines(lines, alpha=0.5, label='boo')
-    # ax.set_zebra( lw= 1)
-    # ax.set_rlabel('E', list('abcde'), color='b')
-    # ax.legend()
+    lines = ax.plot([0.5, 0.4, 0.6, 0.8, 0.6, 0.3], color='black')
+    lines = ax.plot([0.5, 0.4, 0.8, 0.2, 0.6, 0.3], color='red')
+    ax.fill_lines(lines, alpha=0.3, label='boo')
+    ax.set_zebra( lw= 1)
+    ax.set_rlabel('E', list('abcde'), color='b')
+    ax.set_rlabel('A', list('cdefg'), color='b')
+    ax.legend()
     plt.show()
