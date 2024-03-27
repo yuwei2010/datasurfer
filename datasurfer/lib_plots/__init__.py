@@ -6,6 +6,7 @@ from collections import abc
 from functools import wraps
 from datasurfer.lib_plots.plot_collection import plot_histogram, plot_dendrogram, plot_parallel_coordinate
 from datasurfer.lib_plots.plot_utils import parallel_coordis
+from datasurfer.datautils import parse_data
 
 figparams = {'figsize': (8, 6), 
              'dpi': 120,}
@@ -39,47 +40,7 @@ def define_ax(func):
         return ax
     return wrapper
     
-def parse_data(func):   
-    @wraps(func)
-    def wrapper(self, *keys, **kwargs):
-        
-        def get(keys):
-            out = []
-            lbls = []
-            for key in keys:
-                if isinstance(key, str):
-                    out.append(self.dp[[key]].dropna().to_numpy().ravel())
-                    lbls.append(key)
-                elif isinstance(key, pd.Series):
-                    out.append(key.dropna().to_numpy())
-                    lbls.append(key.name)
-                elif isinstance(key, pd.DataFrame):
-                    out.extend(key.dropna().to_numpy().T)
-                    lbls.extend(key.columns)
-                elif isinstance(key, np.ndarray):
-                    out.append(key)
-                    lbls.append(None)
-                elif isinstance(key, abc.Sequence):
-                    o, ls = get(key)
-                    out.append(o)
-                    lbls.extend(ls)
-                else:
-                    raise ValueError('keys must be strings or numpy arrays')
-                
-            return out, lbls
-        
-        if all(isinstance(key, str) for key in keys):
-            out = self.dp[keys].dropna().to_numpy().T    
-            lbls = keys
-        else:        
-            out, lbls = get(keys)
-        
-        if ('labels' not in kwargs) and all(lbl is not None for lbl in lbls) :
-            kwargs['labels'] = lbls     
 
-        return func(self, *out, **kwargs)
-    
-    return wrapper
     
 
 class Plots(object):

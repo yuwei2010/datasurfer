@@ -14,7 +14,7 @@ from abc import abstractmethod
 from pathlib import Path
 from difflib import SequenceMatcher
 from itertools import chain, zip_longest
-from datasurfer.datautil import parse_config, translate_config, extract_channels
+from datasurfer.datautils import parse_config, translate_config, extract_channels
 
 
 #%% Data_Interface
@@ -868,9 +868,28 @@ class DataInterface(object):
 
         if clean:
             self.clean()
+   
     @property
-    def plot(self):        
+    def plot(self):
+        """
+        Generate a statistical plot using the Stat_Plots class.
+
+        Returns:
+            Stat_Plots: An instance of the Stat_Plots class.
+        """
         from datasurfer.lib_plots import Plots
         
         return Plots(self)
+    
+    @property
+    def stats(self):
+        """
+        Generate statistical summaries for the datapool objects.
+
+        Returns:
+            Stats: An instance of the Stats class.
+        """
+        from datasurfer.lib_stats import Stats
+        
+        return Stats(self)
 # %%

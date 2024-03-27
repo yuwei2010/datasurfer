@@ -19,7 +19,7 @@ from itertools import chain
 from functools import reduce
 
 from datasurfer.datainterface import DataInterface
-from datasurfer.datautil import collect_files, combine_configs, show_pool_progress
+from datasurfer.datautils import collect_files, combine_configs, show_pool_progress
     
 random.seed()
 
@@ -1477,6 +1477,18 @@ class Data_Pool(object):
         from datasurfer.lib_plots import Plots
         
         return Plots(self)
+    
+    @property
+    def stats(self):
+        """
+        Generate statistical summaries for the datapool objects.
+
+        Returns:
+            Stats: An instance of the Stats class.
+        """
+        from datasurfer.lib_stats import Stats
+        
+        return Stats(self)
 
 
 

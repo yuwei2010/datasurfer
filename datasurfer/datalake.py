@@ -7,7 +7,7 @@ from pathlib import Path
 from datasurfer.datapool import Data_Pool
 from difflib import SequenceMatcher
 
-from datasurfer.datautil import collect_dirs, show_pool_progress
+from datasurfer.datautils import collect_dirs, show_pool_progress
 
 #%%
 class Data_Lake(object):

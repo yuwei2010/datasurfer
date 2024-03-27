@@ -3,12 +3,14 @@ import re
 import warnings
 import json
 import pandas as pd
+import numpy as np
 
 from functools import wraps
 from pathlib import Path
 from itertools import chain
 from collections import abc
 from tqdm import tqdm
+
 
 #%%
 def collect_files(root, *patts, warn_if_double=True, ignore_double=False):
@@ -335,3 +337,69 @@ def collect_dirs(root, *patts, patt_filter=None):
             path = Path(r)
             if fs:
                 yield path, fs
+                
+#%%
+def arghisto(data, bins):
+    """
+    Compute the histogram of the input data based on the given bins.
+
+    Parameters:
+    data (ndarray): Input data array.
+    bins (ndarray): Bins for computing the histogram.
+
+    Returns:
+    list: List of arrays containing the indices of data points falling into each bin.
+    """
+    out = []
+    dat = data.ravel()
+       
+    for idx in range(0, len(bins)-1):
+        if idx == 0:
+            out.append(np.where((bins[idx]<=dat) & (bins[idx+1]>=dat))[0])
+        else:
+            out.append(np.where((bins[idx]<dat) & (bins[idx+1]>=dat))[0])
+        
+    return out
+
+#%%
+def parse_data(func):   
+    @wraps(func)
+    def wrapper(self, *keys, **kwargs):
+        
+        def get(keys):
+            out = []
+            lbls = []
+            for key in keys:
+                if isinstance(key, str):
+                    out.append(self.dp[[key]].dropna().to_numpy().ravel())
+                    lbls.append(key)
+                elif isinstance(key, pd.Series):
+                    out.append(key.dropna().to_numpy())
+                    lbls.append(key.name)
+                elif isinstance(key, pd.DataFrame):
+                    out.extend(key.dropna().to_numpy().T)
+                    lbls.extend(key.columns)
+                elif isinstance(key, np.ndarray):
+                    out.append(key)
+                    lbls.append(None)
+                elif isinstance(key, abc.Sequence):
+                    o, ls = get(key)
+                    out.append(o)
+                    lbls.extend(ls)
+                else:
+                    raise ValueError('keys must be strings or numpy arrays')
+                
+            return out, lbls
+        
+        if all(isinstance(key, str) for key in keys):
+            out = self.dp[keys].dropna().to_numpy().T    
+            lbls = keys
+        else:        
+            out, lbls = get(keys)
+        
+        if ('labels' not in kwargs) and all(lbl is not None for lbl in lbls) :
+            kwargs['labels'] = lbls     
+
+        return func(self, *out, **kwargs)
+    
+    return wrapper

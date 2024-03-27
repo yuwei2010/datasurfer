@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 
 import scipy.io
-
 from datasurfer.datainterface import DataInterface
 
 
