@@ -1,14 +1,7 @@
 #%% Import Libraries
-
-
 import pandas as pd
 import numpy as np
-
-import scipy.io
 from datasurfer.datainterface import DataInterface
-
-
-
 
 #%% MATLAB_OJBECT
 
@@ -52,6 +45,7 @@ class MATLAB_OBJECT(DataInterface):
             ValueError: If the data area cannot be found in the MATLAB file.
 
         """
+        import scipy.io
         if not hasattr(self, '_fhandler'):
             mat = scipy.io.loadmat(self.path)
             if self.matkey:

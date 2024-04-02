@@ -1,21 +1,12 @@
 #%% Import Libraries
 
-import os
-#import h5py
-import re
-
 
 import pandas as pd
 import numpy as np
 import warnings
 
-
-try:
-    import mdfreader
-except:    
-    warnings.warn('Can not import "mdfreader"')
-
-from ..datainterface import DataInterface, translate_config, extract_channels
+from datasurfer.datainterface import DataInterface
+from datasurfer.datautils import translate_config, extract_channels
 
 #%% MDF_OBJECT
 class MDF_OBJECT(DataInterface):
@@ -50,6 +41,7 @@ class MDF_OBJECT(DataInterface):
         Returns:
             Mdf: The MDF file handler.
         """
+        import mdfreader
         if not hasattr(self, '_fhandler'):
             self._fhandler = mdfreader.Mdf(self.path, no_data_loading=True)
         return self._fhandler
@@ -148,6 +140,7 @@ class MDF_OBJECT(DataInterface):
         Returns:
             DataFrame: The extracted channels as a DataFrame.
         """
+        import mdfreader
         def get(chn):
             mname = mdfobj.get_channel_master(chn)
             if mname is None:

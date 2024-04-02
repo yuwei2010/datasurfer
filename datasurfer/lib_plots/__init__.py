@@ -59,6 +59,21 @@ class Plots(object):
         - dp: A pandas DataFrame containing the data.
         """
         self.dp = dp
+        
+    def __call__(self, key, **kwargs):
+        """
+        Call the `line` method with the given key and keyword arguments.
+
+        Parameters:
+        - key: The key to identify the line.
+        - **kwargs: Additional keyword arguments to pass to the `line` method.
+
+        Returns:
+        - The result of the `line` method.
+
+        """
+        return self.line(key, **kwargs)
+    
     
     def set_figparam(self, **kwargs):
         """
@@ -235,6 +250,23 @@ class Plots(object):
     @define_ax
     @parse_data
     def parallel_coordis(self, *keys, **kwargs):
+        """
+        Generate a parallel coordinates plot using the given keys as dimensions.
+
+        Parameters:
+        - keys: The keys to be used as dimensions for the parallel coordinates plot.
+        - kwargs: Additional keyword arguments to be passed to the `parallel_coordis` function.
+
+        Returns:
+        - self: The current instance of the class.
+
+        Example usage:
+        ```
+        labels = ['A', 'B', 'C']
+        keys = [1, 2, 3]
+        parallel_coordis(labels, *keys, color='blue')
+        ```
+        """
         labels = kwargs.pop('labels')
         df = pd.DataFrame(dict(zip(labels, keys)))               
         parallel_coordis(df.values.T, **kwargs)
@@ -242,33 +274,53 @@ class Plots(object):
         return self
     
     @define_ax
-    def heatmap(self, *keys, ax=None,  **kwargs):
-        
+    def heatmap(self, *keys, ax=None, **kwargs):
+        """
+        Generate a heatmap plot based on the correlation between the specified keys.
+
+        Parameters:
+            *keys: Variable length argument list of keys to calculate correlation.
+            ax: Optional matplotlib Axes object to plot the heatmap on.
+            **kwargs: Additional keyword arguments to customize the plot.
+
+        Returns:
+            ax: The matplotlib Axes object containing the heatmap plot.
+        """
         import seaborn as sns
-        
+
         cmap = kwargs.pop('cmap', sns.diverging_palette(230, 20, as_cmap=True))
-        
+
         corr = self.dp.stats.corr(*keys)
-        
+
         default = dict(annot=True, cmap=cmap, cbar=False, vmin=-1, vmax=1)
-        
+
         default.update(kwargs)
-        
+
         sns.heatmap(corr, ax=ax, **default)
         ax.set_aspect('equal')
-        
+
         return ax
     
     @define_ax
     def wordcloud(self, text=None, ax=None, **kwargs):
-        
+        """
+        Generate a word cloud visualization.
+
+        Parameters:
+            text (str): The text to generate the word cloud from. If not provided, it will use the comments from the data provider.
+            ax (matplotlib.axes.Axes, optional): The matplotlib axes to plot the word cloud on. If not provided, a new figure will be created.
+            **kwargs: Additional keyword arguments to customize the word cloud.
+
+        Returns:
+            matplotlib.axes.Axes: The matplotlib axes containing the word cloud plot.
+        """
         from datasurfer.lib_plots.plot_collection import plot_wordcloud
-        
+
         if text is None:
-            text = ' '.join([txt  for txt in self.dp.comments().values.tolist() if isinstance(txt, str)])
-                
+            text = ' '.join([txt for txt in self.dp.comments().values.tolist() if isinstance(txt, str)])
+
         ax = plot_wordcloud(ax=ax, text=text, **kwargs)
-        
+
         return ax
 
         

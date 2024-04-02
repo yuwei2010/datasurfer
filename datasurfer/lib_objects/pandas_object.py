@@ -1,7 +1,8 @@
 
 import numpy as np
 import pandas as pd
-from ..datainterface import DataInterface, translate_config
+from datasurfer.datainterface import DataInterface
+from datasurfer.datautils import translate_config
 
 
 #%%

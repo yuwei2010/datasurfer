@@ -3,7 +3,7 @@
 import re
 import pandas as pd
 from pathlib import Path
-from ..datainterface import DataInterface
+from datasurfer.datainterface import DataInterface
 
 
 #%% AMEGP_OJBECT

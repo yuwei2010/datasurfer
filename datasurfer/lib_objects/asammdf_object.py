@@ -1,22 +1,11 @@
 #%% Import Libraries
-
-
 import re
 import pandas as pd
 import numpy as np
 import warnings
-
 from xml.etree.ElementTree import fromstring
-
-try:
-    import asammdf    
-    from asammdf import set_global_option
-    
-    set_global_option("raise_on_multiple_occurrences", False)   
-except:    
-    warnings.warn('Can not import "asammdf"')
-
-from ..datainterface import DataInterface, translate_config, extract_channels
+from datasurfer.datainterface import DataInterface
+from datasurfer.datautils import translate_config, extract_channels
 
 #%% ASAMMDF_OBJECT
 class ASAMMDF_OBJECT(DataInterface):
@@ -31,7 +20,9 @@ class ASAMMDF_OBJECT(DataInterface):
         comment (str, optional): The comment for the object. Defaults to None.
         autoclose (bool, optional): Whether to automatically close the object. Defaults to False.
     """
-
+    from asammdf import set_global_option    
+    set_global_option("raise_on_multiple_occurrences", False)   
+    
     def __init__(self, path, config=None, sampling=0.1, name=None, 
                  comment=None, autoclose=False):
         """
@@ -181,6 +172,7 @@ class ASAMMDF_OBJECT(DataInterface):
         Returns:
             asammdf.MDF: The MDF file handler.
         """
+        import asammdf 
         if not hasattr(self, '_fhandler'):
             self._fhandler = asammdf.MDF(self.path)
         return self._fhandler

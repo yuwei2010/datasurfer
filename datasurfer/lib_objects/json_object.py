@@ -1,9 +1,10 @@
 
 import json
 import pandas as pd
-from datasurfer.datainterface import DataInterface, translate_config
+from datasurfer.datainterface import DataInterface
+from datasurfer.datautils import translate_config
 
-
+#%%
 class JSON_OBJECT(DataInterface):
     """
     Represents a JSON object.
