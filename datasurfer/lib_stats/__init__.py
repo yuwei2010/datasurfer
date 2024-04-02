@@ -30,6 +30,10 @@ class Stats(object):
         """
         return arghisto(val, bins)
     
+    def corr(self, *keys, **kwargs):
+        
+        return self.dp[keys].corr(**kwargs)
+    
     
         
  

@@ -241,6 +241,30 @@ class Plots(object):
         
         return self
     
+    @define_ax
+    def heatmap(self, *keys, ax=None,  **kwargs):
+        
+        import seaborn as sns
+        
+        cmap = kwargs.pop('cmap', sns.diverging_palette(230, 20, as_cmap=True))
+        
+        corr = self.dp.stats.corr(*keys)
+        
+        default = dict(annot=True, cmap=cmap, cbar=False, vmin=-1, vmax=1)
+        
+        default.update(kwargs)
+        
+        sns.heatmap(corr, ax=ax, **default)
+        ax.set_aspect('equal')
+        
+        return ax
+        
+
+        
+        
+        
+        
+    
     
        
 if __name__ == '__main__':
