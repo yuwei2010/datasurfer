@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from datasurfer import DataInterface
+from datasurfer.lib_objects import DataInterface
 
 
 #%% DATA_OBJECT
