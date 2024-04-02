@@ -258,7 +258,18 @@ class Plots(object):
         ax.set_aspect('equal')
         
         return ax
+    
+    @define_ax
+    def wordcloud(self, text=None, ax=None, **kwargs):
         
+        from datasurfer.lib_plots.plot_collection import plot_wordcloud
+        
+        if text is None:
+            text = ' '.join([txt  for txt in self.dp.comments().values.tolist() if isinstance(txt, str)])
+                
+        ax = plot_wordcloud(ax=ax, text=text, **kwargs)
+        
+        return ax
 
         
         

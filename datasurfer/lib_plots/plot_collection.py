@@ -10,7 +10,7 @@ import matplotlib.ticker as tck
 import warnings
 from matplotlib.path import Path
 import matplotlib.patches as patches
-from scipy.cluster.hierarchy import dendrogram, linkage
+
 from datasurfer.lib_plots.plot_utils import trigrid
 
 #%%
@@ -96,6 +96,7 @@ def plot_dendrogram(ax, df, method='centroid'):
     - dn (dict): The dendrogram dictionary.
 
     """
+    from scipy.cluster.hierarchy import dendrogram, linkage
     Z = linkage(df.values.T, method=method)
     dn = dendrogram(Z, ax=ax)
     ax.spines['top'].set_visible(False)
@@ -1201,7 +1202,23 @@ def radar(titles, **title_opts):
     
     return RadarAxes.name 
 
-
+def plot_wordcloud(ax, text, **kwargs):
+    
+    from wordcloud import WordCloud
+    
+    default = dict(background_color='black', colormap = 'viridis', height=600, width=1000,
+                   contour_width=2, contour_color='steelblue')
+    
+    default.update(kwargs)
+    wc = WordCloud(**default)
+    wc.generate(text)
+    
+    ax.imshow(wc, interpolation='bilinear')
+    ax.axis('off')
+    
+    return ax
+    
+    
 #%% main
 
 if __name__ == '__main__':
