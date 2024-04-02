@@ -1,6 +1,24 @@
 import numpy as np
 from datasurfer.datautils import arghisto, parse_data
 
+#%%
+
+def interp_linear1D(x0, y0, **kwargs):
+    """
+    Perform linear interpolation on 1D data.
+
+    Parameters:
+    x0 (array-like): The x-coordinates of the data points.
+    y0 (array-like): The y-coordinates of the data points.
+
+    Returns:
+    callable: A function that performs linear interpolation on an input array.
+
+    """
+    from scipy.interpolate import interp1d
+    f = interp1d(x0, y0, kind='linear', bounds_error=False, fill_value='extrapolate')
+
+    return lambda arr: f(arr).ravel()
 
 #%%
 def interp_linearND(X, y, **kwargs):

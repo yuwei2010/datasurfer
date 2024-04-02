@@ -15,6 +15,10 @@ class Stats(object):
 
     def __init__(self, dp) -> None:
         self.dp = dp
+        
+    def __call__(self, *keys, **kwargs):
+        
+        return self.dp[keys].describe(**kwargs)
 
     @parse_data
     def arghisto(self, val, *, bins, **kwargs):
@@ -30,6 +34,25 @@ class Stats(object):
 
         """
         return arghisto(val, bins)
+    
+    @parse_data
+    def kde(self, key, **kwargs):
+        """
+        Calculate the kernel density estimate (KDE) for a given key.
+
+        Parameters:
+        - key: The key for which to calculate the KDE.
+        - **kwargs: Additional keyword arguments to be passed to the `get_kde` function.
+
+        Returns:
+        - The kernel density estimate for the given key.
+
+        """
+        from datasurfer.lib_stats.distrib_methods import get_kde
+
+        kwargs.pop('labels', None)
+
+        return get_kde(key, **kwargs)
     
     def corr(self, *keys, **kwargs):
         """
@@ -52,7 +75,7 @@ class Stats(object):
         return self.dp[keys].corr(**kwargs)
     
     @parse_data
-    def interp_linearND(self, *vals, **kwargs):
+    def interp_linear(self, *vals, **kwargs):
         """
         Perform linear interpolation in N-dimensional space.
 
@@ -78,16 +101,20 @@ class Stats(object):
         >>> interp_linearND(*vals)
         <interpolated function object>
         """
-        from datasurfer.lib_stats.interp_methods import interp_linearND
+        from datasurfer.lib_stats.interp_methods import interp_linear1D, interp_linearND
 
-        assert len(vals) >= 3, 'At least three keys are required for interpolation.'
+        assert len(vals) >= 2, 'At least two inputs are required for interpolation.'
 
-        lbls = kwargs.pop('labels', None)
+        kwargs.pop('labels', None)
+        
+        if len(vals) == 2:
+            x, y = vals
+            f = interp_linear1D(x, y, **kwargs)
+        else:
+            X = np.vstack(vals[:-1]).T
+            y = np.atleast_2d(vals[-1].ravel()).T
 
-        X = np.vstack(vals[:-1]).T
-        y = np.atleast_2d(vals[-1].ravel()).T
-
-        f = interp_linearND(X, y, **kwargs)
+            f = interp_linearND(X, y, **kwargs)
 
         return f
     
