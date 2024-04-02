@@ -925,8 +925,7 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
     
     return bs
 
-    
-#%%
+
 #%%---------------------------------------------------------------------------#
 def scale_radar(array, n=6, kind='max'):
     
