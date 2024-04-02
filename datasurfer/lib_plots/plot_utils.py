@@ -8,6 +8,40 @@ import matplotlib.tri as tri
 
 from matplotlib.collections import LineCollection
 
+
+#%%
+def get_histo_bins(arr, num=10, decimals=0, base=None, maxi=None):
+    
+    arr = np.asarray(arr).ravel()
+    
+    ptp = arr.ptp()
+    
+    assert ptp > 0, 'Data has no range'
+    
+    while 1:    
+        
+        if np.round(ptp, decimals-1) > 0:
+            
+            break       
+        decimals += 1
+
+    base = base if base is not None else np.floor(arr.min())
+    
+    ptp = np.round(arr.max()-base, decimals-1)
+    ptp = ptp * (num + 1) / num
+    
+    maxi = maxi if maxi is not None else base+ptp
+
+    bins = np.round(np.linspace(base, maxi, num+1), decimals)
+    
+    if decimals == 0:
+        
+        bins = bins.astype(int)
+        
+    return bins
+
+
+
 #%%---------------------------------------------------------------------------#  
 def find_enclosed_data(x, y, linedata, boundary=True):
     

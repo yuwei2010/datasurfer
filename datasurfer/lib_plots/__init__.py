@@ -5,7 +5,7 @@ import pandas as pd
 from collections import abc
 from functools import wraps
 from datasurfer.lib_plots.plot_collection import plot_histogram, plot_dendrogram, plot_parallel_coordinate
-from datasurfer.lib_plots.plot_utils import parallel_coordis
+from datasurfer.lib_plots.plot_utils import parallel_coordis, get_histo_bins
 from datasurfer.datautils import parse_data
 
 figparams = {'figsize': (8, 6), 
@@ -112,8 +112,8 @@ class Plots(object):
             
             
         if bins is None:
-            bins = np.linspace(np.min(data), np.max(data), 10)
-        
+            # bins = np.linspace(np.min(data), np.max(data), 10)
+            bins = get_histo_bins(data)
         elif isinstance(bins, (abc.Sequence, np.ndarray)):
             bins = np.asarray(bins)
         

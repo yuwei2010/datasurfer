@@ -10,7 +10,7 @@ import numpy as np
 import warnings
 import traceback
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from pathlib import Path
 from difflib import SequenceMatcher
 from itertools import chain, zip_longest
@@ -19,7 +19,7 @@ from datasurfer.datautils import parse_config, translate_config, extract_channel
 
 #%% Data_Interface
 
-class DataInterface(object):
+class DataInterface(ABC):
     """
     A class representing parent class of all data interfaces.
 

@@ -157,42 +157,7 @@ class Data_Lake(object):
 
         return sorted(set(chain(*[obj.signals() for obj in self.objs])))
 
-    def search(self, patt, ignore_case=True, raise_error=False):
-        """
-        Searches for data pools in the data lake that match the specified pattern.
 
-        Parameters:
-        - patt: The pattern to search for.
-        - ignore_case: Whether to ignore case when matching the pattern. Defaults to True.
-        - raise_error: Whether to raise an error if no matching data pools are found. Defaults to False.
-
-        Returns:
-        - A list of strings representing the names of the matching data pools.
-        """
-        found = []
-
-        if ignore_case:
-            patt = patt.lower()
-
-        for key in self.keys():
-            if ignore_case:
-                key0 = key.lower()
-            else:
-                key0 = key
-
-            if re.match(patt, key0):
-                found.append(key)
-
-        if not found and raise_error:
-            raise KeyError(f'Cannot find any signal with pattern "{patt}".')
-
-        try:
-            ratios = [SequenceMatcher(a=patt, b=f).ratio() for f in found]
-            _, found = zip(*sorted(zip(ratios, found))[::-1])
-        except ValueError:
-            pass
-
-        return list(found)
 
 
     def get_pool(self, name):
@@ -237,6 +202,43 @@ class Data_Lake(object):
         """
         return chain(*self.items())
     
+    def search(self, patt, ignore_case=True, raise_error=False):
+        """
+        Searches for data pools in the data lake that match the specified pattern.
+
+        Parameters:
+        - patt: The pattern to search for.
+        - ignore_case: Whether to ignore case when matching the pattern. Defaults to True.
+        - raise_error: Whether to raise an error if no matching data pools are found. Defaults to False.
+
+        Returns:
+        - A list of strings representing the names of the matching data pools.
+        """
+        found = []
+
+        if ignore_case:
+            patt = patt.lower()
+
+        for key in self.keys():
+            if ignore_case:
+                key0 = key.lower()
+            else:
+                key0 = key
+
+            if re.match(patt, key0):
+                found.append(key)
+
+        if not found and raise_error:
+            raise KeyError(f'Cannot find any signal with pattern "{patt}".')
+
+        try:
+            ratios = [SequenceMatcher(a=patt, b=f).ratio() for f in found]
+            _, found = zip(*sorted(zip(ratios, found))[::-1])
+        except ValueError:
+            pass
+
+        return list(found)  
+     
     def search_object(self, pattern):
         """
         Search for objects in the datalake that match the given pattern.
@@ -249,6 +251,20 @@ class Data_Lake(object):
         """
         return [obj for obj in self.iterobjs() if re.match(pattern, obj.name)]
     
+    def search_signal(self, pattern, **kwargs):
+        """
+        Searches for a signal pattern in the datalake.
+
+        Args:
+            pattern (str): The signal pattern to search for.
+            **kwargs: Additional keyword arguments to pass to the search method.
+
+        Returns:
+            list: A sorted list of unique signals matching the pattern.
+
+        """
+        return sorted(set(chain(*[obj.search_signal(pattern, **kwargs) for obj in self.objs])))
+        
     
     def find_duplicated(self, as_df=False):
         """
