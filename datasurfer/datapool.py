@@ -18,7 +18,7 @@ from pathlib import Path
 from itertools import chain
 from functools import reduce
 
-from datasurfer.datainterface import DataInterface
+from datasurfer.lib_objects import DataInterface
 from datasurfer.datautils import collect_files, combine_configs, show_pool_progress
     
 random.seed()
@@ -159,7 +159,8 @@ class Data_Pool(object):
             elif isinstance(obj, (str, Path)):
                 key = Path(obj).suffix.lower()               
                 if key in map_interface:
-                    cls = getattr(importlib.import_module('datasurfer'), map_interface[key] )               
+                    module, cls = map_interface[key]
+                    cls = getattr(importlib.import_module(f'datasurfer.{module}'), cls)               
                     objs.append(cls(obj, config=config, **kwargs))
                 else:
                     raise ValueError(f'Can not find any interface for "{obj}"')

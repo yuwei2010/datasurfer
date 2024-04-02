@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import warnings
 from xml.etree.ElementTree import fromstring
-from datasurfer.datainterface import DataInterface
+from datasurfer.lib_objects import DataInterface
 from datasurfer.datautils import translate_config, extract_channels
 
 #%% ASAMMDF_OBJECT
