@@ -103,8 +103,9 @@ def show_pool_progress(msg, show=False, set_init=True, count=None):
                     else:
                         
                         pbar.set_description(f'{msg}')
-            
+
                 yield next(res)
+
                 
             if set_init:
                 

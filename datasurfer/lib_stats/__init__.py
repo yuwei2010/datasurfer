@@ -1,6 +1,6 @@
-
+import pandas as pd
 import numpy as np
-from datasurfer.datautils import arghisto, parse_data
+from datasurfer.datautils import arghisto, parse_data, show_pool_progress
 
 #%%
 
@@ -142,7 +142,27 @@ class Stats(object):
         
         return np.poly1d(np.polyfit(*vals, degree, **kwargs))
             
-            
+    def cdist(self, df, axis=0, pbar=True):
+        
+        from scipy.spatial import distance
+        
+        XB = np.atleast_2d(df.values)
+        keys = df.columns
+        
+        @show_pool_progress('Caculating', show=pbar)
+        def get(self):
+            for obj in self.objs:
+                try:
+                    XA = obj[keys].values
+                    dist = distance.cdist(XA, XB).min(axis=axis)
+                    yield obj.name, dist
+                except (KeyError, RuntimeError):
+                    yield
+        
+        res = dict(x for x in get(self.dp) if x)
+        
+        return pd.DataFrame.from_dict(res, orient='index').transpose()
+        
             
             
             
