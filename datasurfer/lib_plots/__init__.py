@@ -324,10 +324,24 @@ class Plots(object):
         ax = plot_wordcloud(ax=ax, text=text, **kwargs)
 
         return ax
+    
+    @define_ax
+    @parse_data
+    def kde(self, *keys, ax=None, **kwargs):
+
+        from datasurfer.lib_stats.distrib_methods import get_kde
+        lbls = kwargs.pop('labels', [None]*len(keys))
+        num = kwargs.pop('count', 100)
+        pltkws = kwargs.pop('plot_kws', {})
+        
+        for key, lbl in zip(keys, lbls):
+            
+            kde = get_kde(key, **kwargs)
+            x = np.linspace(np.min(key), np.max(key), num)
+            ax.plot(x, kde(x), label=lbl, **pltkws)
 
         
-        
-        
+        return ax
         
     
     

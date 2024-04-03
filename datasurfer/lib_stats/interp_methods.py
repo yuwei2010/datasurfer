@@ -50,3 +50,18 @@ def interp_linearND(X, y, **kwargs):
     f = LinearNDInterpolator(X, y, **kwargs)
 
     return lambda arr: f(arr).ravel()
+
+#%%
+def fit_curve(f, x, y, **kwargs):
+    
+    from scipy.optimize import curve_fit
+    """
+    The curve_fit function returns two items, which we can popt and pcov. The popt argument are the best-fit paramters for a and b:
+    pcov will contain the true variance and covariance of the parameters
+
+    Returns:
+        _type_: _description_
+    """
+    popt, pcov = curve_fit(f, x, y, **kwargs)
+    
+    return popt, pcov

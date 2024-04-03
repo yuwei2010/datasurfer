@@ -95,8 +95,10 @@ def show_pool_progress(msg, show=False, set_init=True, count=None):
                 if flag_pbar: 
                 
                     if count is None:
-
-                        pbar.set_description(f'{msg} "{self.objs[idx].name}"')
+                        if self.name is None:
+                            pbar.set_description(f'{msg} "{bcolors.OKBLUE}{self.objs[idx].name}{bcolors.ENDC}"')
+                        else:
+                            pbar.set_description(f'{msg} "{bcolors.OKGREEN}{self.name}{bcolors.ENDC}/{bcolors.OKBLUE}{self.objs[idx].name}{bcolors.ENDC}"')
                         
                     else:
                         
@@ -156,18 +158,25 @@ def combine_configs(*cfgs):
 
 #%%
 def check_config_duplication(cfg):
-    
+    """
+    Check for duplication in the configuration dictionary.
+
+    Args:
+        cfg (dict): The configuration dictionary to check.
+
+    Returns:
+        dict: A dictionary containing the count of each duplicated value and the set of values that are duplicated.
+    """
     vals = list()
     for val in cfg.values():
-        
         if isinstance(val, str):
             vals.append(val)
         if isinstance(val, abc.Sequence) and not isinstance(val, str):
             vals.extend(list(val))
-    
+
     stat = dict()
     [stat.setdefault(vals.count(s), set([])).add(s) for s in vals]
-    
+
     return stat
 
 #%% Extract channels
@@ -276,7 +285,21 @@ def translate_config(newconfig=None):
 
 #%%
 def parse_config(config):
-    
+    """
+    Parses the given configuration and returns a processed config object.
+
+    Args:
+        config: The configuration to be parsed. It can be a path to a JSON or YAML file,
+                a list/tuple/set of strings, a list/tuple/set of dictionaries, or a dictionary.
+
+    Returns:
+        The processed config object.
+
+    Raises:
+        IOError: If the config format is unknown and not in JSON or YAML format.
+        TypeError: If the config type is not supported.
+
+    """
     if isinstance(config, (str, Path)):
         if str(config).lower().endswith('.json'):
             config = json.load(open(config))
@@ -363,6 +386,19 @@ def arghisto(data, bins):
 
 #%%
 def parse_data(func):   
+    """
+    A decorator function that parses the input data before passing it to the decorated function.
+
+    Args:
+        func (function): The function to be decorated.
+
+    Returns:
+        function: The decorated function.
+
+    Raises:
+        ValueError: If the keys are not strings or numpy arrays.
+
+    """
     @wraps(func)
     def wrapper(self, *keys, **kwargs):
         
@@ -403,3 +439,30 @@ def parse_data(func):
         return func(self, *out, **kwargs)
     
     return wrapper
+
+#%%
+
+class bcolors:
+    """
+    A class that defines ANSI escape codes for text colors and styles.
+    
+    Attributes:
+        HEADER (str): ANSI escape code for header color.
+        OKBLUE (str): ANSI escape code for blue color.
+        OKCYAN (str): ANSI escape code for cyan color.
+        OKGREEN (str): ANSI escape code for green color.
+        WARNING (str): ANSI escape code for warning color.
+        FAIL (str): ANSI escape code for fail color.
+        ENDC (str): ANSI escape code to reset text color and style.
+        BOLD (str): ANSI escape code for bold text.
+        UNDERLINE (str): ANSI escape code for underlined text.
+    """
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'

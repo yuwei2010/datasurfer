@@ -4,8 +4,8 @@
 import pandas as pd
 import numpy as np
 import warnings
-
-from ddatasurfer.lib_objects import DataInterface
+import mdfreader
+from datasurfer.lib_objects import DataInterface
 from datasurfer.datautils import translate_config, extract_channels
 
 #%% MDF_OBJECT
@@ -41,7 +41,7 @@ class MDF_OBJECT(DataInterface):
         Returns:
             Mdf: The MDF file handler.
         """
-        import mdfreader
+
         if not hasattr(self, '_fhandler'):
             self._fhandler = mdfreader.Mdf(self.path, no_data_loading=True)
         return self._fhandler
@@ -140,7 +140,6 @@ class MDF_OBJECT(DataInterface):
         Returns:
             DataFrame: The extracted channels as a DataFrame.
         """
-        import mdfreader
         def get(chn):
             mname = mdfobj.get_channel_master(chn)
             if mname is None:

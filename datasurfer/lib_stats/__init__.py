@@ -118,7 +118,29 @@ class Stats(object):
 
         return f
     
-    
+    @parse_data
+    def fit_curve(self, *vals, f=None, **kwargs):
+        
+        from datasurfer.lib_stats.interp_methods import fit_curve
+        
+        assert len(vals) == 2, 'Only two inputs are required for curve fitting.'
+        
+        kwargs.pop('labels', None)
+        
+        if f is None:
+            f = lambda x, a, b: a*x + b
+            
+        return fit_curve(f, *vals, **kwargs)
+        
+    @parse_data
+    def polyfit(self, *vals, degree=1, **kwargs):
+        
+        
+        assert len(vals) == 2, 'Only two inputs are required for curve fitting.'
+        
+        kwargs.pop('labels', None)
+        
+        return np.poly1d(np.polyfit(*vals, degree, **kwargs))
             
             
             
