@@ -1490,6 +1490,13 @@ class Data_Pool(object):
         from datasurfer.lib_stats import Stats
         
         return Stats(self)
+    
+    @property
+    def mlearn(self):
+        
+        from datasurfer.lib_mlearn import MLearn
+        
+        return MLearn(self)
 
 
 
