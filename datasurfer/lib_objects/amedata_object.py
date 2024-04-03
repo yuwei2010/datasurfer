@@ -1,11 +1,9 @@
-import pandas as pd
-import numpy as np
-from datasurfer.lib_objects import DataInterface
-
-
 import re
 import numpy as np
 import pandas as pd
+from datasurfer.lib_objects import DataInterface
+from functools import reduce
+#%% AMEDATA_OBJECT
 
 class AMEDATA_OBJECT(DataInterface):
     """ 
@@ -135,3 +133,46 @@ class AMEDATA_OBJECT(DataInterface):
             DataFrame: The data as a DataFrame.
         """
         return pd.DataFrame(self.data1D, columns=['data'])
+    
+    @staticmethod
+    def dump(*inputs, titles=None, units=None):
+        
+        axispoints = [np.unique(arr) for arr in inputs[:-1]]
+        data = np.asarray(inputs[-1]).ravel()
+        
+        ncol= len(axispoints[0])
+        ndim = len(axispoints)
+        nrow = int(len(data)/ncol)
+        titles = titles or []
+        units = units or []
+        
+        assert ncol*nrow == len(data), 'Data length not match axispoints'
+               
+        lines = [f'# Table format: {ndim}D']
+             
+        if units:
+            lines.append(f'# table_unit = {units[0]}')
+            for idx, unit in enumerate(units[1:], 1):
+                lines.append(f'# axis{idx}_unit = {unit}')   
+                    
+        for idx, title in enumerate(titles, 1):
+            
+            lines.append(f'# axis{idx}_title = {title}')
+       
+        if ndim == 1:
+            for x, y in zip(axispoints[0], data):
+                lines.append(f'{x:>30.14e} {y:>30.14e}')                
+        else:
+            for arr in axispoints:
+                lines.append(f'{len(arr)}')
+            for arr in axispoints:
+                lines.append(''.join([f'{x:>30.14e}' for x in arr]))
+            
+            for row in range(nrow):               
+                lines.append(''.join([f'{x:>30.14e}' for x in data[row*ncol:(row+1)*ncol]]))         
+        return lines
+    
+if __name__ == '__main__':
+    pass    
+
+# %%
