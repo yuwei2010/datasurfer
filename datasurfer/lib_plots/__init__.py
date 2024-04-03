@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import pandas as pd
 from collections import abc
 from functools import wraps
@@ -302,7 +301,7 @@ class Plots(object):
         return ax
     
     @define_ax
-    def wordcloud(self, text=None, ax=None, **kwargs):
+    def wordcloud(self, text=None, ax=None, remove=('\n', '\t'), **kwargs):
         """
         Generate a word cloud visualization.
 
@@ -319,6 +318,9 @@ class Plots(object):
         if text is None:
             text = ' '.join([txt for txt in self.dp.comments().values.tolist() if isinstance(txt, str)])
 
+        for r in remove:
+            text = text.replace(r, ' ')
+            
         ax = plot_wordcloud(ax=ax, text=text, **kwargs)
 
         return ax

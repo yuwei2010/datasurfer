@@ -1203,10 +1203,20 @@ def radar(titles, **title_opts):
     return RadarAxes.name 
 
 def plot_wordcloud(ax, text, **kwargs):
-    
+    """
+    Plot a word cloud on the given axes.
+
+    Parameters:
+    - ax (matplotlib.axes.Axes): The axes on which to plot the word cloud.
+    - text (str): The text to generate the word cloud from.
+    - **kwargs: Additional keyword arguments to customize the word cloud appearance.
+
+    Returns:
+    - matplotlib.axes.Axes: The axes with the word cloud plotted.
+    """
     from wordcloud import WordCloud
     
-    default = dict(background_color='black', colormap = 'viridis', height=600, width=1000,
+    default = dict(background_color='black', colormap='viridis', height=600, width=1000,
                    contour_width=2, contour_color='steelblue')
     
     default.update(kwargs)
