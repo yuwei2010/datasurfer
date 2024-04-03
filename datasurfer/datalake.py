@@ -100,6 +100,7 @@ class Data_Lake(object):
                     out = self.__class__([self.get_pool(name) for name in self.search(inval)])
             else:
                 out = self.get_pool(inval)
+                
         elif isinstance(inval, (list, tuple, set)):
             out = self.__class__([self.get_pool(n) for n in inval])
             
