@@ -189,6 +189,7 @@ class Plots(object):
         Returns:
         - ax: The matplotlib Axes object with the line graph plotted.
         """
+        assert len(keys) > 0, 'keys must contain at least one element'
         labels = kwargs.pop('labels', None)
         if len(keys) == 1:
             ax.plot(keys[0], **kwargs)  
@@ -200,8 +201,10 @@ class Plots(object):
                 ax.set_xlabel(labels[0])   
                 ax.set_ylabel(labels[1])           
         else:
-            raise ValueError('keys must contain 2 elements')
-        
+            for idx, key in enumerate(keys[1:], 1):
+                ax.plot(keys[0], key, label=labels[idx],**kwargs) 
+            
+            ax.set_xlabel(labels[0])
        
         return ax
      

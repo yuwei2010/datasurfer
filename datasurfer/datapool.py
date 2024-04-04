@@ -258,8 +258,7 @@ class Data_Pool(object):
                 
                 if inval.strip()[0] in '#@%':
                     
-                    patt = inval.strip()[1:]
-                    
+                    patt = inval.strip()[1:]                    
                     out = self.search_signal(patt, ignore_case=True)
                 else:
                 

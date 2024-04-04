@@ -866,10 +866,10 @@ class DataInterface(ABC):
     @property
     def plot(self):
         """
-        Generate a statistical plot using the Stat_Plots class.
+        Generate a plot instance using the Plots class.
 
         Returns:
-            Stat_Plots: An instance of the Stat_Plots class.
+            Stat_Plots: An instance of the Plots class.
         """
         from datasurfer.lib_plots import Plots
         
@@ -878,7 +878,7 @@ class DataInterface(ABC):
     @property
     def stats(self):
         """
-        Generate statistical summaries for the datapool objects.
+        Generate statistic instance for the datapool objects.
 
         Returns:
             Stats: An instance of the Stats class.
@@ -886,4 +886,17 @@ class DataInterface(ABC):
         from datasurfer.lib_stats import Stats
         
         return Stats(self)
+
+    
+    @property
+    def mlearn(self):
+        """
+        This method initializes and returns an instance of the MLearn(machine learning) class.
+
+        Returns:
+            MLearn: An instance of the MLearn class.
+        """
+        from datasurfer.lib_mlearn import MLearn
+        
+        return MLearn(self)
 # %%
