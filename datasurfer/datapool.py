@@ -1479,16 +1479,16 @@ class Data_Pool(object):
         return Plots(self)
     
     @property
-    def stats(self):
+    def signals(self):
         """
         Generate statistical summaries for the datapool objects.
 
         Returns:
             Stats: An instance of the Stats class.
         """
-        from datasurfer.lib_stats import Stats
+        from datasurfer.lib_signals import Signal
         
-        return Stats(self)
+        return Signal(self)
     
     @property
     def mlearn(self):

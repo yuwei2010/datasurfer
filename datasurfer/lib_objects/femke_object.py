@@ -70,7 +70,7 @@ class KF_OBJECT(DataInterface):
         Returns:
             numpy.ndarray: The interpolated values reshaped to match the shape of the x and y coordinates.
         """
-        from datasurfer.lib_stats.interp_methods import interp_linearND 
+        from datasurfer.lib_signals.interp_methods import interp_linearND 
         import numpy as np
         import pandas as pd
         
