@@ -3,12 +3,13 @@ import pandas as pd
 from datasurfer.lib_objects import DataInterface
 
 #%%
-class XKF_OBJECT(DataInterface):
-    
-    def __init__(self, path, key_speed='n', key_torque='Trq', config=None, name=None, comment=None):       
+
+class KF_OBJECT(DataInterface):
+
+    def __init__(self, path, key_x='n', key_y='Trq', config=None, name=None, comment=None):       
         super().__init__(path, config, comment=comment, name=name)
-        self.key_speed = key_speed
-        self.key_torque = key_torque
+        self.key_x = key_x
+        self.key_y = key_y
 
     
     def get_df(self):
@@ -32,37 +33,48 @@ class XKF_OBJECT(DataInterface):
         df = pd.DataFrame(data, columns=cols)
         return df
     
-    def get_speed(self):
+    def getx(self):
         
-        return np.unique(self.df[self.key_speed].values)
+        return np.unique(self.df[self.key_x].values)
     
-    def get_torque(self):
+    def gety(self):
         
-        return np.unique(self.df[self.key_torque][self.df[self.key_speed]==self.get_speed().min()].values.ravel())
+        return np.unique(self.df[self.key_y][self.df[self.key_x]==self.getx().min()].values.ravel())
     
     def get_triangles(self):
         
         from datasurfer.lib_plots.plot_utils import trigrid
-        x = self.df[self.key_speed].values.ravel()
-        y = self.df[self.key_torque].values.ravel()
+        x = self.df[self.key_x].values.ravel()
+        y = self.df[self.key_y].values.ravel()
         tris = trigrid(x, y, axis=0)
         
         return tris
     
     def getXY(self):
         
-        x = self.get_speed()
-        y = self.get_torque()
+        x = self.getx()
+        y = self.gety()
         
         X, Y = np.meshgrid(x, y)
         
         return X, Y
     
     def getZ(self, key, **kwargs):
+        """
+        Interpolates the values of a given key in the DataFrame based on the x and y coordinates.
         
+        Parameters:
+            key (str): The column name of the values to be interpolated.
+            **kwargs: Additional keyword arguments to be passed to the interpolation function.
+            
+        Returns:
+            numpy.ndarray: The interpolated values reshaped to match the shape of the x and y coordinates.
+        """
         from datasurfer.lib_stats.interp_methods import interp_linearND 
+        import numpy as np
+        import pandas as pd
         
-        X = self.df[[self.key_speed, self.key_torque]].values
+        X = self.df[[self.key_x, self.key_y]].values
         z = self.df[key].values.ravel()
          
         f = interp_linearND(X, z, **kwargs)
@@ -74,7 +86,7 @@ class XKF_OBJECT(DataInterface):
         
         zz = f(np.column_stack((xx, yy)))
         
-        df = pd.DataFrame({'speed': xx, 'torque': yy, key: zz})
+        df = pd.DataFrame({'x': xx, 'y': yy, key: zz})
         df.interpolate(limit_direction='both', inplace=True)
         
         return df[key].values.reshape(XX.shape)
