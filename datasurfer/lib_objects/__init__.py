@@ -352,7 +352,7 @@ class DataInterface(ABC):
         if len(names) == 1:
             signame, = names
 
-            if signame.lower() == 't' or signame.lower() == 'time' or signame.lower() == 'index':
+            if signame not in self.df.columns and (signame.lower() == 't' or signame.lower() == 'index'):
                 return pd.DataFrame(np.asarray(self.df.index), index=self.df.index)
 
         return self.df[list(names)]
@@ -705,7 +705,7 @@ class DataInterface(ABC):
         Returns:
         - new_obj (DATA_OBJECT): A new instance of the DATA_OBJECT class with the resampled DataFrame.
         """
-        from datasurfer import DATA_OBJECT
+        from datasurfer.lib_objects.data_object import DATA_OBJECT
         
         if new_index is not None:
             new_index = np.asarray(new_index)
@@ -866,24 +866,37 @@ class DataInterface(ABC):
     @property
     def plot(self):
         """
-        Generate a statistical plot using the Stat_Plots class.
+        Generate a plot instance using the Plots class.
 
         Returns:
-            Stat_Plots: An instance of the Stat_Plots class.
+            Stat_Plots: An instance of the Plots class.
         """
         from datasurfer.lib_plots import Plots
         
         return Plots(self)
     
     @property
-    def stats(self):
+    def signal(self):
         """
-        Generate statistical summaries for the datapool objects.
+        Generate statistic instance for the datapool objects.
 
         Returns:
             Stats: An instance of the Stats class.
         """
-        from datasurfer.lib_stats import Stats
+        from datasurfer.lib_signals import Signal
         
-        return Stats(self)
+        return Signal(self)
+
+    
+    @property
+    def mlearn(self):
+        """
+        This method initializes and returns an instance of the MLearn(machine learning) class.
+
+        Returns:
+            MLearn: An instance of the MLearn class.
+        """
+        from datasurfer.lib_mlearn import MLearn
+        
+        return MLearn(self)
 # %%

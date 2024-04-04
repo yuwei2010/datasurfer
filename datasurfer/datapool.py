@@ -258,8 +258,7 @@ class Data_Pool(object):
                 
                 if inval.strip()[0] in '#@%':
                     
-                    patt = inval.strip()[1:]
-                    
+                    patt = inval.strip()[1:]                    
                     out = self.search_signal(patt, ignore_case=True)
                 else:
                 
@@ -1480,16 +1479,23 @@ class Data_Pool(object):
         return Plots(self)
     
     @property
-    def stats(self):
+    def signals(self):
         """
         Generate statistical summaries for the datapool objects.
 
         Returns:
             Stats: An instance of the Stats class.
         """
-        from datasurfer.lib_stats import Stats
+        from datasurfer.lib_signals import Signal
         
-        return Stats(self)
+        return Signal(self)
+    
+    @property
+    def mlearn(self):
+        
+        from datasurfer.lib_mlearn import MLearn
+        
+        return MLearn(self)
 
 
 

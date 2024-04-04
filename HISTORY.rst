@@ -6,3 +6,8 @@ History
 ------------------
 
 * First release on PyPI.
+
+1.0.9 (2024-04-04)
+------------------
+
+* Release data lake and data pool

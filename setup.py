@@ -18,7 +18,7 @@ test_requirements = ['pytest>=3', ]
 
 setup(
     author="Wei Yu",
-    author_email='wei.yu2@de.bosch.com',
+    author_email='yuwei2005@gmail.com',
     python_requires='>=3.6',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
@@ -41,6 +41,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/yuw1si/datasurfer',
-    version='1.0.7',
+    version='1.0.9',
     zip_safe=False,
 )

@@ -193,29 +193,29 @@ class AMERES_OBJECT(DataInterface):
         return res
 
     def get_results(self, rows=None):
-            """
-            Retrieves the results from a file and returns them as a NumPy array.
+        """
+        Retrieves the results from a file and returns them as a NumPy array.
 
-            Parameters:
-            - rows (list or None): Optional list of row indices to retrieve. If None, all rows are retrieved.
+        Parameters:
+        - rows (list or None): Optional list of row indices to retrieve. If None, all rows are retrieved.
 
-            Returns:
-            - array (ndarray): NumPy array containing the retrieved results.
-            """
-            
-            with open(self.path, "rb") as fobj:
-            
-                narray, = np.fromfile(fobj, dtype=np.dtype('i'), count=1)
-                nvar, = abs(np.fromfile(fobj, dtype=np.dtype('i'), count=1))
-                _ = np.hstack([[0], np.fromfile(fobj, dtype=np.dtype('i'), count=nvar)+1])                        
-                nvar = nvar + 1
-                array = np.fromfile(fobj, dtype=np.dtype('d'), count=narray*nvar)
-                array = array.reshape(narray, nvar).T
-                    
-            array = (array if rows is None 
-                     else array[np.concatenate([[0], np.asarray(rows, dtype=int).ravel()])])
-            
-            return array
+        Returns:
+        - array (ndarray): NumPy array containing the retrieved results.
+        """
+        
+        with open(self.path, "rb") as fobj:
+        
+            narray, = np.fromfile(fobj, dtype=np.dtype('i'), count=1)
+            nvar, = abs(np.fromfile(fobj, dtype=np.dtype('i'), count=1))
+            _ = np.hstack([[0], np.fromfile(fobj, dtype=np.dtype('i'), count=nvar)+1])                        
+            nvar = nvar + 1
+            array = np.fromfile(fobj, dtype=np.dtype('d'), count=narray*nvar)
+            array = array.reshape(narray, nvar).T
+                
+        array = (array if rows is None 
+                    else array[np.concatenate([[0], np.asarray(rows, dtype=int).ravel()])])
+        
+        return array
     
     def keys(self):
         

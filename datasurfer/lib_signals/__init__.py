@@ -1,10 +1,10 @@
-
+import pandas as pd
 import numpy as np
-from datasurfer.datautils import arghisto, parse_data
+from datasurfer.datautils import arghisto, parse_data, show_pool_progress
 
 #%%
 
-class Stats(object):
+class Signal(object):
     """
     A class for performing statistical computations.
 
@@ -48,7 +48,7 @@ class Stats(object):
         - The kernel density estimate for the given key.
 
         """
-        from datasurfer.lib_stats.distrib_methods import get_kde
+        from datasurfer.lib_signals.distrib_methods import get_kde
 
         kwargs.pop('labels', None)
 
@@ -101,7 +101,7 @@ class Stats(object):
         >>> interp_linearND(*vals)
         <interpolated function object>
         """
-        from datasurfer.lib_stats.interp_methods import interp_linear1D, interp_linearND
+        from datasurfer.lib_signals.interp_methods import interp_linear1D, interp_linearND
 
         assert len(vals) >= 2, 'At least two inputs are required for interpolation.'
 
@@ -121,7 +121,7 @@ class Stats(object):
     @parse_data
     def fit_curve(self, *vals, f=None, **kwargs):
         
-        from datasurfer.lib_stats.interp_methods import fit_curve
+        from datasurfer.lib_signals.interp_methods import fit_curve
         
         assert len(vals) == 2, 'Only two inputs are required for curve fitting.'
         
@@ -142,7 +142,47 @@ class Stats(object):
         
         return np.poly1d(np.polyfit(*vals, degree, **kwargs))
             
-            
+    def cdist(self, df, axis=0, pbar=True):
+        
+        from scipy.spatial import distance
+        
+        XB = np.atleast_2d(df.values)
+        keys = df.columns
+        
+        @show_pool_progress('Caculating', show=pbar)
+        def get(self):
+            for obj in self.objs:
+                try:
+                    XA = obj[keys].values
+                    dist = distance.cdist(XA, XB).min(axis=axis)
+                    yield obj.name, dist
+                except (KeyError, RuntimeError):
+                    yield
+        
+        res = dict(x for x in get(self.dp) if x)
+        
+        return pd.DataFrame.from_dict(res, orient='index').transpose()
+    
+    @parse_data
+    def detect_lags(self, *vals, **kwargs):
+        
+        from scipy.signal import correlate
+        from scipy.signal import correlation_lags
+        
+        x, y = vals
+        
+        # Cross-correlate 
+        correlation = correlate(x, y, 'full')
+
+        # Get the lag vector that corresponds to the correlation vector
+        lags = correlation_lags(x.size,  y.size, mode="full")
+
+        # Find the lag at the peak of the correlation
+        lag = lags[np.argmax(correlation)]
+
+        return lag
+
+        
             
             
             
