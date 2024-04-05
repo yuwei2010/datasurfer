@@ -1,4 +1,6 @@
 
+
+import numpy as np
 #%%
 def get_kde(x, **kwargs):
     """
@@ -19,6 +21,29 @@ def get_kde(x, **kwargs):
     density._compute_covariance()
 
     return density
+
+#%%
+def arghisto(data, bins):
+    """
+    Compute the histogram of the input data based on the given bins.
+
+    Parameters:
+    data (ndarray): Input data array.
+    bins (ndarray): Bins for computing the histogram.
+
+    Returns:
+    list: List of arrays containing the indices of data points falling into each bin.
+    """
+    out = []
+    dat = data.ravel()
+       
+    for idx in range(0, len(bins)-1):
+        if idx == 0:
+            out.append(np.where((bins[idx]<=dat) & (bins[idx+1]>=dat))[0])
+        else:
+            out.append(np.where((bins[idx]<dat) & (bins[idx+1]>=dat))[0])
+        
+    return out
 
 #%%
 if __name__ == '__main__':

@@ -4,7 +4,7 @@ from pathlib import Path
 from functools import singledispatch
 
 
-def calc_heatdump_duration(compkey, Tarray, Tfinal, threshold_dT=0.5, 
+def calc_heatdump_duration(compkey, Tarray, Tfinal, dict_coeffis, threshold_dT=0.5, 
                   select_method='max', xstar=np.arange(-36000, 36000, 0.1)):
     """
     Calculate heatdump based on the given parameters.
@@ -23,8 +23,7 @@ def calc_heatdump_duration(compkey, Tarray, Tfinal, threshold_dT=0.5,
     
     Tarray = np.asarray(Tarray)  
     Tarray = Tarray - Tfinal 
-    
-    dict_coeffis = json.load(open(Path(__file__).parent / 'heatdump_fitting_coeff.json'))    
+      
     funfit = lambda x, a, b, c, d: a * np.exp(-b * x + d) + c    
     
     coeffis = dict_coeffis[compkey]   

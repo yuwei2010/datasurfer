@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from datasurfer.datautils import arghisto, parse_data, show_pool_progress
+from datasurfer.datautils import parse_data, show_pool_progress
 
 #%%
 
@@ -33,6 +33,7 @@ class Signal(object):
         numpy.ndarray: The computed histogram.
 
         """
+        from datasurfer.lib_signals.distrib_methods import arghisto
         return arghisto(val, bins)
     
     @parse_data
