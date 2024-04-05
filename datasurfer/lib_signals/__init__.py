@@ -38,7 +38,7 @@ class Signal(object):
     @parse_data
     def kde(self, key, **kwargs):
         """
-        Calculate the kernel density estimate (KDE) for a given key.
+        Calculate the kernel density estimate (KDE) for a given key or array.
 
         Parameters:
         - key: The key for which to calculate the KDE.
@@ -145,6 +145,8 @@ class Signal(object):
     def cdist(self, df, axis=0, pbar=True):
         
         from scipy.spatial import distance
+        
+        assert isinstance(df, pd.DataFrame), "Expect data frame object as input."
         
         XB = np.atleast_2d(df.values)
         keys = df.columns

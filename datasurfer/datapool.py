@@ -522,7 +522,7 @@ class Data_Pool(object):
         """
         return pd.DataFrame(dict((obj.name, obj.config) for obj in self.objs))
         
-    def list_signal(self, count=None, pbar=False):
+    def list_signals(self, count=None, pbar=False):
         """
         Returns a list of unique keys from the objects in the datapool.
 
