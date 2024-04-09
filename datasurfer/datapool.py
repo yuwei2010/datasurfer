@@ -241,6 +241,9 @@ class Data_Pool(object):
         
         return all(obj in pool0.objs for obj in self.objs) and all(obj in self.objs for obj in pool0.objs)
     
+    def __rshift__(self, cls):
+        
+        return self.convert(cls)   
     
     def __getitem__(self, inval):
         """
@@ -688,11 +691,9 @@ class Data_Pool(object):
 
         for idx, obj in enumerate(self.objs):
             
-            try:
-                
+            try:                
                 if (mask is None) or (mask is not None and mask[idx]):
-                    
-                        
+                                            
                     df = obj.get(signame)
                         
                     df.columns = [obj.name]                      
@@ -714,9 +715,7 @@ class Data_Pool(object):
                     
                 else:
                     raise
-
-
-    
+   
     def get_signal(self, signame, ignore_error=True, mask=None):
         """
         Retrieves the data for a given signal name.
@@ -1010,6 +1009,26 @@ class Data_Pool(object):
                 yield
         list(get(self))
         return self
+    
+    def convert(self, cls, pbar=True):
+            """
+            Converts all the objects in the Data_Pool to a different class.
+
+            Args:
+                cls (class): The class to convert the objects to.
+                pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+
+            Returns:
+                Data_Pool: A new Data_Pool object with the converted objects.
+            """
+            
+            @show_pool_progress('Converting', show=pbar)
+            def get(self):
+                for obj in self.objs:
+                    new_obj = obj.convert(cls)
+                    yield new_obj
+           
+            return Data_Pool(list(get(self)), config=self.config, name=self.name)
         
     def select(self, mask_array):
         

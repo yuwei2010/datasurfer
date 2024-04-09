@@ -45,17 +45,27 @@ class DATA_OBJECT(DataInterface):
             super().__init__(path, config=config, name=name, comment=comment)
             self._df = df
 
-    @property
-    def t(self):
-        """
-        Get the index of the DataFrame as a numpy array.
-
-        Returns:
-            numpy.ndarray: The index of the DataFrame.
-
-        """
-        return np.asarray(self.df.index)
-
+    
+    @staticmethod
+    def from_other(other):
+        
+        assert isinstance(other, DataInterface), f"The input object must be a DataInterface object. Got {type(other)} instead."
+        
+        dat = other.to_dict()
+        
+        df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
+        return DATA_OBJECT(
+                            path=str(dat['path']),
+                            config=dat['config'],
+                            comment=dat['comment'],
+                            name=dat['name'],
+                            df=df
+                            )
+    
+    def get_df(self):
+        
+        raise NotImplementedError("A Data object must be initialized at first.")
+    
     def save(self, name=None):
         """
         Save the data object to a file.
@@ -94,3 +104,5 @@ class DATA_OBJECT(DataInterface):
                           name=dat['name'].item(),
                           df=df)
         return self
+    
+# %%

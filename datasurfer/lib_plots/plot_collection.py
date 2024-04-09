@@ -840,8 +840,7 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
             else:
                 
                 bottom[idx0, :] = np.max(np.vstack((bottom[idx0, :], y)), axis=0)
-                
-                
+                                
             count += 1
 
     if pct:

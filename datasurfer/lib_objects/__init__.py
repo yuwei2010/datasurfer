@@ -157,13 +157,16 @@ class DataInterface(ABC):
         
         return self.df.items()
     
+    def __rshift__(self, cls):
+                
+        return self.convert(cls)
+    
     @property
     def config(self):
         return self._config
+    
     @config.setter
-    def config(self, val):
-        
-                
+    def config(self, val):                
         self._config = parse_config(val)  
     
     def apply(self, name, value):
@@ -294,6 +297,13 @@ class DataInterface(ABC):
     @abstractmethod
     def get_df(self):
         pass
+    
+    def convert(self, cls):
+        
+        if hasattr(cls, 'from_other'):
+            return cls.from_other(self)
+        else:
+            raise NotImplementedError('Convert method is not implemented.')
         
     def initialize(self, buffer=None):
         """
