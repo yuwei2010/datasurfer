@@ -1066,16 +1066,6 @@ class Data_Pool(object):
             @show_pool_progress('Processing', show=pbar)
             def fun(dp):
                 for obj in dp.objs:                            
-                    # for fun in funs: 
-                    #     try:
-                    #         fun(obj)
-                    #     except Exception as err:
-                    #         if ignore_error:
-                    #             errname = err.__class__.__name__
-                    #             tb = traceback.format_exc(limit=0, chain=False)
-                    #             warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
-                    #         else:
-                    #             raise
                     list(DataInterface.pipeline(*funs, ignore_error=ignore_error)(obj))
                     yield obj
                     

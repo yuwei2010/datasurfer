@@ -2,7 +2,7 @@ import numpy as np
 from functools import wraps
 from datasurfer.datautils import parse_data
 #%%
-def output_control(func):   
+def output_switcher(func):   
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
@@ -59,7 +59,7 @@ class MLearn(object):
         
         
        
-    @output_control 
+    @output_switcher 
     @parse_data    
     def detect_outliers(self, *vals, **kwargs):
         """

@@ -34,7 +34,16 @@ class Signal(object):
 
         """
         from datasurfer.lib_signals.distrib_methods import arghisto
-        return arghisto(val, bins)
+        
+        output = kwargs.pop('output', None)
+        
+        out = arghisto(val, bins)
+        
+        if output is not None:
+            return [self.dp[[output]].values[idx].ravel() for idx in out]
+        else:
+            return out
+
     
     @parse_data
     def kde(self, key, **kwargs):

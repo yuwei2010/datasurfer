@@ -20,7 +20,7 @@ class PANDAS_OBJECT(DataInterface):
         '.xls':  pd.read_excel,        
     }
     
-    def __init__(self, path=None, config=None, name=None, comment=None, **kwargs):
+    def __init__(self, path=None, config=None, name=None, comment=None, df=None, **kwargs):
         """
         Initializes a new instance of the PANDAS_OBJECT class.
 
@@ -33,8 +33,11 @@ class PANDAS_OBJECT(DataInterface):
         super().__init__(path, config=config, name=name, comment=comment)
         self.kwargs = kwargs
         
-        if self.path.suffix.lower() in ('.xlsx', '.xls'):
+        if self.path and self.path.suffix.lower() in ('.xlsx', '.xls'):
             self.sheet_names = pd.ExcelFile(self.path).sheet_names
+            
+        if df is not None:
+            self._df = df
         
     @property   
     def t(self):
