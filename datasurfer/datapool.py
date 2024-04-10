@@ -682,7 +682,7 @@ class Data_Pool(object):
         return self
 
     @show_pool_progress('Processing', show=False, set_init=True)
-    def iter_signal(self, signame, ignore_error=True, mask=None, label_col=False):
+    def iter_signal(self, signame, ignore_error=True, mask=None):
         '''
         Iterates over the data objects in the datapool and yields data frames for a given signal name.
 
@@ -737,9 +737,6 @@ class Data_Pool(object):
                         
                     df.columns = [obj.name]                      
                     df.index = np.arange(0, len(df))
-                    
-                    if label_col:
-                        df['label'] = obj.name
 
                     yield df
                 
@@ -753,8 +750,7 @@ class Data_Pool(object):
 
                     df = pd.DataFrame(np.nan * np.ones(obj.__len__()), columns=[obj.name])                        
                     df.index = np.arange(0, obj.__len__())       
-                    if label_col:
-                        df['label'] = obj.name             
+       
                     yield df
                     
                 else:
@@ -802,7 +798,7 @@ class Data_Pool(object):
         return dict((signame, self.get_signal(signame, ignore_error=ignore_error, mask=mask))
                     for signame in signames)
     
-    def get_signal1D(self, signame, ignore_error=True, mask=None, reindex=True, label_col=False):
+    def get_signal1D(self, signame, ignore_error=True, mask=None, reindex=True):
         """
         Retrieve a 1-dimensional signal from the datapool.
 
@@ -816,9 +812,9 @@ class Data_Pool(object):
         - DataFrame: A pandas DataFrame containing the retrieved signal.
         """
         dats = list(self.iter_signal(
-            signame, ignore_error=ignore_error, mask=mask, label_col=label_col))
+            signame, ignore_error=ignore_error, mask=mask))
 
-        cols = [signame, 'label'] if label_col else [signame]   
+        cols = [signame]   
         out = pd.DataFrame(np.concatenate(dats, axis=0), columns=cols)
 
         if reindex:
