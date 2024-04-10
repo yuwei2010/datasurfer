@@ -193,6 +193,7 @@ class Signal(object):
         lag = lags[np.argmax(correlation)]
 
         return lag
+    
 
         
             

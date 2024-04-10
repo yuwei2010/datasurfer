@@ -445,3 +445,12 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+    
+#%%
+def str2table(s, **kwargs):
+    
+    from io import StringIO
+    
+    df = pd.read_csv(StringIO(s), **kwargs)
+    
+    return df

@@ -40,7 +40,11 @@ class DATA_OBJECT(DataInterface):
 
         """
         if df is None:
-            self.load(path)
+            if isinstance(path, pd.DataFrame):
+                super().__init__(None, config=config, name=name, comment=comment)
+                self._df = path
+            elif path is not None:   
+                self.load(path)
         else:
             super().__init__(path, config=config, name=name, comment=comment)
             self._df = df

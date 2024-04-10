@@ -579,6 +579,16 @@ class DataInterface(ABC):
 
         return self
     
+    def select_rows(self, conds):
+        
+        from collections import abc
+        if hasattr(conds, '__call__'):
+            self._df = self.df[conds(self.df)]
+        elif isinstance(conds, abc.Sequence):
+            self._df = self.df.loc[conds]
+        else:
+            raise ValueError('Invalid condition.')
+    
     def search_get(self, patt, ignore_case=False, raise_error=False):
         """
         Returns the subset of the DataFrame that matches the given pattern.
