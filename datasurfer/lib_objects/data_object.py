@@ -50,21 +50,7 @@ class DATA_OBJECT(DataInterface):
             self._df = df
 
     
-    @staticmethod
-    def from_other(other):
-        
-        assert isinstance(other, DataInterface), f"The input object must be a DataInterface object. Got {type(other)} instead."
-        
-        dat = other.to_dict()
-        
-        df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-        return DATA_OBJECT(
-                            path=str(dat['path']),
-                            config=dat['config'],
-                            comment=dat['comment'],
-                            name=dat['name'],
-                            df=df
-                            )
+
     
     def get_df(self):
         

@@ -248,13 +248,13 @@ class DataInterface(ABC):
 
     @property
     def index(self):
-            """
-            Returns the index of the DataFrame as a NumPy array.
+        """
+        Returns the index of the DataFrame as a NumPy array.
 
-            Returns:
-                numpy.ndarray: The index of the DataFrame.
-            """
-            return np.asarray(self.df.index)
+        Returns:
+            numpy.ndarray: The index of the DataFrame.
+        """
+        return self.df.index
     
     @property
     def meta_info(self):
@@ -685,6 +685,7 @@ class DataInterface(ABC):
             
         return self
     
+
     @staticmethod
     def pipeline(*funs, ignore_error=True):
         """

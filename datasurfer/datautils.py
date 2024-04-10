@@ -402,7 +402,8 @@ def parse_data(func):
                     out.append(o)
                     lbls.extend(ls)
                 else:
-                    raise ValueError('keys must be strings or numpy arrays')
+                    out.append(key)
+                    lbls.append(None)
                 
             return out, lbls
         
@@ -447,7 +448,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
     
 #%%
-def str2table(s, **kwargs):
+def str2df(s, **kwargs):
     
     from io import StringIO
     
