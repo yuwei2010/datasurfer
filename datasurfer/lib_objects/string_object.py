@@ -20,7 +20,7 @@ class STRING_OBJECT(DataInterface):
         comment (str): Additional comment for the string object.
     """
 
-    def __init__(self, s, name, comment=None, config=None, **kwargs):
+    def __init__(self, s, name=None, comment=None, config=None, **kwargs):
         """
         Initializes a new instance of the STRING_OBJECT class.
 
