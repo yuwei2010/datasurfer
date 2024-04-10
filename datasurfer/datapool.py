@@ -379,9 +379,14 @@ class Data_Pool(object):
         path = self.paths()
         itype = pd.Series([obj.__class__.__name__ for obj in self.objs], 
                           index=self.names(), name='Interface')
-        ftype = pd.Series([Path(p).suffix for p in self.paths()], index=self.names(), name='File Type')
-        date = self.file_date() 
-        size = (self.file_size() / 1e6).round(4)     
+        try:
+            ftype = pd.Series([Path(p).suffix for p in self.paths()], index=self.names(), name='File Type')
+            date  = self.file_date() 
+            size  = (self.file_size() / 1e6).round(4)     
+        except FileNotFoundError:
+            ftype = pd.Series(np.nan*np.ones(len(self.objs)), name='File Type')
+            date = pd.Series(np.nan*np.ones(len(self.objs)), name='File Date')
+            size = pd.Series(np.nan*np.ones(len(self.objs)), name='File Size')
            
         if verbose:
             signal = self.signal_count(pbar=False)
@@ -396,7 +401,7 @@ class Data_Pool(object):
         else:
             df = pd.concat([itype, ftype, size, date, path], axis=1)
                     
-        return df
+        return df.dropna(how='all')
                 
     def memory_usage(self, pbar=True):
         """

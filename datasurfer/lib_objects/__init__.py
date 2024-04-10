@@ -549,10 +549,7 @@ class DataInterface(ABC):
                             continue
 
         return self.config
-        
-
-    
-    
+           
     def drop(self, *names, nonexist_ok=True):
         """
         Drop columns from the DataFrame.
@@ -580,7 +577,21 @@ class DataInterface(ABC):
         return self
     
     def select_rows(self, conds):
-        
+        """
+        Selects rows from the DataFrame based on the given conditions.
+
+        Parameters:
+        - conds: A callable or a sequence of boolean values.
+                 If a callable is provided, it should take the DataFrame as input and return a boolean Series or DataFrame.
+                 If a sequence is provided, it should be a boolean sequence with the same length as the DataFrame.
+
+        Raises:
+        - ValueError: If the provided condition is invalid.
+
+        Returns:
+        - None
+
+        """
         from collections import abc
         if hasattr(conds, '__call__'):
             self._df = self.df[conds(self.df)]
@@ -912,6 +923,8 @@ class DataInterface(ABC):
 
         if clean:
             self.clean()
+            
+        return self
    
     @property
     def plot(self):
