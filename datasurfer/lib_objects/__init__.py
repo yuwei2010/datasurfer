@@ -12,7 +12,36 @@ from itertools import chain, zip_longest
 from datasurfer.datautils import parse_config, translate_config, extract_channels
 
 #%% Data_Interface
+def list_interfaces():
+    
+    import importlib
+    import inspect
+    
+    out = dict()
+    for pth in Path(__file__).parent.glob('*.py'):
+        
+        mdlname = pth.stem        
+        try:
+            mdl = importlib.import_module(f'datasurfer.lib_objects.{mdlname}')
+        except ImportError:
+            warnings.warn(f'Cannot import module "{mdlname}".')
+            continue
+        
+        for item in dir(mdl):
+            cls = getattr(mdl, item)
 
+            if isinstance(cls, type):               
+                names = [c.__name__ for c in inspect.getmro(cls)]
+                if 'DataInterface' in names and cls.__name__ != 'DataInterface':
+                    out[cls.__name__] = (cls, cls.__doc__)
+                    
+    df = pd.DataFrame(out, index=['class', 'doc']).T
+    df.index.name = 'name'
+    
+    return df
+
+
+#%%
 class DataInterface(ABC):
     """
     A class representing parent class of all data interfaces.

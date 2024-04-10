@@ -156,6 +156,11 @@ class Data_Pool(object):
             elif isinstance(interface, type) and issubclass(interface, DataInterface):
                 objs.append(interface(obj, config=config, **kwargs))
                 
+            elif isinstance(interface, str):
+                from datasurfer import list_interfaces
+                itfs = list_interfaces()
+                interface_ = itfs['class'][interface]
+                objs.append(interface_(obj, config=config, **kwargs))
             elif isinstance(obj, (str, Path)):
                 key = Path(obj).suffix.lower()               
                 if key in map_interface:
@@ -1048,7 +1053,7 @@ class Data_Pool(object):
         return out
     
     @staticmethod
-    def pipeline(*funs, pbar=True, ignore_error=True, asiterator=True):
+    def pipeline(*funs, pbar=True, ignore_error=True, asiterator=False):
         """
         Applies a series of functions to each object in the data pool and yields the result.
 
