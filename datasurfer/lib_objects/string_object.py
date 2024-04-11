@@ -1,3 +1,4 @@
+import io
 import pandas as pd
 import re
 from datasurfer import DataInterface
@@ -21,10 +22,9 @@ class STRING_OBJECT(DataInterface):
         comment (str): Additional comment for the string object.
     """
     
-    patt_de2en = (re.compile(r'([0-9]+),([0-9]+)'), r'\1.\2')
-    patt_en2de = (re.compile(r'([0-9]+).([0-9]+)'), r'\1,\2')
+    pattern = re.compile(r'([0-9]+)[,.]{1}([0-9]+)')
 
-    def __init__(self, s, name=None, comment=None, config=None, **kwargs):
+    def __init__(self, s, name=None, comment=None, config=None, decimal='.', **kwargs):
         """
         Initializes a new instance of the STRING_OBJECT class.
 
@@ -34,42 +34,64 @@ class STRING_OBJECT(DataInterface):
             name (str): The name of the string object.
             comment (str): Additional comment for the string object.
         """
-        
-        self.de2en = kwargs.pop('de2en', False)
-        self.en2de = kwargs.pop('en2de', False)
-        
-        assert not (self.de2en and self.en2de), 'Only one of `de2en` or `en2de` can be True.'
-        
         super().__init__(path=None, config=config, name=name, comment=comment)
 
         self.kwargs = kwargs
         self.string = s
+        self.decimal_delimiter = decimal
 
     @staticmethod
-    def covert_format(string,  de2en=False, en2de=False):   
-         
-        if de2en:
-            s = re.sub(*STRING_OBJECT.patt_de2en, string)
-        elif en2de:
-            s = re.sub(*STRING_OBJECT.patt_en2de, string)
-        else:
-            s = string            
+    def replace_delimiter(string, delimiter):
+        """
+        Replaces the delimiter in the given string with the specified delimiter.
+
+        Args:
+            string (str): The input string.
+            delimiter (str): The new delimiter to be used.
+
+        Returns:
+            str: The modified string with the new delimiter.
+
+        """
+        s = re.sub(STRING_OBJECT.pattern, rf'\1{delimiter}\2', string)
         return s
         
 
     def get_df(self):
+        """
+        Converts the string object to a DataFrame.
 
-        s = STRING_OBJECT.covert_format(self.string, self.de2en, self.en2de)            
+        Returns:
+            pandas.DataFrame: The DataFrame representation of the string object.
+        """
+        s = STRING_OBJECT.replace_delimiter(self.string, self.decimal_delimiter)            
         return str2df(s, **self.kwargs)
     
     
     def dfstring(self):
-        
+        """
+        Returns a string representation of the DataFrame.
+
+        Returns:
+            str: A string representation of the DataFrame.
+        """
         return self.df.to_string()
     
     
     @staticmethod
     def from_other(other):
+        """
+        Create a STRING_OBJECT instance from another DataInterface object.
+
+        Parameters:
+            other (DataInterface): The DataInterface object to create the STRING_OBJECT from.
+
+        Returns:
+            STRING_OBJECT: The created STRING_OBJECT instance.
+
+        Raises:
+            AssertionError: If the `other` object is not an instance of DataInterface.
+        """
         assert isinstance(other, DataInterface)
         dat = other.to_dict()
         df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
@@ -78,22 +100,41 @@ class STRING_OBJECT(DataInterface):
                     config=dat['config'],
                     comment=dat['comment'],
                     name=dat['name'], index_col=0, delim_whitespace=True)  
-        return obj  
+        return obj
     
-    def to_clipboard(self, **kwargs):
-        import io
-        # index's name caused parse error
-        self.df.index.name = None               
+    
+    def to_clipboard(self, decimal='.', **kwargs):
+        """
+        Copies the DataFrame to the clipboard.
+
+        Args:
+            delimiter (str, optional): The delimiter to use when converting the DataFrame to a string. Defaults to '.'.
+            **kwargs: Additional keyword arguments to pass to the `to_string` method.
+
+        Returns:
+            self: The StringObject instance.
+
+        """
+
+        # index's name causes parse error
+        name = self.df.index.name    
+        self.df.index.name = None 
+                        
         s = self.df.to_string(**kwargs)        
-        df = pd.read_csv(io.StringIO(s), delim_whitespace=True)        
-        df.to_clipboard()
+        df = pd.read_csv(io.StringIO(s), delim_whitespace=True)   
+        df.index.name = name  
+        df.to_clipboard(decimal=decimal)
 
         return self
     
-    def save(self, name=None):
+    def save(self, name=None, decimal='.'):
         
         if name is None:
             name = f"{self.name}.csv"
-        self.df.to_csv(name)
+                        
+        s = STRING_OBJECT.replace_delimiter(self.dfstring(), delimiter=decimal)         
+        df = str2df(s, index_col=0, delim_whitespace=True)
+            
+        df.to_csv(name)
         
         return self
