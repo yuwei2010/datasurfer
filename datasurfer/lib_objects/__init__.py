@@ -13,11 +13,22 @@ from datasurfer.datautils import parse_config, translate_config, extract_channel
 
 #%% Data_Interface
 def list_interfaces():
+    """
+    Returns a DataFrame containing information about the DataInterface classes in the datasurfer.lib_objects module.
     
+    The DataFrame has the following columns:
+    - name: The name of the DataInterface class.
+    - class: The DataInterface class object.
+    - doc: The docstring of the DataInterface class.
+    
+    Returns:
+    DataFrame: A DataFrame containing information about the DataInterface classes.
+    """
     import importlib
     import inspect
     
     out = dict()
+    
     for pth in Path(__file__).parent.glob('*.py'):
         
         mdlname = pth.stem        

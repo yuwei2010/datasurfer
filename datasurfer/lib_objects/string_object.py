@@ -82,6 +82,7 @@ class STRING_OBJECT(DataInterface):
     
     def to_clipboard(self, **kwargs):
         import io
+        # index's name caused parse error
         self.df.index.name = None               
         s = self.df.to_string(**kwargs)        
         df = pd.read_csv(io.StringIO(s), delim_whitespace=True)        

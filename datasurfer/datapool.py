@@ -632,10 +632,13 @@ class Data_Pool(object):
         """
         
         assert isinstance(obj, DataInterface), 'Input object must be a DataInterface object.'
-        self.objs.append(obj)
+        if obj not in self.objs:    
+            self.objs.append(obj)
+        else:
+            warnings.warn(f'Object "{obj.name}" is already in the datapool.')
         return self
     
-    def extend(self, objs):
+    def extend(self, dp):
         """
         Extends the datapool with a list of DataInterface objects.
 
@@ -648,8 +651,12 @@ class Data_Pool(object):
         Raises:
             AssertionError: If any of the input objects is not an instance of DataInterface.
         """
-        assert all(isinstance(obj, DataInterface) for obj in objs), 'Input objects must be DataInterface objects.'
-        self.objs.extend(objs)
+        assert isinstance(dp, Data_Pool), 'Input objects must be Data Pool object.'
+        
+        for obj in dp.objs:
+            
+            self.append(obj)
+
         return self
     
     def extend(self, objs):
