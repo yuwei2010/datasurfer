@@ -128,7 +128,17 @@ class STRING_OBJECT(DataInterface):
         return self
     
     def save(self, name=None, decimal='.'):
-        
+        """
+        Save the string object as a CSV file.
+
+        Args:
+            name (str, optional): The name of the CSV file. If not provided, the name will be generated based on the object's name. Defaults to None.
+            decimal (str, optional): The decimal delimiter to use in the CSV file. Defaults to '.'.
+
+        Returns:
+            self: The string object itself.
+
+        """
         if name is None:
             name = f"{self.name}.csv"
                         
