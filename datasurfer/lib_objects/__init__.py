@@ -188,7 +188,7 @@ class DataInterface(ABC):
     
     def __rshift__(self, cls):
                 
-        return self.convert(cls)
+        return self.to_object(cls)
     
     @property
     def config(self):
@@ -327,7 +327,7 @@ class DataInterface(ABC):
     def get_df(self):
         pass
     
-    def convert(self, cls):
+    def to_object(self, cls):
         
         if hasattr(cls, 'from_other'):
             return cls.from_other(self)
