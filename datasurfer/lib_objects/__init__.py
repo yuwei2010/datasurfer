@@ -610,6 +610,8 @@ class DataInterface(ABC):
             self._df = self.df.loc[conds]
         else:
             raise ValueError('Invalid condition.')
+        
+        return self
     
     def search_get(self, patt, ignore_case=False, raise_error=False):
         """

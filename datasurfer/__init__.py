@@ -11,7 +11,7 @@ from datasurfer.lib_objects import list_interfaces
 
 __all__ = ['Data_Pool', 'Data_Lake', 'DataInterface', 'list_interfaces']
 
-
+#%%
 
 def interface_pool(*keys):
     """
@@ -24,6 +24,15 @@ def interface_pool(*keys):
         A list of interfaces that match the provided keys.
     """
     return list_interfaces()['class'][list(keys)]
+
+#%%
+def __getattr__(name):
+    
+    interfaces = list_interfaces()
+    if name in interfaces.index:
+        return interfaces['class'][name]
+    else:
+        raise AttributeError(f"module {__name__} has no attribute {name}")
 
 #%%
 def read_string(s, name, **kwargs):

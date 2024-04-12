@@ -1,9 +1,18 @@
 import numpy as np
 from functools import wraps
 from datasurfer.datautils import parse_data
+
 #%%
 def output_switcher(func):   
-
+    """
+    Decorator function that allows switching the output of a function.
+    
+    Args:
+        func (function): The function to be decorated.
+        
+    Returns:
+        function: The decorated function.
+    """
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         
@@ -22,12 +31,26 @@ def output_switcher(func):
 
 #%%
 class MLearn(object):
-    
+    """
+    The MLearn class provides functionality for machine learning tasks.
+
+    Parameters:
+    dp: object, optional
+        The data preprocessing object.
+
+    Attributes:
+    dp: object
+        The data preprocessing object.
+
+    Methods:
+    display_decision: Display the decision boundary of a machine learning model.
+    detect_outliers: Detect outliers in the given data.
+    """
+
     def __init__(self, dp=None):
         
         self.dp = dp
-    
-    
+
     @parse_data    
     def display_decision(self, *vals, model, **kwargs):
         """
@@ -56,9 +79,7 @@ class MLearn(object):
         ax.set_ylabel(lbls[1])
 
         return ax
-        
-        
-       
+
     @output_switcher 
     @parse_data    
     def detect_outliers(self, *vals, **kwargs):
