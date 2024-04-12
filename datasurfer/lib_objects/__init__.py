@@ -44,9 +44,13 @@ def list_interfaces():
             if isinstance(cls, type):               
                 names = [c.__name__ for c in inspect.getmro(cls)]
                 if 'DataInterface' in names and cls.__name__ != 'DataInterface':
-                    out[cls.__name__] = (cls, cls.__doc__)
+                    if hasattr(cls, 'exts'):
+                        exts = cls.exts
+                    else:
+                        exts = []
+                    out[cls.__name__] = (cls, cls.__doc__, exts)
                     
-    df = pd.DataFrame(out, index=['class', 'doc']).T
+    df = pd.DataFrame(out, index=['class', 'doc', 'file extension']).T
     df.index.name = 'name'
     
     return df
@@ -156,6 +160,7 @@ class DataInterface(ABC):
         return (self.__class__ == other.__class__) and (self.path == other.path) and (self.name == other.name)
     
     def __hash__(self):
+        
         return hash((self.path, self.name, self.__class__))
     
     def __repr__(self):

@@ -55,3 +55,25 @@ def to_object(df, name, **kwargs):
 
 #%%
 
+def set_default_interface(ext, path, cls):
+    
+    import importlib
+    import json
+    from pathlib import Path 
+          
+    json_file = Path(__file__).parent / 'map_interface.json'
+    
+    if json_file.is_file():       
+        dict_map = json.load(open(json_file, 'r'))
+    else:
+        dict_map = {}   
+    
+    c = getattr(importlib.import_module(f'datasurfer.{path}'), cls)
+            
+    dict_map[ext] = [path, cls]
+    
+    json.dump(dict_map, open(json_file, 'w'), indent=4)
+    
+    return dict_map
+    
+

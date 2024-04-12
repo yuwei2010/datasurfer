@@ -1,6 +1,6 @@
 {
     ".csv": [
-        "lib_objects.pandas_object", 
+        "lib_objects.pandas_object",
         "PANDAS_OBJECT"
     ],
     ".xlsx": [
@@ -12,23 +12,27 @@
         "ASAMMDF_OBJECT"
     ],
     ".mat": [
-        "lib_objects.matlab_object", 
+        "lib_objects.matlab_object",
         "MATLAB_OBJECT"
     ],
     ".results": [
-        "lib_objects.ameres_object", 
+        "lib_objects.ameres_object",
         "AMERES_OBJECT"
     ],
     ".amegp": [
-        "lib_objects.amegp_object", 
+        "lib_objects.amegp_object",
         "AMEGP_OBJECT"
     ],
     ".data": [
-        "lib_objects.amedata_object", 
+        "lib_objects.amedata_object",
         "AMEDATA_OBJECT"
     ],
     ".json": [
-        "lib_objects.json_object", 
+        "lib_objects.json_object",
         "JSON_OBJECT"
+    ],
+    ".xkf": [
+        "lib_objects.femke_object",
+        "KF_OBJECT"
     ]
 }
