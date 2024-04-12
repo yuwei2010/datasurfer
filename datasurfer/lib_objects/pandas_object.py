@@ -33,8 +33,10 @@ class PANDAS_OBJECT(DataInterface):
         super().__init__(path, config=config, name=name, comment=comment)
         self.kwargs = kwargs
         
-        if self.path.suffix.lower() in ('.xlsx', '.xls'):
+        if self.path and self.path.suffix.lower() in ('.xlsx', '.xls'):
             self.sheet_names = pd.ExcelFile(self.path).sheet_names
+            
+
         
     @property   
     def t(self):

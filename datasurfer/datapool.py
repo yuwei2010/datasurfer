@@ -156,6 +156,11 @@ class Data_Pool(object):
             elif isinstance(interface, type) and issubclass(interface, DataInterface):
                 objs.append(interface(obj, config=config, **kwargs))
                 
+            elif isinstance(interface, str):
+                from datasurfer import list_interfaces
+                itfs = list_interfaces()
+                interface_ = itfs['class'][interface]
+                objs.append(interface_(obj, config=config, **kwargs))
             elif isinstance(obj, (str, Path)):
                 key = Path(obj).suffix.lower()               
                 if key in map_interface:
@@ -241,6 +246,9 @@ class Data_Pool(object):
         
         return all(obj in pool0.objs for obj in self.objs) and all(obj in self.objs for obj in pool0.objs)
     
+    def __rshift__(self, cls):
+        
+        return self.convert(cls)   
     
     def __getitem__(self, inval):
         """
@@ -371,9 +379,14 @@ class Data_Pool(object):
         path = self.paths()
         itype = pd.Series([obj.__class__.__name__ for obj in self.objs], 
                           index=self.names(), name='Interface')
-        ftype = pd.Series([Path(p).suffix for p in self.paths()], index=self.names(), name='File Type')
-        date = self.file_date() 
-        size = (self.file_size() / 1e6).round(4)     
+        try:
+            ftype = pd.Series([Path(p).suffix for p in self.paths()], index=self.names(), name='File Type')
+            date  = self.file_date() 
+            size  = (self.file_size() / 1e6).round(4)     
+        except FileNotFoundError:
+            ftype = pd.Series(np.nan*np.ones(len(self.objs)), name='File Type')
+            date = pd.Series(np.nan*np.ones(len(self.objs)), name='File Date')
+            size = pd.Series(np.nan*np.ones(len(self.objs)), name='File Size')
            
         if verbose:
             signal = self.signal_count(pbar=False)
@@ -388,7 +401,7 @@ class Data_Pool(object):
         else:
             df = pd.concat([itype, ftype, size, date, path], axis=1)
                     
-        return df
+        return df.dropna(how='all')
                 
     def memory_usage(self, pbar=True):
         """
@@ -522,7 +535,7 @@ class Data_Pool(object):
         """
         return pd.DataFrame(dict((obj.name, obj.config) for obj in self.objs))
         
-    def signals(self, count=None, pbar=False):
+    def list_signals(self, count=None, pbar=False):
         """
         Returns a list of unique keys from the objects in the datapool.
 
@@ -607,6 +620,53 @@ class Data_Pool(object):
 
         return self
     
+    def append(self, obj):
+        """
+        Appends an object to the datapool.
+
+        Args:
+            obj: The object to append.
+
+        Returns:
+            self: The updated datapool object.
+        """
+        
+        assert isinstance(obj, DataInterface), 'Input object must be a DataInterface object.'
+        
+        if obj in self.objs:
+            self.objs.pop(self.objs.index(obj))
+
+            self.objs.append(obj)
+        else:
+            warnings.warn(f'Object "{obj.name}" is already in the datapool.')
+        return self
+    
+    def extend(self, dp):
+        """
+        Extends the datapool with a list of DataInterface objects.
+
+        Args:
+            objs (list): A list of DataInterface objects to be added to the datapool.
+
+        Returns:
+            self: The updated datapool object.
+
+        Raises:
+            AssertionError: If any of the input objects is not an instance of DataInterface.
+        """
+        assert isinstance(dp, Data_Pool), 'Input objects must be Data Pool object.'
+        
+        for obj in dp.objs:
+            
+            self.append(obj)
+
+        return self
+    
+    def extend(self, objs):
+        assert all(isinstance(obj, DataInterface) for obj in objs), 'Input objecs must be DataInterface object.'
+        self.objs.extend(objs)
+        return self        
+    
     def load_signals(self, *keys, mapping=None, pbar=True):
         """
         Load signals from the data pool.
@@ -661,11 +721,8 @@ class Data_Pool(object):
 
         Examples
         --------
-        >>> dp = DataPool()
-        >>> dp.add_data_object(obj1)
-        >>> dp.add_data_object(obj2)
-        >>> dp.add_data_object(obj3)
-
+        >>> dp = DataPool([obj1, obj2, obj3])
+    
         >>> for df in dp.iter_signal('temperature'):
         ...     print(df)
         ...
@@ -688,11 +745,9 @@ class Data_Pool(object):
 
         for idx, obj in enumerate(self.objs):
             
-            try:
-                
+            try:                
                 if (mask is None) or (mask is not None and mask[idx]):
-                    
-                        
+                                            
                     df = obj.get(signame)
                         
                     df.columns = [obj.name]                      
@@ -709,14 +764,13 @@ class Data_Pool(object):
                     warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
 
                     df = pd.DataFrame(np.nan * np.ones(obj.__len__()), columns=[obj.name])                        
-                    df.index = np.arange(0, obj.__len__())                    
+                    df.index = np.arange(0, obj.__len__())       
+       
                     yield df
                     
                 else:
                     raise
-
-
-    
+   
     def get_signal(self, signame, ignore_error=True, mask=None):
         """
         Retrieves the data for a given signal name.
@@ -775,7 +829,8 @@ class Data_Pool(object):
         dats = list(self.iter_signal(
             signame, ignore_error=ignore_error, mask=mask))
 
-        out = pd.DataFrame(np.concatenate(dats, axis=0), columns=[signame])
+        cols = [signame]   
+        out = pd.DataFrame(np.concatenate(dats, axis=0), columns=cols)
 
         if reindex:
             out.index = np.arange(len(out))
@@ -783,15 +838,23 @@ class Data_Pool(object):
         return out
     
     def get_signal1Ds(self, *signals, ignore_error=True, mask=None):
+        """
+        Retrieves multiple 1D signals from the datapool.
+
+        Args:
+            *signals: Variable length argument list of signal names to retrieve.
+            ignore_error (bool, optional): Whether to ignore errors when retrieving signals. Defaults to True.
+            mask (array-like, optional): Mask to apply to the retrieved signals. Defaults to None.
+
+        Returns:
+            pandas.DataFrame: A DataFrame containing the retrieved signals concatenated along the columns.
+        """
         out = []
-        for sig in signals:
-            
+        for sig in signals:          
             out.append(self.get_signal1D(sig, ignore_error=ignore_error, mask=mask))
             
         out = pd.concat(out, axis=1)
         return out
-    
-
     
     def get_object(self, name):
         """
@@ -1010,6 +1073,26 @@ class Data_Pool(object):
                 yield
         list(get(self))
         return self
+    
+    def convert(self, cls, pbar=True):
+            """
+            Converts all the objects in the Data_Pool to a different class.
+
+            Args:
+                cls (class): The class to convert the objects to.
+                pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+
+            Returns:
+                Data_Pool: A new Data_Pool object with the converted objects.
+            """
+            
+            @show_pool_progress('Converting', show=pbar)
+            def get(self):
+                for obj in self.objs:
+                    new_obj = obj.convert(cls)
+                    yield new_obj
+           
+            return Data_Pool(list(get(self)), config=self.config, name=self.name)
         
     def select(self, mask_array):
         
@@ -1026,10 +1109,10 @@ class Data_Pool(object):
             assert len(mask_array) == len(self.objs), "The length of the mask array does not match the number of data objects."
             
             out = [obj for obj, msk in zip(self.objs, mask_array) if msk]
-        return out
+        return self.__class__(out)
     
     @staticmethod
-    def pipeline(*funs, pbar=True, ignore_error=True, asiterator=True):
+    def pipeline(*funs, pbar=True, ignore_error=True, asiterator=False):
         """
         Applies a series of functions to each object in the data pool and yields the result.
 
@@ -1047,16 +1130,6 @@ class Data_Pool(object):
             @show_pool_progress('Processing', show=pbar)
             def fun(dp):
                 for obj in dp.objs:                            
-                    # for fun in funs: 
-                    #     try:
-                    #         fun(obj)
-                    #     except Exception as err:
-                    #         if ignore_error:
-                    #             errname = err.__class__.__name__
-                    #             tb = traceback.format_exc(limit=0, chain=False)
-                    #             warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
-                    #         else:
-                    #             raise
                     list(DataInterface.pipeline(*funs, ignore_error=ignore_error)(obj))
                     yield obj
                     
@@ -1347,8 +1420,10 @@ class Data_Pool(object):
         dp = Data_Pool(paths, comments=comments, **kwargs)    
 
         return dp
-        
-    def load(self, name, keys=None, pbar=True, count=None):
+    
+
+    @staticmethod    
+    def from_file(name, keys=None, pbar=True, count=None):
         """
         Load data from a numpy .npz file and create DATA_OBJECT instances.
 
@@ -1362,7 +1437,8 @@ class Data_Pool(object):
             self: The updated instance of the class.
 
         """
-        from datasurfer import DATA_OBJECT
+        from datasurfer.lib_objects.data_object import DATA_OBJECT
+        
         with np.load(name, allow_pickle=True) as npz:
             npzkeys = npz.keys()
             

@@ -155,8 +155,13 @@ class Data_Lake(object):
         return [obj.path for obj in self.objs]
     
     def signals(self):
+        """
+        Returns a sorted set of signals from all the objects in the datalake.
 
-        return sorted(set(chain(*[obj.signals() for obj in self.objs])))
+        Returns:
+            set: A sorted set of signals.
+        """
+        return sorted(set(chain(*[obj.list_signals() for obj in self.objs])))
 
 
 

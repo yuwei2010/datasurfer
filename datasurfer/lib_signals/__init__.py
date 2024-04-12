@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from datasurfer.datautils import arghisto, parse_data, show_pool_progress
+from datasurfer.datautils import parse_data, show_pool_progress
 
 #%%
 
@@ -33,12 +33,22 @@ class Signal(object):
         numpy.ndarray: The computed histogram.
 
         """
-        return arghisto(val, bins)
+        from datasurfer.lib_signals.distrib_methods import arghisto
+        
+        output = kwargs.pop('output', None)
+        
+        out = arghisto(val, bins)
+        
+        if output is not None:
+            return [self.dp[[output]].values[idx].ravel() for idx in out]
+        else:
+            return out
+
     
     @parse_data
     def kde(self, key, **kwargs):
         """
-        Calculate the kernel density estimate (KDE) for a given key.
+        Calculate the kernel density estimate (KDE) for a given key or array.
 
         Parameters:
         - key: The key for which to calculate the KDE.
@@ -146,6 +156,8 @@ class Signal(object):
         
         from scipy.spatial import distance
         
+        assert isinstance(df, pd.DataFrame), "Expect data frame object as input."
+        
         XB = np.atleast_2d(df.values)
         keys = df.columns
         
@@ -181,6 +193,7 @@ class Signal(object):
         lag = lags[np.argmax(correlation)]
 
         return lag
+    
 
         
             

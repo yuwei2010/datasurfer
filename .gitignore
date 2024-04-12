@@ -106,3 +106,6 @@ ENV/
 .idea/
 tests/
 .vs/
+docs/tutorial/demo_data/data1.csv
+docs/tutorial/demo_data/data2.xlsx
+docs/tutorial/demo_data/data3.json

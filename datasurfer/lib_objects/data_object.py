@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
-from datasurfer.lib_objects import DataInterface
+from datasurfer import DataInterface
+from pathlib import Path
 
 
 #%% DATA_OBJECT
@@ -40,22 +41,19 @@ class DATA_OBJECT(DataInterface):
 
         """
         if df is None:
-            self.load(path)
+            if isinstance(path, pd.DataFrame):
+                super().__init__(None, config=config, name=name, comment=comment)
+                self._df = path
+            elif path is not None:   
+                self.load(path)
         else:
             super().__init__(path, config=config, name=name, comment=comment)
             self._df = df
-
-    @property
-    def t(self):
-        """
-        Get the index of the DataFrame as a numpy array.
-
-        Returns:
-            numpy.ndarray: The index of the DataFrame.
-
-        """
-        return np.asarray(self.df.index)
-
+   
+    def get_df(self):
+        
+        raise NotImplementedError("A Data object doesn't need get_df.")
+    
     def save(self, name=None):
         """
         Save the data object to a file.
@@ -73,8 +71,21 @@ class DATA_OBJECT(DataInterface):
             name = self.name
         np.savez(name, **self.to_dict())
         return self
-
-    def load(self, path):
+    
+    @staticmethod
+    def from_other(other):
+        
+        assert isinstance(other, DataInterface)
+        dat = other.to_dict()
+        df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
+        obj = DATA_OBJECT(path=dat['path'],
+                    config=dat['config'],
+                    comment=dat['comment'],
+                    name=dat['name'],
+                    df=df)  
+        return obj  
+    @staticmethod
+    def load(path):
         """
         Load the data object from a file.
 
@@ -88,9 +99,11 @@ class DATA_OBJECT(DataInterface):
         with np.load(path, allow_pickle=True) as dat:
             dat = np.load(path, allow_pickle=True)
             df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-            self.__init__(path=str(dat['path']),
+            obj = DATA_OBJECT(path=Path(path).absolute(),
                           config=dat['config'].item(),
                           comment=dat['comment'].item(),
                           name=dat['name'].item(),
                           df=df)
-        return self
+        return obj
+    
+# %%

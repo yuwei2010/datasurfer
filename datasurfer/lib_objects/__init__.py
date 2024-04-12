@@ -12,7 +12,51 @@ from itertools import chain, zip_longest
 from datasurfer.datautils import parse_config, translate_config, extract_channels
 
 #%% Data_Interface
+def list_interfaces():
+    """
+    Returns a DataFrame containing information about the DataInterface classes in the datasurfer.lib_objects module.
+    
+    The DataFrame has the following columns:
+    - name: The name of the DataInterface class.
+    - class: The DataInterface class object.
+    - doc: The docstring of the DataInterface class.
+    
+    Returns:
+    DataFrame: A DataFrame containing information about the DataInterface classes.
+    """
+    import importlib
+    import inspect
+    
+    out = dict()
+    
+    for pth in Path(__file__).parent.glob('*.py'):
+        
+        mdlname = pth.stem        
+        try:
+            mdl = importlib.import_module(f'datasurfer.lib_objects.{mdlname}')
+        except ImportError:
+            warnings.warn(f'Cannot import module "{mdlname}".')
+            continue
+        
+        for item in dir(mdl):
+            cls = getattr(mdl, item)
 
+            if isinstance(cls, type):               
+                names = [c.__name__ for c in inspect.getmro(cls)]
+                if 'DataInterface' in names and cls.__name__ != 'DataInterface':
+                    if hasattr(cls, 'exts'):
+                        exts = cls.exts
+                    else:
+                        exts = []
+                    out[cls.__name__] = (cls, cls.__doc__, exts)
+                    
+    df = pd.DataFrame(out, index=['class', 'doc', 'file extension']).T
+    df.index.name = 'name'
+    
+    return df
+
+
+#%%
 class DataInterface(ABC):
     """
     A class representing parent class of all data interfaces.
@@ -116,6 +160,7 @@ class DataInterface(ABC):
         return (self.__class__ == other.__class__) and (self.path == other.path) and (self.name == other.name)
     
     def __hash__(self):
+        
         return hash((self.path, self.name, self.__class__))
     
     def __repr__(self):
@@ -157,13 +202,16 @@ class DataInterface(ABC):
         
         return self.df.items()
     
+    def __rshift__(self, cls):
+                
+        return self.to_object(cls)
+    
     @property
     def config(self):
         return self._config
+    
     @config.setter
-    def config(self, val):
-        
-                
+    def config(self, val):                
         self._config = parse_config(val)  
     
     def apply(self, name, value):
@@ -216,13 +264,13 @@ class DataInterface(ABC):
 
     @property
     def index(self):
-            """
-            Returns the index of the DataFrame as a NumPy array.
+        """
+        Returns the index of the DataFrame as a NumPy array.
 
-            Returns:
-                numpy.ndarray: The index of the DataFrame.
-            """
-            return np.asarray(self.df.index)
+        Returns:
+            numpy.ndarray: The index of the DataFrame.
+        """
+        return self.df.index
     
     @property
     def meta_info(self):
@@ -277,6 +325,10 @@ class DataInterface(ABC):
         return self._df 
     
     @property
+    def dataframe(self):
+        return self.df
+    
+    @property
     def name(self):
         
         if self._name is None:
@@ -294,6 +346,13 @@ class DataInterface(ABC):
     @abstractmethod
     def get_df(self):
         pass
+    
+    def to_object(self, cls):
+        
+        if hasattr(cls, 'from_other'):
+            return cls.from_other(self)
+        else:
+            raise NotImplementedError('Convert method is not implemented.')
         
     def initialize(self, buffer=None):
         """
@@ -510,10 +569,7 @@ class DataInterface(ABC):
                             continue
 
         return self.config
-        
-
-    
-    
+           
     def drop(self, *names, nonexist_ok=True):
         """
         Drop columns from the DataFrame.
@@ -538,6 +594,32 @@ class DataInterface(ABC):
 
         self.df.drop(columns=keys, inplace=True)
 
+        return self
+    
+    def select_rows(self, conds):
+        """
+        Selects rows from the DataFrame based on the given conditions.
+
+        Parameters:
+        - conds: A callable or a sequence of boolean values.
+                 If a callable is provided, it should take the DataFrame as input and return a boolean Series or DataFrame.
+                 If a sequence is provided, it should be a boolean sequence with the same length as the DataFrame.
+
+        Raises:
+        - ValueError: If the provided condition is invalid.
+
+        Returns:
+        - None
+
+        """
+        from collections import abc
+        if hasattr(conds, '__call__'):
+            self._df = self.df[conds(self.df)]
+        elif isinstance(conds, abc.Sequence):
+            self._df = self.df.loc[conds]
+        else:
+            raise ValueError('Invalid condition.')
+        
         return self
     
     def search_get(self, patt, ignore_case=False, raise_error=False):
@@ -636,6 +718,7 @@ class DataInterface(ABC):
             
         return self
     
+
     @staticmethod
     def pipeline(*funs, ignore_error=True):
         """
@@ -664,6 +747,7 @@ class DataInterface(ABC):
                         errname = err.__class__.__name__
                         tb = traceback.format_exc(limit=0, chain=False)
                         warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                        yield None
                     else:
                         raise
         return wrapper
@@ -862,6 +946,8 @@ class DataInterface(ABC):
 
         if clean:
             self.clean()
+            
+        return self
    
     @property
     def plot(self):

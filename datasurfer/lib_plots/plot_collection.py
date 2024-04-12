@@ -200,28 +200,7 @@ def plot_parallel_coordinate(host, df, **kwargs):
     #plt.tight_layout()
     return axes
 
-#%%
-def arghisto(data, bins):
-    """
-    Compute the histogram of the input data based on the given bins.
 
-    Parameters:
-    data (ndarray): Input data array.
-    bins (ndarray): Bins for computing the histogram.
-
-    Returns:
-    list: List of arrays containing the indices of data points falling into each bin.
-    """
-    out = []
-    dat = data.ravel()
-       
-    for idx in range(0, len(bins)-1):
-        if idx == 0:
-            out.append(np.where((bins[idx]<=dat) & (bins[idx+1]>=dat))[0])
-        else:
-            out.append(np.where((bins[idx]<dat) & (bins[idx+1]>=dat))[0])
-        
-    return out
 
 #%%
 def plot_xybar(ax, data, bins, width=None, labels=None, title=None, xlabel=None, 
@@ -861,8 +840,7 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
             else:
                 
                 bottom[idx0, :] = np.max(np.vstack((bottom[idx0, :], y)), axis=0)
-                
-                
+                                
             count += 1
 
     if pct:

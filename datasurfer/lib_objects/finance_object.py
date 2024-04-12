@@ -1,6 +1,6 @@
 import pandas as pd
 from datasurfer.datautils import translate_config
-from datasurfer.lib_objects import PANDAS_OBJECT
+from datasurfer.lib_objects.pandas_object import PANDAS_OBJECT
 
 #%%
 

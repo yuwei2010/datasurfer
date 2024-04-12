@@ -33,6 +33,7 @@ def define_ax(func):
             _, ax = plt.subplots(**figparams)        
         
         ax = func(self, *keys, ax=ax, **kwargs)
+        
         if setax:
             axisfunc(ax)
         
@@ -59,7 +60,7 @@ class Plots(object):
         """
         self.dp = dp
         
-    def __call__(self, key, **kwargs):
+    def __call__(self, *key, **kwargs):
         """
         Call the `line` method with the given key and keyword arguments.
 
@@ -71,7 +72,7 @@ class Plots(object):
         - The result of the `line` method.
 
         """
-        return self.line(key, **kwargs)
+        return self.line(*key, **kwargs)
     
     
     def set_figparam(self, **kwargs):

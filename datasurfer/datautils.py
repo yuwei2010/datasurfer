@@ -362,28 +362,6 @@ def collect_dirs(root, *patts, patt_filter=None):
             if fs:
                 yield path, fs
                 
-#%%
-def arghisto(data, bins):
-    """
-    Compute the histogram of the input data based on the given bins.
-
-    Parameters:
-    data (ndarray): Input data array.
-    bins (ndarray): Bins for computing the histogram.
-
-    Returns:
-    list: List of arrays containing the indices of data points falling into each bin.
-    """
-    out = []
-    dat = data.ravel()
-       
-    for idx in range(0, len(bins)-1):
-        if idx == 0:
-            out.append(np.where((bins[idx]<=dat) & (bins[idx+1]>=dat))[0])
-        else:
-            out.append(np.where((bins[idx]<dat) & (bins[idx+1]>=dat))[0])
-        
-    return out
 
 #%%
 def parse_data(func):   
@@ -424,7 +402,8 @@ def parse_data(func):
                     out.append(o)
                     lbls.extend(ls)
                 else:
-                    raise ValueError('keys must be strings or numpy arrays')
+                    out.append(key)
+                    lbls.append(None)
                 
             return out, lbls
         
@@ -467,3 +446,12 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+    
+#%%
+def str2df(s, **kwargs):
+    
+    from io import StringIO
+    
+    df = pd.read_csv(StringIO(s), **kwargs)
+    
+    return df
