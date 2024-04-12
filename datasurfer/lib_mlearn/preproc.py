@@ -1,4 +1,5 @@
 import numpy as np
+
 #%%
 def detect_outliers(X, **kwargs):
     
@@ -8,4 +9,8 @@ def detect_outliers(X, **kwargs):
     y_pred = lof.fit_predict(X)
     
     return y_pred
+
+#%%
+
+
     

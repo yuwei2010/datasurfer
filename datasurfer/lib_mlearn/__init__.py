@@ -68,6 +68,7 @@ class MLearn(object):
         ax: matplotlib.axes.Axes
             The matplotlib axes object containing the decision boundary plot.
         """
+        
         assert len(vals) == 2, "Only two inputs are supported for decision boundary display."
         from sklearn.inspection import DecisionBoundaryDisplay
 
