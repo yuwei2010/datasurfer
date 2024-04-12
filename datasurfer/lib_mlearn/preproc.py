@@ -1,4 +1,4 @@
-import numpy as np
+
 
 #%%
 def detect_outliers(X, **kwargs):
