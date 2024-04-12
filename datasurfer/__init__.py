@@ -43,3 +43,15 @@ def read_string(s, name, **kwargs):
 
 #%%
 
+def to_object(df, name, **kwargs):
+    
+    import pandas as pd
+    
+    from datasurfer.lib_objects.data_object import DATA_OBJECT
+    
+    assert isinstance(df, pd.DataFrame), "The input data must be a pandas DataFrame."
+    
+    return DATA_OBJECT(df, name=name, **kwargs)
+
+#%%
+

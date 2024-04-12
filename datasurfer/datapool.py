@@ -632,7 +632,10 @@ class Data_Pool(object):
         """
         
         assert isinstance(obj, DataInterface), 'Input object must be a DataInterface object.'
-        if obj not in self.objs:    
+        
+        if obj in self.objs:
+            self.objs.pop(self.objs.index(obj))
+
             self.objs.append(obj)
         else:
             warnings.warn(f'Object "{obj.name}" is already in the datapool.')

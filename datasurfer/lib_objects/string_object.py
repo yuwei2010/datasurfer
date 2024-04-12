@@ -141,9 +141,13 @@ class STRING_OBJECT(DataInterface):
         """
         if name is None:
             name = f"{self.name}.csv"
-                        
-        s = STRING_OBJECT.replace_delimiter(self.dfstring(), delimiter=decimal)         
+        
+        idxname = self.df.index.name    
+        self.df.index.name = None 
+        s = STRING_OBJECT.replace_delimiter(self.dfstring(), decimal)    
+       
         df = str2df(s, index_col=0, delim_whitespace=True)
+        df.index.name = idxname
             
         df.to_csv(name)
         

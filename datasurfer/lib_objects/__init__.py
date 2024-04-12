@@ -320,6 +320,10 @@ class DataInterface(ABC):
         return self._df 
     
     @property
+    def dataframe(self):
+        return self.df
+    
+    @property
     def name(self):
         
         if self._name is None:
@@ -738,6 +742,7 @@ class DataInterface(ABC):
                         errname = err.__class__.__name__
                         tb = traceback.format_exc(limit=0, chain=False)
                         warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                        yield None
                     else:
                         raise
         return wrapper
