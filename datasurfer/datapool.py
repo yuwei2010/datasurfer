@@ -838,7 +838,17 @@ class Data_Pool(object):
         return out
     
     def get_signal1Ds(self, *signals, ignore_error=True, mask=None):
-        
+        """
+        Retrieves multiple 1D signals from the datapool.
+
+        Args:
+            *signals: Variable length argument list of signal names to retrieve.
+            ignore_error (bool, optional): Whether to ignore errors when retrieving signals. Defaults to True.
+            mask (array-like, optional): Mask to apply to the retrieved signals. Defaults to None.
+
+        Returns:
+            pandas.DataFrame: A DataFrame containing the retrieved signals concatenated along the columns.
+        """
         out = []
         for sig in signals:          
             out.append(self.get_signal1D(sig, ignore_error=ignore_error, mask=mask))
