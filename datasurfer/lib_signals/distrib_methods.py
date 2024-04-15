@@ -1,5 +1,3 @@
-
-
 import numpy as np
 #%%
 def get_kde(x, **kwargs):
@@ -23,7 +21,7 @@ def get_kde(x, **kwargs):
     return density
 
 #%%
-def arghisto(data, bins):
+def arghisto(data, bins, outdata=None):
     """
     Compute the histogram of the input data based on the given bins.
 
@@ -42,8 +40,33 @@ def arghisto(data, bins):
             out.append(np.where((bins[idx]<=dat) & (bins[idx+1]>=dat))[0])
         else:
             out.append(np.where((bins[idx]<dat) & (bins[idx+1]>=dat))[0])
+    
+    if outdata is not None: 
+        out = groupby(outdata, out)
         
     return out
+
+#%%
+def groupby(data, grpindex, remove_nan=True):
+    """
+    Group the data points based on the given bins.
+
+    Parameters:
+    data (ndarray): Input data array.
+    bins (ndarray): Bins for grouping the data.
+
+    Returns:
+    list: List of arrays containing the data points falling into each bin.
+    """
+
+    data = np.asarray(data).ravel()   
+    arr = [data[idx] for idx in grpindex]
+    
+    if remove_nan:
+        arr = [dat[~np.isnan(dat)] for dat in arr]
+    
+    return arr
+    
 
 #%%
 if __name__ == '__main__':

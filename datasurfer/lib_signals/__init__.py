@@ -37,12 +37,12 @@ class Signal(object):
         
         output = kwargs.pop('output', None)
         
-        out = arghisto(val, bins)
+        out = arghisto(val, bins, outdata=output)
         
-        if output is not None:
-            return [self.dp[[output]].values[idx].ravel() for idx in out]
-        else:
-            return out
+        # if output is not None:
+        #     return [self.dp[[output]].values[idx].ravel() for idx in out]
+        # else:
+        return out
 
     
     @parse_data
@@ -194,6 +194,22 @@ class Signal(object):
 
         return lag
     
+    @parse_data    
+    def groupby(self, dat, indices=None,  remove_nan=True, **kwargs):
+        """
+        Group the data points based on the given bins.
+
+        Parameters:
+        - key: The key for which to group the data.
+        - grpindex: The indices for grouping the data.
+
+        Returns:
+        - A list of arrays containing the data points falling into each bin.
+
+        """
+        from datasurfer.lib_signals.distrib_methods import groupby
+            
+        return groupby(dat, indices, remove_nan=remove_nan)
 
         
             
