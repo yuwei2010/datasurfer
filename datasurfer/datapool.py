@@ -770,6 +770,25 @@ class Data_Pool(object):
                     
                 else:
                     raise
+    
+    def iter_objsignals(self, *signames, ignore_error=True):
+        
+            
+        for idx, obj in enumerate(self.objs):
+        
+            msk = ~np.ones(len(self.objs), dtype=bool)
+            
+            msk[idx] = True
+                       
+            vals = [next(self.iter_signal(signame, ignore_error=ignore_error, 
+                                          mask=msk)) for signame in signames]
+            
+            df = pd.concat(vals, axis=1)
+            df.columns = signames   
+            
+            yield obj.name, df
+        
+        
    
     def get_signal(self, signame, ignore_error=True, mask=None):
         """
@@ -1231,7 +1250,7 @@ class Data_Pool(object):
         out = json.dumps(out, indent=4)        
         return out
     
-    def to_dataframe(self, columns=None, pbar=True):
+    def to_dataframe(self, *names, pbar=True):
         """
         Convert the objects in the datapool to a pandas DataFrame.
 
@@ -1246,20 +1265,18 @@ class Data_Pool(object):
         @show_pool_progress('Processing', show=pbar)
         def fun(self):
             
-            for obj in self.objs:
-                
-                df = obj.df.reset_index()
-                
-                if columns is not None:
-                    
-                    df = df[columns]
-                
-                index = pd.MultiIndex.from_product([[obj.name], df.columns])
+            for objname, df in self.iter_objsignals(*names):
+                                
+                index = pd.MultiIndex.from_product([[objname], df.columns])
                 
                 df.columns = index
                                 
                 yield df
 
+        if not names:
+            
+            names = self.list_signals()
+            
         dfs = list(fun(self))
         return pd.concat(dfs, axis=1)
                 
@@ -1310,7 +1327,7 @@ class Data_Pool(object):
         list(fun(self))        
         return self
 
-    def to_excel(self, name, pbar=True):
+    def to_summary_excel(self, name, keys=None, pbar=True):
         """
         Save the data pool to an Excel file.
 
@@ -1323,11 +1340,14 @@ class Data_Pool(object):
 
         """
         with pd.ExcelWriter(name) as writer:
+            
             @show_pool_progress('Saving', show=pbar)
             def fun(self):       
-                for obj in self.objs:        
-                    obj.df.to_excel(writer, sheet_name=obj.name)
-                    yield True            
+                for name, df in self.iter_objsignals(*keys):        
+                    df.to_excel(writer, sheet_name=name)
+                    yield True  
+                    
+            keys = keys or self.list_signals()              
             list(fun(self))        
             return self
             
@@ -1463,8 +1483,8 @@ class Data_Pool(object):
                         ncount = ncount + 1
                         if ncount >= num:
                             break
-        
-            self.objs = list(fun(self))                
+                        
+            self = Data_Pool(list(fun(None)))              
             self.initialized = True
             
             del npz.f
