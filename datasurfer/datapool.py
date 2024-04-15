@@ -1274,17 +1274,22 @@ class Data_Pool(object):
 
         return self
     
-    def to_json(self):
-        
+    def def2json(self):
+        """
+        Convert the data in the datapool to a JSON string.
+
+        Returns:
+            str: A JSON string representation of the datapool data.
+        """
         out = dict()
-        
+
         for name, feature in (('path', self.paths()),
-                             ('comment', self.comments())):
-            
+                              ('comment', self.comments())):
+
             for key, value in feature.items():
                 out.setdefault(key, dict())[name] = value
-        
-        out = json.dumps(out, indent=4)        
+
+        out = json.dumps(out, indent=4)
         return out
     
     def to_dataframe(self, *names, pbar=True):

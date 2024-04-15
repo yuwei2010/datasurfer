@@ -54,7 +54,7 @@ def read_string(s, name, **kwargs):
 
 #%%
 
-def to_object(df, name, **kwargs):
+def df2object(df, name, **kwargs):
     """
     Convert a pandas DataFrame to a DATA_OBJECT.
 
