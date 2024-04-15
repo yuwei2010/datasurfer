@@ -720,7 +720,7 @@ class DataInterface(ABC):
     
 
     @staticmethod
-    def pipeline(*funs, ignore_error=True):
+    def pipeline(*funs, hook=None, ignore_error=True):
         """
         Executes a series of functions on an object in a pipeline fashion.
 
@@ -735,9 +735,21 @@ class DataInterface(ABC):
         Returns:
             None
         """
-        if not all(hasattr(fun, '__call__') for fun in funs):
+        if funs and not all(hasattr(fun, '__call__') for fun in funs):
             raise ValueError('Input values must be callable.')
         
+        elif not funs and hook and Path(hook).is_file():
+            import ast
+            callables = [n.name for n in ast.parse(open(hook).read()).body if 
+                            isinstance(n, ast.FunctionDef) or 
+                            isinstance(n, ast.ClassDef) and hasattr(n, '__call__')]
+            
+            mdl = __import__(Path(hook).stem)
+            funs = [getattr(mdl, name) for name in callables]
+        
+        if not funs:
+            raise ValueError('No callable functions provided.')
+               
         def wrapper(obj):
             for fun in funs:
                 try:

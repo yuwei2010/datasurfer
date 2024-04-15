@@ -1169,7 +1169,7 @@ class Data_Pool(object):
         return self.__class__(out)
     
     @staticmethod
-    def pipeline(*funs, pbar=True, ignore_error=True, asiterator=False):
+    def pipeline(*funs, hook=None, pbar=True, ignore_error=True, asiterator=False):
         """
         Applies a series of functions to each object in the data pool and yields the result.
 
@@ -1179,15 +1179,14 @@ class Data_Pool(object):
         Yields:
             The modified object after applying all the functions.
         """
-        if not all(hasattr(fun, '__call__') for fun in funs):
-            raise ValueError('Input values must be callable.')
+        
         if asiterator: pbar=False
         
         def wrapper(dp):
             @show_pool_progress('Processing', show=pbar)
             def fun(dp):
                 for obj in dp.objs:                            
-                    list(DataInterface.pipeline(*funs, ignore_error=ignore_error)(obj))
+                    list(DataInterface.pipeline(*funs, hook=hook, ignore_error=ignore_error)(obj))
                     yield obj
                     
             if asiterator:

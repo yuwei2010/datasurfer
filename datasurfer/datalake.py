@@ -442,7 +442,7 @@ class Data_Lake(object):
         return dlk
 
     @staticmethod
-    def pipeline(*funs, pbar=True, ignore_error=True, asiterator=True):
+    def pipeline(*funs, hook=None, pbar=True, ignore_error=True, asiterator=True):
         """
         Applies a series of functions to each object in the data pool and yields the result.
 
@@ -452,15 +452,14 @@ class Data_Lake(object):
         Yields:
             The modified object after applying all the functions.
         """
-        if not all(hasattr(fun, '__call__') for fun in funs):
-            raise ValueError('Input values must be callable.')    
-        
+   
         def wrapper(dlk):
+            
             @show_pool_progress('Processing', show=pbar)
             def fun(dlk):
                 for dp in dlk.objs:   
 
-                    yield Data_Pool.pipeline(*funs, pbar=False, ignore_error=ignore_error, asiterator=False)(dp)
+                    yield Data_Pool.pipeline(*funs, hook=hook, pbar=False, ignore_error=ignore_error, asiterator=False)(dp)
                     
             if asiterator:
                 return fun(dlk)
