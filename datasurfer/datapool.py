@@ -632,13 +632,12 @@ class Data_Pool(object):
         """
         
         assert isinstance(obj, DataInterface), 'Input object must be a DataInterface object.'
-        
+
         if obj in self.objs:
             self.objs.pop(self.objs.index(obj))
-
-            self.objs.append(obj)
-        else:
             warnings.warn(f'Object "{obj.name}" is already in the datapool.')
+            
+        self.objs.append(obj)
         return self
     
     def extend(self, dp):
@@ -742,18 +741,23 @@ class Data_Pool(object):
         # 1  36.0
         # 2  37.0
         '''
-
-        for idx, obj in enumerate(self.objs):
+        if mask is not None:
+            assert len(mask) == len(self.objs), 'Mask length must match the number of objects.'
+            objs = [obj for obj, msk in zip(self.objs, mask) if msk]
+        else:
+            objs = self.objs
+            
+        for obj in objs:
             
             try:                
-                if (mask is None) or (mask is not None and mask[idx]):
-                                            
-                    df = obj.get(signame)
-                        
-                    df.columns = [obj.name]                      
-                    df.index = np.arange(0, len(df))
 
-                    yield df
+                                            
+                df = obj.get(signame)
+                    
+                df.columns = [obj.name]                      
+                df.index = np.arange(0, len(df))
+
+                yield df
                 
             except Exception as err:
                 
@@ -772,23 +776,57 @@ class Data_Pool(object):
                     raise
     
     def iter_objsignals(self, *signames, ignore_error=True):
-        
-            
+        """
+        Iterates over the objects in the datapool and returns a DataFrame for each specified signal name.
+
+        Args:
+            *signames: Variable length argument list of signal names.
+            ignore_error (bool, optional): If True, ignores any errors encountered during iteration. Defaults to True.
+
+        Yields:
+            tuple: A tuple containing the object name and the corresponding DataFrame for each specified signal name.
+
+        """
         for idx, obj in enumerate(self.objs):
-        
             msk = ~np.ones(len(self.objs), dtype=bool)
-            
             msk[idx] = True
-                       
-            vals = [next(self.iter_signal(signame, ignore_error=ignore_error, 
-                                          mask=msk)) for signame in signames]
-            
+            vals = [next(self.iter_signal(signame, ignore_error=ignore_error, mask=msk)) for signame in signames]
             df = pd.concat(vals, axis=1)
-            df.columns = signames   
-            
+            df.columns = signames
             yield obj.name, df
         
+    def get_row(self, row, columns=None, ignore_error=True, pbar=True):    
         
+        @show_pool_progress('Processing', pbar)
+        def get(self):
+
+            for name, df in self.iter_objsignals(*columns, ignore_error=ignore_error):
+                try: 
+                    res = df.loc[row]
+                    
+                    ds = pd.Series(res, index=columns)
+                    ds.name = name
+                        
+                except KeyError as err:
+                    if ignore_error:     
+                        
+                        errname = err.__class__.__name__
+                        tb = traceback.format_exc(limit=0, chain=False)
+                        warnings.warn(f'Exception "{errname}" is raised while processing "{name}": "{tb}"')
+
+                        ds = pd.Series(np.nan * np.ones(columns.__len__()), index=columns)                        
+                        ds.name = name       
+                        
+                    else:
+                        raise
+                finally:
+                    yield ds  
+        columns = columns or self.list_signals()            
+        rows = list(get(self))
+        df = pd.concat(rows, axis=1).T
+        return df                    
+                
+            
    
     def get_signal(self, signame, ignore_error=True, mask=None):
         """
@@ -1169,7 +1207,7 @@ class Data_Pool(object):
         - DataPool: A new DataPool object that is a deep copy of the original object.
         """
         
-        from .lib_objects import DATA_OBJECT
+        from datasurfer.lib_objects.data_object import DATA_OBJECT
         @show_pool_progress('Copying', show=pbar)
         def fun(self):            
             for name, dat in self.iter_dict():
