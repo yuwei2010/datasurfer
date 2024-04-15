@@ -735,6 +735,10 @@ class DataInterface(ABC):
         Returns:
             None
         """
+        if not hook and len(funs)==1 and Path(funs[0]).is_file():
+            hook = funs[0]
+            funs = []   
+        
         if funs and not all(hasattr(fun, '__call__') for fun in funs):
             raise ValueError('Input values must be callable.')
         

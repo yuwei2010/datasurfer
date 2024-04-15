@@ -35,9 +35,9 @@ class Signal(object):
         """
         from datasurfer.lib_signals.distrib_methods import arghisto
         
-        output = kwargs.pop('output', None)
+        output = kwargs.pop('on_value', None)
         
-        out = arghisto(val, bins, outdata=output)
+        out = arghisto(val, bins, on_value=output)
         
         # if output is not None:
         #     return [self.dp[[output]].values[idx].ravel() for idx in out]
