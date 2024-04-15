@@ -23,6 +23,7 @@ class STRING_OBJECT(DataInterface):
     """
     
     pattern = re.compile(r'([0-9]+)[,.]{1}([0-9]+)')
+    exts = ['-']
 
     def __init__(self, s, name=None, comment=None, config=None, decimal='.', **kwargs):
         """

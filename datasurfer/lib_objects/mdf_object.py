@@ -28,7 +28,7 @@ class MDF_OBJECT(DataInterface):
         channels: The list of available channels in the MDF file.
         t: The time axis of the data.
     """
-
+    exts = ['.mf4']
     def __init__(self, path, config=None, sampling=0.1, name=None, comment=None):
         super().__init__(path, config, comment=comment, name=name)
         self.sampling = sampling

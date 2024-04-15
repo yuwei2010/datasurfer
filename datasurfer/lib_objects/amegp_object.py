@@ -37,7 +37,8 @@ class AMEGP_OBJECT(DataInterface):
             Saves the object's data to a file.
 
     """
-
+    exts = ['.gp']
+    
     def __init__(self, path=None, config=None, name=None, comment=None):
         """
         Initializes a new instance of the AMEGP_OBJECT class.

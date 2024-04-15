@@ -18,7 +18,8 @@ class AMEDATA_OBJECT(DataInterface):
         data1D (ndarray): The 1D data.
         data (ndarray): The reshaped data.
     """
-
+    exts = ['.data']
+    
     @property
     def fhandler(self):
         """

@@ -16,7 +16,7 @@ class FINANCE_OBJECT(PANDAS_OBJECT):
         df (pandas.DataFrame): The data stored in the finance object.
         time_format (str): The format of the time values in the finance object.
     """
-    
+    exts = ['.csv', '.xlsx', '.xls']
     def __init__(self, path=None, config=None, name=None, comment=None, 
                  df=None, time_format='%Y%m%d'):
         """

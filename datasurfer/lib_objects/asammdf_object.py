@@ -24,6 +24,7 @@ class ASAMMDF_OBJECT(DataInterface):
         autoclose (bool, optional): Whether to automatically close the object. Defaults to False.
     """
   
+    exts = ['mf4']
     
     def __init__(self, path, config=None, sampling=0.1, name=None, 
                  comment=None, autoclose=False):

@@ -24,7 +24,7 @@ class DATA_OBJECT(DataInterface):
         load(path): Load the data object from a file.
 
     """
-
+    exts = ['.npz']
     def __init__(self, path=None, config=None, name=None, comment=None, df=None):
         """
         Initializes a new instance of the DATA_OBJECT class.

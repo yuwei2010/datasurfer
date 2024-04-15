@@ -21,7 +21,7 @@ class JSON_OBJECT(DataInterface):
         name (str): The name of the JSON object.
         comment (str): Additional comments about the JSON object.
     """
-
+    exts = ['.json']
     def __init__(self, path=None, config=None, name=None, comment=None):
         super().__init__(path, config=config, name=name, comment=comment)
         

@@ -37,6 +37,7 @@ class AMERES_OBJECT(DataInterface):
         search_channel: Searches for data channels that match a given pattern.
     """
 
+    exts = ['.results']
 
     def __init__(self, path=None, config=None, name=None, comment=None):
         

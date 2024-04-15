@@ -28,7 +28,7 @@ class MATLAB_OBJECT(DataInterface):
         get_df(): Returns a pandas DataFrame containing the loaded data.
 
     """
-
+    exts = ['.mat']
     def __init__(self, path, config=None, key=None, name=None, comment=None, **kwargs):
         super().__init__(path, config, comment=comment, name=name)
         self.matkey = key

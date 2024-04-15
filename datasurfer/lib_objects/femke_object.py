@@ -25,7 +25,7 @@ class KF_OBJECT(DataInterface):
         getZ(key, **kwargs): Interpolates the values of a given key in the DataFrame based on the x and y coordinates.
 
     """
-
+    exts = ['*.kf']
     def __init__(self, path, key_x='n', key_y='Trq', config=None, name=None, comment=None):       
         super().__init__(path, config, comment=comment, name=name)
         self.key_x = key_x

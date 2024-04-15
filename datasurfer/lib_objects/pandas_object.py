@@ -20,6 +20,8 @@ class PANDAS_OBJECT(DataInterface):
         '.xls':  pd.read_excel,        
     }
     
+    exts = ['.xlsx', '.csv', '.xls']
+    
     def __init__(self, path=None, config=None, name=None, comment=None, **kwargs):
         """
         Initializes a new instance of the PANDAS_OBJECT class.
