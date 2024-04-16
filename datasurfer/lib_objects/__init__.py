@@ -45,7 +45,7 @@ def list_interfaces():
                 names = [c.__name__ for c in inspect.getmro(cls)]
                 if 'DataInterface' in names and cls.__name__ != 'DataInterface':
                     if hasattr(cls, 'exts'):
-                        exts = cls.exts
+                        exts = sorted(cls.exts)
                     else:
                         exts = []
                     out[cls.__name__] = (cls, cls.__doc__, exts)

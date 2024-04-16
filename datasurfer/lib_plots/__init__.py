@@ -8,7 +8,7 @@ from datasurfer.lib_plots.plot_utils import parallel_coordis, get_histo_bins
 from datasurfer.datautils import parse_data
 
 figparams = {'figsize': (8, 6), 
-             'dpi': 120,}
+             'dpi': 105,}
 
 def set_ax(ax):
     
@@ -75,7 +75,7 @@ class Plots(object):
         return self.line(*key, **kwargs)
     
     
-    def set_figparam(self, **kwargs):
+    def set_params(self, **kwargs):
         """
         Set the figure parameters for the plots.
         

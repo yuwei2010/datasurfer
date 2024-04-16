@@ -103,6 +103,18 @@ class STRING_OBJECT(DataInterface):
                     name=dat['name'], index_col=0, delim_whitespace=True)  
         return obj
     
+    def to_markdown(self, **kwargs):
+        """
+        Converts the DataFrame to a markdown table.
+
+        Args:
+            **kwargs: Additional keyword arguments to pass to the `to_markdown` method.
+
+        Returns:
+            str: The markdown representation of the DataFrame.
+
+        """
+        return self.df.to_markdown(**kwargs)
     
     def to_clipboard(self, decimal='.', **kwargs):
         """
