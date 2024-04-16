@@ -22,7 +22,25 @@ def set_ax(ax):
 axisfunc = set_ax
 
 def define_ax(func):
-    
+    """
+    A decorator function that defines an axis for plotting.
+
+    Parameters:
+    - func: The function to be decorated.
+
+    Returns:
+    - The decorated function.
+
+    Usage:
+    - Use this decorator to define an axis for plotting in functions that require an axis.
+    - If an axis is not provided as a keyword argument, a new axis will be created using plt.subplots().
+
+    Example:
+    @define_ax
+    def plot_data(self, *keys, ax=None, **kwargs):
+        # Function implementation
+    """
+
     @wraps(func)
     def wrapper(self, *keys, **kwargs): 
           
