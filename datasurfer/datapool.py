@@ -1132,24 +1132,24 @@ class Data_Pool(object):
         return self
     
     def convert(self, cls, pbar=True):
-            """
-            Converts all the objects in the Data_Pool to a different class.
+        """
+        Converts all the objects in the Data_Pool to a different class.
 
-            Args:
-                cls (class): The class to convert the objects to.
-                pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+        Args:
+            cls (class): The class to convert the objects to.
+            pbar (bool, optional): Whether to show a progress bar. Defaults to True.
 
-            Returns:
-                Data_Pool: A new Data_Pool object with the converted objects.
-            """
-            
-            @show_pool_progress('Converting', show=pbar)
-            def get(self):
-                for obj in self.objs:
-                    new_obj = obj.convert(cls)
-                    yield new_obj
-           
-            return Data_Pool(list(get(self)), config=self.config, name=self.name)
+        Returns:
+            Data_Pool: A new Data_Pool object with the converted objects.
+        """
+        
+        @show_pool_progress('Converting', show=pbar)
+        def get(self):
+            for obj in self.objs:
+                new_obj = obj.convert(cls)
+                yield new_obj
+        
+        return Data_Pool(list(get(self)), config=self.config, name=self.name)
         
     def select(self, mask_array):
         
