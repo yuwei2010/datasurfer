@@ -10,6 +10,55 @@ from matplotlib.collections import LineCollection
 
 
 #%%
+def adjust_axis_offset(ax, offset=1.2, which='right', color=None):
+    """
+    Adjusts the offset of the specified axis spine.
+
+    Parameters:
+    ax (matplotlib.axes.Axes): The axes object to adjust.
+    offset (float): The offset value to set for the spine position. Default is 1.2.
+    which (str): The spine to adjust. Can be 'left', 'right', 'top', or 'bottom'. Default is 'right'.
+
+    Returns:
+    matplotlib.axes.Axes: The modified axes object.
+    """
+    
+    axis = ax.spines[which]
+    axis.set_position(('axes', offset))
+    
+    if color:
+        axis.set_color(color)
+        
+    
+    return ax
+
+
+#%%
+def set_axis_color(ax, axis='both', color='black'):
+    """
+    Sets the color of the specified axis or axes.
+
+    Parameters:
+    ax (matplotlib.axes.Axes): The axes object to adjust.
+    axis (str): The axis or axes to adjust. Can be 'x', 'y', or 'both'. Default is 'both'.
+    color (str): The color to set for the axis or axes. Default is 'black'.
+
+    Returns:
+    matplotlib.axes.Axes: The modified axes object.
+    """
+    
+    if axis in ('x', 'both'):
+        ax.xaxis.label.set_color(color)
+        ax.tick_params(axis='x', colors=color)
+        
+    if axis in ('y', 'both'):
+        ax.yaxis.label.set_color(color)
+        ax.tick_params(axis='y', colors=color)
+        
+    return ax
+    
+
+#%%
 def get_histo_bins(arr, num=10, decimals=0, base=None, maxi=None):
     
     arr = np.asarray(arr).ravel()
