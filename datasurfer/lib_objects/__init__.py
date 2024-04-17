@@ -860,6 +860,11 @@ class DataInterface(ABC):
             
         return self
     
+    def to_clipboard(self, decimal='.'):
+        from datasurfer.lib_objects.string_object import STRING_OBJECT
+        self.to_object(STRING_OBJECT).to_clipboard(decimal=decimal)
+        return self
+    
     def to_numpy(self):
         """
         Converts the data to a NumPy array.

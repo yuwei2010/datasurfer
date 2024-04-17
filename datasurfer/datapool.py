@@ -1146,7 +1146,7 @@ class Data_Pool(object):
         @show_pool_progress('Converting', show=pbar)
         def get(self):
             for obj in self.objs:
-                new_obj = obj.convert(cls)
+                new_obj = obj.to_object(cls)
                 yield new_obj
         
         return Data_Pool(list(get(self)), config=self.config, name=self.name)
