@@ -145,8 +145,8 @@ class Plots(object):
             
             
         if bins is None:
-            # bins = np.linspace(np.min(data), np.max(data), 10)
             bins = get_histo_bins(data)
+            
         elif isinstance(bins, (abc.Sequence, np.ndarray)):
             bins = np.asarray(bins)
         

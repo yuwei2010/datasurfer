@@ -157,11 +157,15 @@ class DataInterface(ABC):
     
     def __eq__(self, other):
         
-        return (self.__class__ == other.__class__) and (self.path == other.path) and (self.name == other.name)
-    
+        return self.__hash__() == other.__hash__()
+        
     def __hash__(self):
         
-        return hash((self.path, self.name, self.__class__))
+        if hasattr(self, '_df'):
+            h = pd.util.hash_pandas_object(self.df, index=True).sum()
+            return hash((self.path, self.name, h, self.__class__))
+        else:
+            return hash((self.path, self.name, self.__class__))
     
     def __repr__(self):
         

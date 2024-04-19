@@ -38,9 +38,10 @@ class Data_Lake(object):
 
         if not isinstance(patts, (list, tuple, set)):
             patts = [patts]
+            
         if isinstance(root, str):
             founds = sorted(collect_dirs(root, *patts))
-            objs = [Data_Pool([d/f for f in fs], name=d.stem, config=config) for d, fs in founds]
+            objs = [Data_Pool([d/f for f in fs], name=d.stem, config=config, **kwargs) for d, fs in founds]
 
             for obj, (d, _) in zip(objs, founds):
                 obj.path = d
