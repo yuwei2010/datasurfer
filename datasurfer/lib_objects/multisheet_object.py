@@ -6,11 +6,16 @@ from datasurfer.lib_objects.pandas_object import PandasObject
 #%%
 class ExcelDataPool(DataPool):
        
-    def __init__(self, path=None, config=None, name=None, comment=None, **kwargs):
+    def __init__(self, path=None, config=None, name=None, comment=None, sheets=None, **kwargs):
         
-        sheet_names = pd.ExcelFile(path).sheet_names
+        shnames = pd.ExcelFile(path).sheet_names
         
-        objs = [PandasObject(path, config=config, comment=comment, name=sname, sheet_name=sname, **kwargs) for sname in sheet_names]
+        sheet_names = sheets or shnames
+        
+        sheet_names = [sh for sh in sheet_names if sh in shnames]
+        
+        objs = [PandasObject(path, config=config, comment=comment, name=sname,
+                             sheet_name=sname, **kwargs) for sname in sheet_names]
                 
         super().__init__(objs)
         
