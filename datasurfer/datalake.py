@@ -186,11 +186,19 @@ class DataLake(object):
         else:
             raise NameError(f'Can not find any "{name}"')
         
+    def get_object(self, name):
+        from datasurfer.lib_objects.numpy_object import NumpyObject
+        founds = [dp.get_object(name).to_object(cls=NumpyObject, name=dp.name) for dp in self.objs if name in dp.names()]
+        
+        return DataPool(founds)
+
+        
     def get_signals(self, *signals):
         
         out = dict((obj.name, obj.get_signals(*signals)) for obj in self.objs)
         
         return out
+    
     
     def get_signal1Ds(self, *signals, as_df=True):
         

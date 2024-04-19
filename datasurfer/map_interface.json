@@ -1,34 +1,34 @@
 {
     ".csv": [
-        "lib_objects.PandasObject",
+        "lib_objects.pandas_object",
         "PandasObject"
     ],
     ".xlsx": [
-        "lib_objects.PandasObject",
+        "lib_objects.pandas_object",
         "PandasObject"
     ],
     ".mf4": [
-        "lib_objects.ASAMmdfObject",
+        "lib_objects.asammdf_object",
         "ASAMmdfObject"
     ],
     ".mat": [
-        "lib_objects.MatlabObject",
+        "lib_objects.matlab_object",
         "MatlabObject"
     ],
     ".results": [
-        "lib_objects.AMEResObject",
+        "lib_objects.ameres_object",
         "AMEResObject"
     ],
     ".amegp": [
-        "lib_objects.AMEGPObject",
+        "lib_objects.amegp_object",
         "AMEGPObject"
     ],
     ".data": [
-        "lib_objects.AMEDataObject",
+        "lib_objects.amedata_object",
         "AMEDataObject"
     ],
     ".json": [
-        "lib_objects.JSONObject",
+        "lib_objects.json_object",
         "JSONObject"
     ],
     ".xkf": [

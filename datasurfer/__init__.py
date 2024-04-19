@@ -48,7 +48,7 @@ def read_string(s, name, **kwargs):
         StringObject: The created StringObject.
 
     """
-    from datasurfer.lib_objects.StringObject import StringObject
+    from datasurfer.lib_objects.string_object import StringObject
     
     return StringObject(s, name, **kwargs)
 
@@ -70,7 +70,7 @@ def df2object(df, name, **kwargs):
         AssertionError: If the input data is not a pandas DataFrame.
     """
     import pandas as pd
-    from datasurfer.lib_objects.NumpyObject import NumpyObject
+    from datasurfer.lib_objects.numpy_object import NumpyObject
 
     assert isinstance(df, pd.DataFrame), "The input data must be a pandas DataFrame."
 
@@ -101,7 +101,7 @@ def set_default_interface(ext, path, cls):
     else:
         dict_map = {}   
 
-    c = getattr(importlib.import_module(f'datasurfer.{path}'), cls)
+    getattr(importlib.import_module(f'datasurfer.{path}'), cls)
 
     dict_map[ext] = [path, cls]
 

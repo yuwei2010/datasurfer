@@ -66,6 +66,3 @@ class PandasObject(DataInterface):
         
         return df
     
-    #%%
-    
-    #class MultiSheetObject()

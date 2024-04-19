@@ -162,7 +162,7 @@ class DataInterface(ABC):
     def __hash__(self):
         
         if hasattr(self, '_df'):
-            h = pd.util.hash_PandasObject(self.df, index=True).sum()
+            h = pd.util.hash_pandas_object(self.df, index=True).sum()
             return hash((self.path, self.name, h, self.__class__))
         else:
             return hash((self.path, self.name, self.__class__))
@@ -351,10 +351,12 @@ class DataInterface(ABC):
     def get_df(self):
         pass
     
-    def to_object(self, cls):
+    def to_object(self, cls, name=None):
         
         if hasattr(cls, 'from_other'):
-            return cls.from_other(self)
+            obj = cls.from_other(self)
+            obj.name = name or self.name
+            return obj
         else:
             raise NotImplementedError('Convert method is not implemented.')
         
