@@ -4,13 +4,13 @@ import pandas as pd
 from collections import abc
 from itertools import chain
 from pathlib import Path
-from datasurfer.datapool import Data_Pool
+from datasurfer.datapool import DataPool
 from difflib import SequenceMatcher
 
 from datasurfer.datautils import collect_dirs, show_pool_progress
 
 #%%
-class Data_Lake(object):
+class DataLake(object):
     """
     Represents a data lake that contains multiple data pools.
 
@@ -41,7 +41,7 @@ class Data_Lake(object):
             
         if isinstance(root, str):
             founds = sorted(collect_dirs(root, *patts))
-            objs = [Data_Pool([d/f for f in fs], name=d.stem, config=config, **kwargs) for d, fs in founds]
+            objs = [DataPool([d/f for f in fs], name=d.stem, config=config, **kwargs) for d, fs in founds]
 
             for obj, (d, _) in zip(objs, founds):
                 obj.path = d
@@ -49,7 +49,7 @@ class Data_Lake(object):
             if self.name is None:
                 self.name = self.path.stem
             
-        elif isinstance(root, abc.Sequence) and all(isinstance(r, Data_Pool) for r in root):
+        elif isinstance(root, abc.Sequence) and all(isinstance(r, DataPool) for r in root):
             objs = root
         elif root is None:
             objs = []
@@ -75,7 +75,7 @@ class Data_Lake(object):
             name (str): The name of the data pool.
             obj (DataPool): The data pool to be added.
         """
-        assert isinstance(obj, Data_Pool), 'The object must be a DataPool object.'
+        assert isinstance(obj, DataPool), 'The object must be a DataPool object.'
         obj.name = name
         self.objs.append(obj)    
         
@@ -335,7 +335,7 @@ class Data_Lake(object):
         Raises:
             ValueError: If there are duplicated data objects and `raise_error` is True.
         """
-        out = Data_Pool()
+        out = DataPool()
         
         for obj in self.objs:
             try:   
@@ -404,15 +404,15 @@ class Data_Lake(object):
     @staticmethod
     def from_def(path, **kwargs):
         """
-        Load data definition from a file or a dictionary and create a Data_Lake object.
+        Load data definition from a file or a dictionary and create a DataLake object.
 
         Args:
             path (str or dict): The path to the file containing the data definition in JSON or YAML format,
                                 or a dictionary representing the data definition.
-            **kwargs: Additional keyword arguments to be passed to the Data_Pool.load_def method.
+            **kwargs: Additional keyword arguments to be passed to the DataPool.load_def method.
 
         Returns:
-            Data_Lake: A Data_Lake object containing the loaded data definition.
+            DataLake: A DataLake object containing the loaded data definition.
 
         Raises:
             ValueError: If the input value is not a string or a dictionary.
@@ -435,9 +435,9 @@ class Data_Lake(object):
         else:
             raise ValueError('Input value must be a string or a dictionary.')
         
-        dlk = Data_Lake()    
+        dlk = DataLake()    
         for name, values in data.items():
-            dp = Data_Pool.from_def(values, name=name, **kwargs)
+            dp = DataPool.from_def(values, name=name, **kwargs)
             dlk.objs.append(dp)
             
         return dlk
@@ -460,7 +460,7 @@ class Data_Lake(object):
             def fun(dlk):
                 for dp in dlk.objs:   
 
-                    yield Data_Pool.pipeline(*funs, hook=hook, pbar=False, ignore_error=ignore_error, asiterator=False)(dp)
+                    yield DataPool.pipeline(*funs, hook=hook, pbar=False, ignore_error=ignore_error, asiterator=False)(dp)
                     
             if asiterator:
                 return fun(dlk)

@@ -3,13 +3,13 @@
 __author__ = """Wei Yu"""
 __email__ = 'yuwei2005@gmail.com'
 
-from datasurfer.datapool import Data_Pool
-from datasurfer.datalake import Data_Lake
+from datasurfer.datapool import DataPool
+from datasurfer.datalake import DataLake
 from datasurfer.lib_objects import DataInterface
 from datasurfer.lib_objects import list_interfaces
 
 
-__all__ = ['Data_Pool', 'Data_Lake', 'DataInterface', 'list_interfaces']
+__all__ = ['DataPool', 'DataLake', 'DataInterface', 'list_interfaces']
 
 #%%
 
@@ -37,7 +37,7 @@ def __getattr__(name):
 #%%
 def read_string(s, name, **kwargs):
     """
-    Reads a string and returns a STRING_OBJECT.
+    Reads a string and returns a StringObject.
 
     Args:
         s (str): The input string.
@@ -45,36 +45,36 @@ def read_string(s, name, **kwargs):
         **kwargs: Additional keyword arguments.
 
     Returns:
-        STRING_OBJECT: The created STRING_OBJECT.
+        StringObject: The created StringObject.
 
     """
-    from datasurfer.lib_objects.string_object import STRING_OBJECT
+    from datasurfer.lib_objects.StringObject import StringObject
     
-    return STRING_OBJECT(s, name, **kwargs)
+    return StringObject(s, name, **kwargs)
 
 #%%
 
 def df2object(df, name, **kwargs):
     """
-    Convert a pandas DataFrame to a DATA_OBJECT.
+    Convert a pandas DataFrame to a NumpyObject.
 
     Parameters:
         df (pd.DataFrame): The input data as a pandas DataFrame.
         name (str): The name of the data object.
-        **kwargs: Additional keyword arguments to be passed to the DATA_OBJECT constructor.
+        **kwargs: Additional keyword arguments to be passed to the NumpyObject constructor.
 
     Returns:
-        DATA_OBJECT: The converted data object.
+        NumpyObject: The converted data object.
 
     Raises:
         AssertionError: If the input data is not a pandas DataFrame.
     """
     import pandas as pd
-    from datasurfer.lib_objects.data_object import DATA_OBJECT
+    from datasurfer.lib_objects.NumpyObject import NumpyObject
 
     assert isinstance(df, pd.DataFrame), "The input data must be a pandas DataFrame."
 
-    return DATA_OBJECT(df, name=name, **kwargs)
+    return NumpyObject(df, name=name, **kwargs)
 
 #%%
 

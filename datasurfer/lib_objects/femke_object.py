@@ -4,9 +4,9 @@ from datasurfer.lib_objects import DataInterface
 
 #%%
 
-class KF_OBJECT(DataInterface):
+class KFObject(DataInterface):
     """
-    A class representing a KF_OBJECT.
+    A class representing a KFObject.
 
     Attributes:
         path (str): The path to the data file.

@@ -10,8 +10,8 @@ from xml.etree.ElementTree import fromstring
 from datasurfer.lib_objects import DataInterface
 from datasurfer.datautils import translate_config, extract_channels
 
-#%% ASAMMDF_OBJECT
-class ASAMMDF_OBJECT(DataInterface):
+#%% ASAMmdfObject
+class ASAMmdfObject(DataInterface):
     """
     Represents an ASAM MDF object.
 
@@ -24,12 +24,12 @@ class ASAMMDF_OBJECT(DataInterface):
         autoclose (bool, optional): Whether to automatically close the object. Defaults to False.
     """
   
-    exts = ['mf4']
+    exts = ['.mf4']
     
     def __init__(self, path, config=None, sampling=0.1, name=None, 
                  comment=None, autoclose=False):
         """
-        Initializes a new instance of the ASAMMDF_OBJECT class.
+        Initializes a new instance of the ASAMmdfObject class.
 
         Args:
             path (str): The path to the MDF file.
@@ -49,7 +49,7 @@ class ASAMMDF_OBJECT(DataInterface):
         Enters the context manager.
 
         Returns:
-            ASAMMDF_OBJECT: The current instance.
+            ASAMmdfObject: The current instance.
         """
         return self
     

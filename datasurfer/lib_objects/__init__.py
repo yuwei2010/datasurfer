@@ -162,7 +162,7 @@ class DataInterface(ABC):
     def __hash__(self):
         
         if hasattr(self, '_df'):
-            h = pd.util.hash_pandas_object(self.df, index=True).sum()
+            h = pd.util.hash_PandasObject(self.df, index=True).sum()
             return hash((self.path, self.name, h, self.__class__))
         else:
             return hash((self.path, self.name, self.__class__))
@@ -807,9 +807,9 @@ class DataInterface(ABC):
                                             If not provided, the original DataFrame is returned.
 
         Returns:
-        - new_obj (DATA_OBJECT): A new instance of the DATA_OBJECT class with the resampled DataFrame.
+        - new_obj (NumpyObject): A new instance of the NumpyObject class with the resampled DataFrame.
         """
-        from datasurfer.lib_objects.data_object import DATA_OBJECT
+        from datasurfer.lib_objects.NumpyObject import NumpyObject
         
         if new_index is not None:
             new_index = np.asarray(new_index)
@@ -830,7 +830,7 @@ class DataInterface(ABC):
         else:
             df_out = self.df
 
-        new_obj = DATA_OBJECT(path=str(self.path), config=self.config,
+        new_obj = NumpyObject(path=str(self.path), config=self.config,
                               name=self.name,
                               comment=self.comment, df=df_out)
 
@@ -865,8 +865,8 @@ class DataInterface(ABC):
         return self
     
     def to_clipboard(self, decimal='.'):
-        from datasurfer.lib_objects.string_object import STRING_OBJECT
-        self.to_object(STRING_OBJECT).to_clipboard(decimal=decimal)
+        from datasurfer.lib_objects.StringObject import StringObject
+        self.to_object(StringObject).to_clipboard(decimal=decimal)
         return self
     
     def to_numpy(self):
@@ -939,9 +939,9 @@ class DataInterface(ABC):
         
         if overwrite or not Path(name).is_file():
             
-            from datasurfer import DATA_OBJECT
+            from datasurfer import NumpyObject
             
-            dobj = DATA_OBJECT(path=self.path, config=self.config, name=self.name, 
+            dobj = NumpyObject(path=self.path, config=self.config, name=self.name, 
                            comment=self.comment, df=self.df)
             dobj.save(name)
         

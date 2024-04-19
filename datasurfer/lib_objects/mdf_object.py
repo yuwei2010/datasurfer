@@ -8,8 +8,8 @@ import mdfreader
 from datasurfer.lib_objects import DataInterface
 from datasurfer.datautils import translate_config, extract_channels
 
-#%% MDF_OBJECT
-class MDF_OBJECT(DataInterface):
+#%% MDFObject
+class MDFObject(DataInterface):
     """
     Represents an MDF object that provides access to MDF file data.
 

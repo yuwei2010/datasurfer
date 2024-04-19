@@ -5,7 +5,7 @@ from datasurfer.lib_objects import DataInterface
 
 #%% MATLAB_OJBECT
 
-class MATLAB_OBJECT(DataInterface):
+class MatlabObject(DataInterface):
     """
     Represents a MATLAB object that can be loaded from a file.
 

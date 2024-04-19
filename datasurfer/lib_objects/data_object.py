@@ -4,8 +4,8 @@ from datasurfer import DataInterface
 from pathlib import Path
 
 
-#%% DATA_OBJECT
-class DATA_OBJECT(DataInterface):
+#%% NumpyObject
+class NumpyObject(DataInterface):
     """
     Represents a data object.
 
@@ -27,7 +27,7 @@ class DATA_OBJECT(DataInterface):
     exts = ['.npz']
     def __init__(self, path=None, config=None, name=None, comment=None, df=None):
         """
-        Initializes a new instance of the DATA_OBJECT class.
+        Initializes a new instance of the NumpyObject class.
 
         If `df` is None, the data object will be loaded from the specified `path`.
         Otherwise, the data object will be created with the provided arguments.
@@ -64,7 +64,7 @@ class DATA_OBJECT(DataInterface):
             name (str, optional): The name of the saved file. Defaults to None.
 
         Returns:
-            DATA_OBJECT: The current instance of the data object.
+            NumpyObject: The current instance of the data object.
 
         """
         if name is None:
@@ -78,7 +78,7 @@ class DATA_OBJECT(DataInterface):
         assert isinstance(other, DataInterface)
         dat = other.to_dict()
         df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-        obj = DATA_OBJECT(path=dat['path'],
+        obj = NumpyObject(path=dat['path'],
                     config=dat['config'],
                     comment=dat['comment'],
                     name=dat['name'],
@@ -93,13 +93,13 @@ class DATA_OBJECT(DataInterface):
             path (str): The path to the data file.
 
         Returns:
-            DATA_OBJECT: The current instance of the data object.
+            NumpyObject: The current instance of the data object.
 
         """
         with np.load(path, allow_pickle=True) as dat:
             dat = np.load(path, allow_pickle=True)
             df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-            obj = DATA_OBJECT(path=Path(path).absolute(),
+            obj = NumpyObject(path=Path(path).absolute(),
                           config=dat['config'].item(),
                           comment=dat['comment'].item(),
                           name=dat['name'].item(),

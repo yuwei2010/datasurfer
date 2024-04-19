@@ -1,10 +1,10 @@
 import pandas as pd
 from datasurfer.datautils import translate_config
-from datasurfer.lib_objects.pandas_object import PANDAS_OBJECT
+from datasurfer.lib_objects.PandasObject import PandasObject
 
 #%%
 
-class FINANCE_OBJECT(PANDAS_OBJECT):
+class FinanceObject(PandasObject):
     """
     A class representing a finance object.
     
@@ -20,7 +20,7 @@ class FINANCE_OBJECT(PANDAS_OBJECT):
     def __init__(self, path=None, config=None, name=None, comment=None, 
                  df=None, time_format='%Y%m%d'):
         """
-        Initializes a new instance of the FINANCE_OBJECT class.
+        Initializes a new instance of the FinanceObject class.
         
         Args:
             path (str, optional): The path to the finance object. Defaults to None.

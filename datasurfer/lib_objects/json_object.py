@@ -5,7 +5,7 @@ from datasurfer.lib_objects import DataInterface
 from datasurfer.datautils import translate_config
 
 #%%
-class JSON_OBJECT(DataInterface):
+class JSONObject(DataInterface):
     """
     Represents a JSON object.
 

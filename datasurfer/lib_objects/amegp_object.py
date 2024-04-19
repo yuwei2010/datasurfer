@@ -7,7 +7,7 @@ from datasurfer.lib_objects import DataInterface
 
 
 #%% AMEGP_OJBECT
-class AMEGP_OBJECT(DataInterface):
+class AMEGPObject(DataInterface):
     """
     Represents an object for handling AMEGP data.
 
@@ -26,7 +26,7 @@ class AMEGP_OBJECT(DataInterface):
 
     Methods:
         __init__(self, path=None, config=None, name=None, comment=None):
-            Initializes a new instance of the AMEGP_OBJECT class.
+            Initializes a new instance of the AMEGPObject class.
         __setitem__(self, name, value):
             Sets the value of a specific item in the object.
         get_df(self):
@@ -41,7 +41,7 @@ class AMEGP_OBJECT(DataInterface):
     
     def __init__(self, path=None, config=None, name=None, comment=None):
         """
-        Initializes a new instance of the AMEGP_OBJECT class.
+        Initializes a new instance of the AMEGPObject class.
 
         Args:
             path (str): The path to the data file.
@@ -87,7 +87,7 @@ class AMEGP_OBJECT(DataInterface):
             value: The value to be set.
 
         Returns:
-            self: The updated AMEGP_OBJECT instance.
+            self: The updated AMEGPObject instance.
 
         """
         self.df.at['VALUE', name] = value
@@ -101,7 +101,7 @@ class AMEGP_OBJECT(DataInterface):
             name (str, optional): The name of the file to save the data to. If not provided, the original file will be overwritten.
 
         Returns:
-            self: The AMEGP_OBJECT instance.
+            self: The AMEGPObject instance.
 
         """
         name = name if name is not None else self.path

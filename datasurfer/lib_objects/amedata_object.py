@@ -3,9 +3,9 @@ import numpy as np
 import pandas as pd
 from datasurfer.lib_objects import DataInterface
 from functools import reduce
-#%% AMEDATA_OBJECT
+#%% AMEDataObject
 
-class AMEDATA_OBJECT(DataInterface):
+class AMEDataObject(DataInterface):
     """ 
     A class reads AMESim tables.
 

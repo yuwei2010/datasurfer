@@ -5,7 +5,7 @@ from datasurfer import DataInterface
 from datasurfer.datautils import str2df
 
 
-class STRING_OBJECT(DataInterface):
+class StringObject(DataInterface):
     """
     Represents a string object.
 
@@ -27,7 +27,7 @@ class STRING_OBJECT(DataInterface):
 
     def __init__(self, s, name=None, comment=None, config=None, decimal='.', **kwargs):
         """
-        Initializes a new instance of the STRING_OBJECT class.
+        Initializes a new instance of the StringObject class.
 
         Args:
             path (str): The path to the string object.
@@ -54,7 +54,7 @@ class STRING_OBJECT(DataInterface):
             str: The modified string with the new delimiter.
 
         """
-        s = re.sub(STRING_OBJECT.pattern, rf'\1{delimiter}\2', string)
+        s = re.sub(StringObject.pattern, rf'\1{delimiter}\2', string)
         return s
         
 
@@ -65,7 +65,7 @@ class STRING_OBJECT(DataInterface):
         Returns:
             pandas.DataFrame: The DataFrame representation of the string object.
         """
-        s = STRING_OBJECT.replace_delimiter(self.string, self.decimal_delimiter)            
+        s = StringObject.replace_delimiter(self.string, self.decimal_delimiter)            
         return str2df(s, **self.kwargs)
     
     
@@ -82,13 +82,13 @@ class STRING_OBJECT(DataInterface):
     @staticmethod
     def from_other(other):
         """
-        Create a STRING_OBJECT instance from another DataInterface object.
+        Create a StringObject instance from another DataInterface object.
 
         Parameters:
-            other (DataInterface): The DataInterface object to create the STRING_OBJECT from.
+            other (DataInterface): The DataInterface object to create the StringObject from.
 
         Returns:
-            STRING_OBJECT: The created STRING_OBJECT instance.
+            StringObject: The created StringObject instance.
 
         Raises:
             AssertionError: If the `other` object is not an instance of DataInterface.
@@ -97,7 +97,7 @@ class STRING_OBJECT(DataInterface):
         dat = other.to_dict()
         df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
 
-        obj = STRING_OBJECT(s=df.to_string(),
+        obj = StringObject(s=df.to_string(),
                     config=dat['config'],
                     comment=dat['comment'],
                     name=dat['name'], index_col=0, delim_whitespace=True)  
@@ -157,7 +157,7 @@ class STRING_OBJECT(DataInterface):
         
         idxname = self.df.index.name    
         self.df.index.name = None 
-        s = STRING_OBJECT.replace_delimiter(self.dfstring(), decimal)    
+        s = StringObject.replace_delimiter(self.dfstring(), decimal)    
        
         df = str2df(s, index_col=0, delim_whitespace=True)
         df.index.name = idxname

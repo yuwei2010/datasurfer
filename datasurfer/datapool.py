@@ -26,7 +26,7 @@ random.seed()
   
 #%% Data Pool
 
-class Data_Pool(object):
+class DataPool(object):
     """
     A class representing a data pool to process datasets.
     
@@ -127,8 +127,8 @@ class Data_Pool(object):
             if all(isinstance(s, (str, Path)) for s in datobjects) and all(Path(s).is_dir() for s in datobjects):
                 
                 datobjects = reduce(lambda x, y: 
-                                    Data_Pool(x, config=config, interface=interface, **kwargs)
-                                    + Data_Pool(y, config=config, interface=interface,  **kwargs), datobjects)    
+                                    DataPool(x, config=config, interface=interface, **kwargs)
+                                    + DataPool(y, config=config, interface=interface,  **kwargs), datobjects)    
         elif datobjects is not None:
                 datobjects = [datobjects]
         
@@ -653,7 +653,7 @@ class Data_Pool(object):
         Raises:
             AssertionError: If any of the input objects is not an instance of DataInterface.
         """
-        assert isinstance(dp, Data_Pool), 'Input objects must be Data Pool object.'
+        assert isinstance(dp, DataPool), 'Input objects must be Data Pool object.'
         
         for obj in dp.objs:
             
@@ -1133,14 +1133,14 @@ class Data_Pool(object):
     
     def convert(self, cls, pbar=True):
         """
-        Converts all the objects in the Data_Pool to a different class.
+        Converts all the objects in the DataPool to a different class.
 
         Args:
             cls (class): The class to convert the objects to.
             pbar (bool, optional): Whether to show a progress bar. Defaults to True.
 
         Returns:
-            Data_Pool: A new Data_Pool object with the converted objects.
+            DataPool: A new DataPool object with the converted objects.
         """
         
         @show_pool_progress('Converting', show=pbar)
@@ -1149,7 +1149,7 @@ class Data_Pool(object):
                 new_obj = obj.to_object(cls)
                 yield new_obj
         
-        return Data_Pool(list(get(self)), config=self.config, name=self.name)
+        return DataPool(list(get(self)), config=self.config, name=self.name)
         
     def select(self, mask_array):
         
@@ -1206,12 +1206,12 @@ class Data_Pool(object):
         - DataPool: A new DataPool object that is a deep copy of the original object.
         """
         
-        from datasurfer.lib_objects.data_object import DATA_OBJECT
+        from datasurfer.lib_objects.NumpyObject import NumpyObject
         @show_pool_progress('Copying', show=pbar)
         def fun(self):            
             for name, dat in self.iter_dict():
                 df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-                obj = DATA_OBJECT(path=dat['path'],
+                obj = NumpyObject(path=dat['path'],
                                     config=dat['config'],
                                     comment=dat['comment'],
                                     name=dat['name'],
@@ -1450,14 +1450,14 @@ class Data_Pool(object):
     @staticmethod
     def from_def(path, **kwargs):
         """
-        Load data from a JSON file and create a Data_Pool object.
+        Load data from a JSON file and create a DataPool object.
 
         Parameters:
         - name (str): The name of the JSON file to load.
-        - **kwargs: Additional keyword arguments to pass to the Data_Pool constructor.
+        - **kwargs: Additional keyword arguments to pass to the DataPool constructor.
 
         Returns:
-        - dp (Data_Pool): The Data_Pool object created from the loaded data.
+        - dp (DataPool): The DataPool object created from the loaded data.
         """
         if isinstance(path, str):
             if path.lower().endswith('.json'):
@@ -1479,7 +1479,7 @@ class Data_Pool(object):
         paths = [val['path'] for val in values]
         comments = dict((key, val.get('comment', None)) for key, val in data.items())
         
-        dp = Data_Pool(paths, comments=comments, **kwargs)    
+        dp = DataPool(paths, comments=comments, **kwargs)    
 
         return dp
     
@@ -1487,7 +1487,7 @@ class Data_Pool(object):
     @staticmethod    
     def from_file(name, keys=None, pbar=True, count=None):
         """
-        Load data from a numpy .npz file and create DATA_OBJECT instances.
+        Load data from a numpy .npz file and create NumpyObject instances.
 
         Parameters:
             name (str): The name of the .npz file to load.
@@ -1499,7 +1499,7 @@ class Data_Pool(object):
             self: The updated instance of the class.
 
         """
-        from datasurfer.lib_objects.data_object import DATA_OBJECT
+        from datasurfer.lib_objects.NumpyObject import NumpyObject
         
         with np.load(name, allow_pickle=True) as npz:
             npzkeys = npz.keys()
@@ -1516,7 +1516,7 @@ class Data_Pool(object):
                     if (keys is None) or (k in keys):
                         dat = npz[k].item()            
                         df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-                        obj = DATA_OBJECT(path=dat['path'],
+                        obj = NumpyObject(path=dat['path'],
                                           config=dat['config'],
                                           comment=dat['comment'],
                                           name=dat['name'],
@@ -1526,7 +1526,7 @@ class Data_Pool(object):
                         if ncount >= num:
                             break
                         
-            self = Data_Pool(list(fun(None)))              
+            self = DataPool(list(fun(None)))              
             self.initialized = True
             
             del npz.f

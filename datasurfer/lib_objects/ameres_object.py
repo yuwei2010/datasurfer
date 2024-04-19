@@ -13,7 +13,7 @@ from datasurfer.datautils import translate_config, extract_channels
 
 
 #%% AMERES_OJBECT
-class AMERES_OBJECT(DataInterface):
+class AMEResObject(DataInterface):
     """
     Represents an object for handling AMERES data.
 

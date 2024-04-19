@@ -1,12 +1,14 @@
 
 import numpy as np
 import pandas as pd
+
+from datasurfer import DataPool
 from datasurfer.lib_objects import DataInterface
 from datasurfer.datautils import translate_config
 
 
 #%%
-class PANDAS_OBJECT(DataInterface):
+class PandasObject(DataInterface):
     """
     A class representing a Pandas object.
 
@@ -24,7 +26,7 @@ class PANDAS_OBJECT(DataInterface):
     
     def __init__(self, path=None, config=None, name=None, comment=None, **kwargs):
         """
-        Initializes a new instance of the PANDAS_OBJECT class.
+        Initializes a new instance of the PandasObject class.
 
         Args:
             path (str): The path to the data file.
@@ -63,3 +65,7 @@ class PANDAS_OBJECT(DataInterface):
         
         
         return df
+    
+    #%%
+    
+    #class MultiSheetObject()
