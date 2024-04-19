@@ -52,7 +52,7 @@ class DATA_OBJECT(DataInterface):
    
     def get_df(self):
         
-        raise NotImplementedError("A Data object doesn't need get_df.")
+        raise NotImplementedError("A Data object doesn't need to create a data frame.")
     
     def save(self, name=None):
         """
