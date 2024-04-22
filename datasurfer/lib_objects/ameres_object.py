@@ -7,7 +7,7 @@ import numpy as np
 
 from pathlib import Path
 
-from datasurfer.lib_objects import DataInterface 
+from datasurfer.datainterface import DataInterface 
 from datasurfer.datautils import translate_config, extract_channels
 
 

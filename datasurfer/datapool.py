@@ -18,7 +18,7 @@ from pathlib import Path
 from itertools import chain
 from functools import reduce
 
-from datasurfer.lib_objects import DataInterface
+from datasurfer.datainterface import DataInterface
 from datasurfer.datautils import collect_files, combine_configs, show_pool_progress
     
 random.seed()
@@ -1393,7 +1393,7 @@ class DataPool(object):
             list(fun(self))        
             return self
     
-    def to_datalake(self, **condis):
+    def to_datalake(self, *hook, **condis):
         """
         Converts the data in the DataPool to a DataLake based on the given conditions.
 
@@ -1408,8 +1408,11 @@ class DataPool(object):
         """
 
         from datasurfer import DataLake
+        from datasurfer.datautils import parse_hook_file
 
         out = dict()
+        
+        
 
         for name, func in condis.items():
             assert hasattr(func, '__call__'), 'The value of the condition must be a callable function.'
@@ -1418,7 +1421,7 @@ class DataPool(object):
                 if func(obj):
                     out.setdefault(name, []).append(obj)
 
-        pools = [DataPool(objs, name=name) for name, objs in out.items()]
+        pools = [DataPool(objs, name=name) for name, objs in out.items() if len(objs)]
 
         if not len(condis):
             pools = [self]

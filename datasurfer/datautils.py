@@ -13,6 +13,29 @@ from tqdm import tqdm
 
 
 #%%
+def parse_hook_file(hook):
+    """
+    Parse a hook file and return a list of callable objects defined in the file.
+
+    Args:
+        hook (str): The path to the hook file.
+
+    Returns:
+        list: A list of callable objects defined in the hook file.
+    """
+    import ast
+    
+    callables = [n.name for n in ast.parse(open(hook).read()).body if 
+                    isinstance(n, ast.FunctionDef) or 
+                    isinstance(n, ast.ClassDef) and hasattr(n, '__call__')]
+    
+    mdl = __import__(Path(hook).stem)
+    funs = [getattr(mdl, name) for name in callables]
+    
+    return funs
+
+
+#%%
 def collect_files(root, *patts, warn_if_double=True, ignore_double=False):
     '''
     Gather files from the data directory that match patterns

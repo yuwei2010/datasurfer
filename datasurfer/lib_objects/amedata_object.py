@@ -1,7 +1,7 @@
 import re
 import numpy as np
 import pandas as pd
-from datasurfer.lib_objects import DataInterface
+from datasurfer.datainterface import DataInterface
 from functools import reduce
 #%% AMEDataObject
 

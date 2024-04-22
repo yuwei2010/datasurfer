@@ -5,8 +5,8 @@ __email__ = 'yuwei2005@gmail.com'
 
 from datasurfer.datapool import DataPool
 from datasurfer.datalake import DataLake
-from datasurfer.lib_objects import DataInterface
-from datasurfer.lib_objects import list_interfaces
+from datasurfer.datainterface import DataInterface
+from datasurfer.datainterface import list_interfaces
 
 
 __all__ = ['DataPool', 'DataLake', 'DataInterface', 'list_interfaces']

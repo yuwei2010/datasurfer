@@ -7,7 +7,7 @@ import asammdf
 from asammdf import set_global_option    
 set_global_option("raise_on_multiple_occurrences", False) 
 from xml.etree.ElementTree import fromstring
-from datasurfer.lib_objects import DataInterface
+from datasurfer.datainterface import DataInterface
 from datasurfer.datautils import translate_config, extract_channels
 
 #%% ASAMmdfObject

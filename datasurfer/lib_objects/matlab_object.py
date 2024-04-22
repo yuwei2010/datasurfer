@@ -1,7 +1,7 @@
 #%% Import Libraries
 import pandas as pd
 import numpy as np
-from datasurfer.lib_objects import DataInterface
+from datasurfer.datainterface import DataInterface
 
 #%% MATLAB_OJBECT
 
