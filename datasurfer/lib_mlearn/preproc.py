@@ -1,5 +1,4 @@
 
-
 #%%
 def detect_outliers(X, **kwargs):
     

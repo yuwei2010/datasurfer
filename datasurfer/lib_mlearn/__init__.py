@@ -50,6 +50,42 @@ class MLearn(object):
     def __init__(self, dp=None):
         
         self.dp = dp
+        
+    def create_features(self, *keys, reduce_func=None):
+        """
+        Create features from the given keys.
+
+        Args:
+            *keys: Variable length argument representing the keys to retrieve data from.
+            reduce_func (function, optional): A function to reduce the retrieved data. Defaults to None.
+
+        Returns:
+            tuple: A tuple containing the names of the features and the stacked values.
+
+        Raises:
+            KeyError: If a key is not found in the retrieved data.
+
+        """
+        def get():
+            for obj in objs:
+                try:
+                    df = obj.get(*keys).dropna(axis=0)
+                    array = np.atleast_2d(df.values)
+                except KeyError:
+                    array = None
+
+                if array is not None and len(array) and reduce_func is not None:
+                    array = reduce_func(array)
+
+                yield obj.name, np.atleast_2d(array)
+
+        from datasurfer.datainterface import DataInterface
+
+        objs = [self.dp] if isinstance(self.dp, DataInterface) else self.dp.objs
+
+        names, vals = zip(*get())
+
+        return names, np.vstack(vals)
 
     @parse_data    
     def display_decision(self, *vals, model, **kwargs):
@@ -81,9 +117,8 @@ class MLearn(object):
 
         return ax
 
-    @output_switcher 
-    @parse_data    
-    def detect_outliers(self, *vals, **kwargs):
+    @output_switcher  
+    def detect_outliers(self, X, **kwargs):
         """
         Detect outliers in the given data.
 
@@ -102,13 +137,22 @@ class MLearn(object):
         from sklearn.ensemble import IsolationForest
         kwargs.pop('labels', None)
         
-        X = np.vstack(vals).T
         clf = IsolationForest(**kwargs)
         
         clf.fit(X)
         fstar = lambda :clf.predict(X) == -1
 
         return clf, fstar
+    
+    
+    @output_switcher 
+    def kmeans(self, X, n_clusters, **kwargs):
+        
+        from datasurfer.lib_mlearn.clustering import kmeans
+        
+        mdl = kmeans(X, n_clusters=n_clusters, **kwargs)
+        
+        return mdl, lambda :mdl.predict(X)
     
     
     

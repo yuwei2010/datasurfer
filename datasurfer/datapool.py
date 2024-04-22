@@ -1243,13 +1243,23 @@ class DataPool(object):
             yield obj.name, out
     
     def rename(self, **kwargs):
-        for key, val in kwargs.items():
-            try:
-                self.get_object(val).name = key
-            except NameError:
-                pass
-                
-        return self 
+            """
+            Renames objects in the datapool.
+
+            Args:
+                **kwargs: Keyword arguments where the key is the new name and the value is the current name of the object.
+
+            Returns:
+                self: The updated datapool object.
+
+            """
+            for key, val in kwargs.items():
+                try:
+                    self.get_object(val).name = key
+                except NameError:
+                    pass
+                    
+            return self
                
     def rename_signals(self, **kwargs):
         """
