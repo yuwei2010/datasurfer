@@ -38,7 +38,7 @@ class DataLake(object):
 
         if not isinstance(patts, (list, tuple, set)):
             patts = [patts]
-            
+        
         if isinstance(root, str):
             founds = sorted(collect_dirs(root, *patts))
             objs = [DataPool([d/f for f in fs], name=d.stem, config=config, **kwargs) for d, fs in founds]
@@ -50,9 +50,12 @@ class DataLake(object):
                 self.name = self.path.stem
             
         elif isinstance(root, abc.Sequence) and all(isinstance(r, DataPool) for r in root):
+            
             objs = root
+            
         elif root is None:
             objs = []
+            
         else:
             raise ValueError('root must be a string or a sequence of DataPool objects.')
 

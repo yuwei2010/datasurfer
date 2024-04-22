@@ -1394,10 +1394,39 @@ class DataPool(object):
             return self
     
     def to_datalake(self, **condis):
-        
-        
-        
-    
+        """
+        Converts the data in the DataPool to a DataLake based on the given conditions.
+
+        Parameters:
+        - condis (keyword arguments): Conditions to filter the data. Each condition should be a callable function.
+
+        Returns:
+        - dlk (DataLake): The resulting DataLake object.
+
+        Raises:
+        - AssertionError: If the value of any condition is not a callable function.
+        """
+
+        from datasurfer import DataLake
+
+        out = dict()
+
+        for name, func in condis.items():
+            assert hasattr(func, '__call__'), 'The value of the condition must be a callable function.'
+
+            for obj in self.objs:
+                if func(obj):
+                    out.setdefault(name, []).append(obj)
+
+        pools = [DataPool(objs, name=name) for name, objs in out.items()]
+
+        if not len(condis):
+            pools = [self]
+
+        dlk = DataLake(pools)
+
+        return dlk
+               
     def save(self, name, pbar=True):
         """
         Save the data pool to a file.
