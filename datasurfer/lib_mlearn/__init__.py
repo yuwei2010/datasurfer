@@ -77,7 +77,8 @@ class MLearn(object):
                 if array is not None and len(array) and reduce_func is not None:
                     array = reduce_func(array)
 
-                yield obj.name, np.atleast_2d(array)
+                if array is not None:
+                    yield obj.name, np.atleast_2d(array)
 
         from datasurfer.datainterface import DataInterface
 
