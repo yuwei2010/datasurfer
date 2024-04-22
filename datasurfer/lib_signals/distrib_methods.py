@@ -41,8 +41,8 @@ def arghisto(data, bins, on_value=None):
         else:
             out.append(np.where((bins[idx]<dat) & (bins[idx+1]>=dat))[0])
     
-    if outdata is not None: 
-        out = groupby(outdata, out)
+    if on_value is not None: 
+        out = groupby(on_value, out)
         
     return out
 
