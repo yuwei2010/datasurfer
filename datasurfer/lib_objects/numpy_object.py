@@ -52,7 +52,7 @@ class NumpyObject(DataInterface):
    
     def get_df(self):
         
-        raise NotImplementedError("A Data object doesn't need to create a data frame.")
+        raise NotImplementedError("Can not create a data frame inside of a numpy object.")
     
     def save(self, name=None):
         """

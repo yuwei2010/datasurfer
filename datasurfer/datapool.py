@@ -1195,7 +1195,7 @@ class DataPool(object):
                 return list(fun(dp))
         return wrapper      
                 
-    def deepcopy(self, pbar=True):
+    def deepcopy(self, *pipeline, pbar=True):
         """
         Create a deep copy of the DataPool object.
 
@@ -1206,22 +1206,21 @@ class DataPool(object):
         - DataPool: A new DataPool object that is a deep copy of the original object.
         """
         
-        from datasurfer.lib_objects.NumpyObject import NumpyObject
+        from datasurfer.lib_objects.numpy_object import NumpyObject
+        
         @show_pool_progress('Copying', show=pbar)
-        def fun(self):            
-            for name, dat in self.iter_dict():
-                df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-                obj = NumpyObject(path=dat['path'],
-                                    config=dat['config'],
-                                    comment=dat['comment'],
-                                    name=dat['name'],
-                                    df=df)                
+        def fun(self):           
+            for obj in self.objs:
+                obj = obj.to_object(NumpyObject)
+                if pipeline:
+                    list(DataInterface.pipeline(*pipeline)(obj))
+                              
                 yield obj
-                
-                
+                                
         objs = list(fun(self))
-                
-        return self.__class__(objs)
+        
+                        
+        return self.__class__(datobjects=objs)
     
     def iter_dict(self):
         """
@@ -1393,7 +1392,7 @@ class DataPool(object):
             list(fun(self))        
             return self
     
-    def to_datalake(self, *hook, **condis):
+    def to_datalake(self, *hooks, **condis):
         """
         Converts the data in the DataPool to a DataLake based on the given conditions.
 
@@ -1412,6 +1411,12 @@ class DataPool(object):
 
         out = dict()
         
+        for hook in hooks:
+            for func in parse_hook_file(hook):
+                assert hasattr(func, '__call__'), 'The value of the condition must be a callable function.'
+                for obj in self.objs:
+                    if func(obj):
+                        out.setdefault(func.__name__, []).append(obj) 
         
 
         for name, func in condis.items():
@@ -1425,7 +1430,7 @@ class DataPool(object):
 
         if not len(condis):
             pools = [self]
-
+                   
         dlk = DataLake(pools)
 
         return dlk

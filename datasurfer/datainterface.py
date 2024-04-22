@@ -724,6 +724,8 @@ class DataInterface(ABC):
             
         return self
     
+    def select_cols(self, keys):
+        return self.squeeze(*keys)
 
     @staticmethod
     def pipeline(*funs, hook=None, ignore_error=True):
@@ -746,7 +748,7 @@ class DataInterface(ABC):
         Returns:
             A generator that yields the results of executing the functions on the object.
         """
-        if not hook and len(funs)==1 and Path(funs[0]).is_file():
+        if not hook and len(funs)==1 and (isinstance(funs[0], (str, Path)) and Path(funs[0]).is_file()):
             hook = funs[0]
             funs = []   
 
@@ -812,7 +814,7 @@ class DataInterface(ABC):
         Returns:
         - new_obj (NumpyObject): A new instance of the NumpyObject class with the resampled DataFrame.
         """
-        from datasurfer.lib_objects.NumpyObject import NumpyObject
+        from datasurfer.lib_objects.numpy_object import NumpyObject
         
         if new_index is not None:
             new_index = np.asarray(new_index)
@@ -868,7 +870,8 @@ class DataInterface(ABC):
         return self
     
     def to_clipboard(self, decimal='.'):
-        from datasurfer.lib_objects.StringObject import StringObject
+        from datasurfer.lib_objects.string_object import StringObject
+        
         self.to_object(StringObject).to_clipboard(decimal=decimal)
         return self
     
