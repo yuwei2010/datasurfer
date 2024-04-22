@@ -1392,7 +1392,12 @@ class DataPool(object):
             keys = keys or self.list_signals()              
             list(fun(self))        
             return self
-            
+    
+    def to_datalake(self, **condis):
+        
+        
+        
+    
     def save(self, name, pbar=True):
         """
         Save the data pool to a file.
@@ -1485,7 +1490,7 @@ class DataPool(object):
     
 
     @staticmethod    
-    def from_file(name, keys=None, pbar=True, count=None):
+    def load_numpy(name, keys=None, pbar=True, count=None):
         """
         Load data from a numpy .npz file and create NumpyObject instances.
 
@@ -1499,7 +1504,7 @@ class DataPool(object):
             self: The updated instance of the class.
 
         """
-        from datasurfer.lib_objects.NumpyObject import NumpyObject
+        from datasurfer.lib_objects.numpy_object import NumpyObject
         
         with np.load(name, allow_pickle=True) as npz:
             npzkeys = npz.keys()
@@ -1544,6 +1549,8 @@ class DataPool(object):
         Returns:
             list: A list of DataPool instances, each containing a chunk of objects from the original pool.
         """
+        
+        
         out = dict()
         objs = self.objs[:]
 
@@ -1554,9 +1561,11 @@ class DataPool(object):
             for k in range(chunk):
                 if not objs:
                     break
-                out.setdefault(k, []).append(objs.pop())
+                key = f'Pool_{k:02d}'
+                out.setdefault(key, []).append(objs.pop())
 
         return [self.__class__(v) for v in out.values()]
+
             
 
     
