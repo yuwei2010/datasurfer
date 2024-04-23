@@ -332,7 +332,7 @@ class DataLake(object):
         """
         return this.df.equals(that.df, **kwargs)
     
-    def to_pool(self, name=None, raise_error=False):
+    def to_datapool(self, name=None, raise_error=False):
         """
         Merge multiple data objects in the pool.
 
@@ -355,7 +355,8 @@ class DataLake(object):
                 objname = set(out.names()) & set(obj.names())
                 raise ValueError(f'Cannot merge "{obj.name}" with "{out.name}" because of duplicated data object "{objname}".')    
         out.name = name 
-        out.path = self.path.parent
+        
+        out.path = self.path.parent if hasattr(self, 'path') else None
 
         return out
     

@@ -21,7 +21,7 @@ def get_kde(x, **kwargs):
     return density
 
 #%%
-def arghisto(data, bins, on_value=None):
+def arghisto(data, bins, on_value=None, align='right', clip=True):
     """
     Compute the histogram of the input data based on the given bins.
 
@@ -34,12 +34,42 @@ def arghisto(data, bins, on_value=None):
     """
     out = []
     dat = data.ravel()
-       
+    
+    alignment = {
+                    'right': lambda idx: np.where((bins[idx]<dat) & (bins[idx+1]>=dat))[0],
+                    'left': lambda idx: np.where((bins[idx]<=dat) & (bins[idx+1]>dat))[0], 
+                    
+                    }[align]
+    
+
     for idx in range(0, len(bins)-1):
+        
         if idx == 0:
-            out.append(np.where((bins[idx]<=dat) & (bins[idx+1]>=dat))[0])
+            if clip:
+                if align == 'right':
+                    out.append(np.where((bins[idx]<=dat) & (bins[idx+1]>=dat))[0])
+                else:
+                    out.append(alignment(idx))                
+            else:
+                if align == 'right':
+                    out.append(np.where(bins[idx+1]>=dat)[0])
+                else:
+                    out.append(np.where(bins[idx+1]>dat)[0])
+                    
+        elif idx == (len(bins)-1):
+            
+            if clip:
+                if align == 'right':
+                    out.append(alignment(idx))
+                else:                   
+                    out.append(np.where((bins[idx]<=dat) & (bins[idx+1]>=dat))[0])
+            else:
+                if align == 'right':
+                    out.append(np.where(bins[idx]<dat)[0])
+                else:
+                    out.append(np.where(bins[idx]<=dat)[0])
         else:
-            out.append(np.where((bins[idx]<dat) & (bins[idx+1]>=dat))[0])
+            out.append(alignment(idx))
     
     if on_value is not None: 
         out = groupby(on_value, out)

@@ -37,12 +37,10 @@ class Signal(object):
         
         output = kwargs.pop('on_value', None)
         
-        out = arghisto(val, bins, on_value=output)
+        out = arghisto(val, bins, on_value=output, **kwargs)
         
-        # if output is not None:
-        #     return [self.dp[[output]].values[idx].ravel() for idx in out]
-        # else:
         return out
+    
 
     
     @parse_data
