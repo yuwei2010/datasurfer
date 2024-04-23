@@ -27,29 +27,6 @@ def output_switcher(func):
         
     return wrapper
 #%%
-
-class Cluster(object):
-         
-    @output_switcher 
-    def kmeans(self, X, n_clusters, **kwargs):
-        
-        from datasurfer.lib_mlearn.clustering import kmeans
-        
-        mdl = kmeans(X, n_clusters=n_clusters, **kwargs)
-        
-        return mdl, lambda :mdl.predict(X)
-    
-    @output_switcher
-    def spectral(self, X, n_clusters, **kwargs):
-        
-        from datasurfer.lib_mlearn.clustering import spectral
-        
-        mdl = spectral(X, n_clusters=n_clusters, **kwargs)
-        
-        return mdl, lambda :mdl.predict(X)
-    
-    
-        
               
         
 
@@ -77,7 +54,7 @@ class MLearn(object):
         
     @property
     def clustering(self):
-        
+        from datasurfer.lib_mlearn.clustering import Cluster
         return Cluster()
         
     def create_features(self, *keys, reduce_func=None):
