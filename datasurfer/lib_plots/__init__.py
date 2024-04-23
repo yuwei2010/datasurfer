@@ -352,6 +352,7 @@ class Plots(object):
     def kde(self, *keys, ax=None, **kwargs):
 
         from datasurfer.lib_signals.distrib_methods import get_kde
+        
         lbls = kwargs.pop('labels', [None]*len(keys))
         num = kwargs.pop('count', 100)
         pltkws = kwargs.pop('plot_kws', {})
