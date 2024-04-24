@@ -981,6 +981,19 @@ class DataInterface(ABC):
             self.clean()
             
         return self
+    
+    def link_lib(self, lib):
+        """
+        Links the object to a library.
+
+        Args:
+            lib (Library): The library to link the object to.
+
+        Returns:
+            self: The updated object object.
+        """
+        self.lib = lib(self)
+        return self
    
     @property
     def plot(self):
