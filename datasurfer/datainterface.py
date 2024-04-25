@@ -982,17 +982,20 @@ class DataInterface(ABC):
             
         return self
     
-    def link_lib(self, lib):
+    def link_library(self, lib, link_name=None):
         """
-        Links the object to a library.
+        Links a library to the data interface.
 
         Args:
-            lib (Library): The library to link the object to.
+            lib: The library to be linked.
+            link_name (optional): The name to be used for the linked library. If not provided, the library's __name__ attribute will be used.
 
         Returns:
-            self: The updated object object.
+            The updated data interface object.
+
         """
-        self.lib = lib(self)
+        link_name = link_name or lib.__name__
+        setattr(self, link_name, lib(self))
         return self
    
     @property

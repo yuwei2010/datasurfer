@@ -1660,7 +1660,7 @@ class DataPool(object):
         list(get(self))
         return self
     
-    def link_lib(self, lib):
+    def link_library(self, lib, link_name=None):
         """
         Links the datapool to a library.
 
@@ -1669,8 +1669,10 @@ class DataPool(object):
 
         Returns:
             self: The updated datapool object.
+            
         """
-        self.lib = lib(self)
+        link_name = link_name or lib.__name__
+        setattr(self, link_name, lib(self))
         return self
     
     @property

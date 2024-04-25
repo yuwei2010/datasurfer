@@ -35,6 +35,7 @@ class Signal(object):
         """
         from datasurfer.lib_signals.distrib_methods import arghisto
         
+        kwargs.pop('labels', None)
         output = kwargs.pop('on_value', None)
         
         out = arghisto(val, bins, on_value=output, **kwargs)
