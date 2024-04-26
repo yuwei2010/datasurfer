@@ -29,7 +29,7 @@ def list_interfaces():
     
     out = dict()
     
-    for pth in Path(__file__).parent.glob('*.py'):
+    for pth in (Path(__file__).parent/'lib_objects').glob('*.py'):
         
         mdlname = pth.stem        
         try:
@@ -947,7 +947,7 @@ class DataInterface(ABC):
         
         if overwrite or not Path(name).is_file():
             
-            from datasurfer import NumpyObject
+            from datasurfer.lib_objects.numpy_object import NumpyObject
             
             dobj = NumpyObject(path=self.path, config=self.config, name=self.name, 
                            comment=self.comment, df=self.df)

@@ -167,9 +167,6 @@ class DataLake(object):
         """
         return sorted(set(chain(*[obj.list_signals() for obj in self.objs])))
 
-
-
-
     def get_pool(self, name):
         """
         Retrieves the data pool with the specified name from the data lake.
@@ -190,6 +187,16 @@ class DataLake(object):
             raise NameError(f'Can not find any "{name}"')
         
     def get_object(self, name):
+        """
+        Retrieves an object from the data lake based on its name.
+
+        Parameters:
+            name (str): The name of the object to retrieve.
+
+        Returns:
+            DataPool: A DataPool object containing the found objects.
+
+        """
         from datasurfer.lib_objects.numpy_object import NumpyObject
         founds = [dp.get_object(name).to_object(cls=NumpyObject, name=dp.name) for dp in self.objs if name in dp.names()]
         
@@ -197,21 +204,40 @@ class DataLake(object):
 
         
     def get_signals(self, *signals):
-        
+        """
+        Retrieves signals from the data objects in the datalake.
+
+        Args:
+            *signals: Variable number of signals to retrieve.
+
+        Returns:
+            dict: A dictionary containing the retrieved signals, where the keys are the names of the data objects and the values are the corresponding signals.
+
+        """
         out = dict((obj.name, obj.get_signals(*signals)) for obj in self.objs)
-        
         return out
     
     
     def get_signal1Ds(self, *signals, as_df=True):
-        
+        """
+        Retrieves the signal1Ds for the specified signals.
+
+        Args:
+            *signals: Variable number of signals to retrieve.
+            as_df (bool): Flag indicating whether to return the result as a DataFrame.
+
+        Returns:
+            dict or DataFrame: If `as_df` is True, returns a DataFrame with the signal1Ds.
+                               Otherwise, returns a dictionary with the signal1Ds.
+
+        """
         out = dict((obj.name, obj.get_signal1Ds(*signals)) for obj in self.objs)
-        
+
         if as_df:
             reform = {(outerKey, innerKey): values for outerKey, innerDict 
                       in out.items() for innerKey, values in innerDict.items()}
             out = pd.DataFrame(reform)
-        
+
         return out
         
     def iterobjs(self):

@@ -54,7 +54,7 @@ class NumpyObject(DataInterface):
         
         raise NotImplementedError("Can not create a data frame inside of a numpy object.")
     
-    def save(self, name=None):
+    def save(self, path=None):
         """
         Save the data object to a file.
 
@@ -67,9 +67,9 @@ class NumpyObject(DataInterface):
             NumpyObject: The current instance of the data object.
 
         """
-        if name is None:
-            name = self.name
-        np.savez(name, **self.to_dict())
+            
+        path = path or self.name
+        np.savez(path, **self.to_dict())
         return self
     
     @staticmethod

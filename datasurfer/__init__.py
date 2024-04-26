@@ -77,17 +77,32 @@ def df2object(df, name, **kwargs):
     return NumpyObject(df, name=name, **kwargs)
 
 #%%
-def excel2datapool(input, **kwargs):
-    
+def read_multisheets_excel(input, **kwargs):
+    """
+    Reads data from multiple sheets in an Excel file and returns an ExcelDataPool object.
+
+    Parameters:
+    - input: The input data source. It can be a DataInterface object, a DataPool object, or a file path.
+    - **kwargs: Additional keyword arguments to customize the reading process.
+
+    Returns:
+    - An ExcelDataPool object containing the data from the input source.
+
+    Example usage:
+    ```
+    data = read_multisheets_excel('data.xlsx', sheet_names=['Sheet1', 'Sheet2'], header_row=1)
+    ```
+
+    """
     from datasurfer.lib_objects.multisheet_object import ExcelDataPool
     
     if isinstance(input, DataInterface):
         
-        return ExcelDataPool(input.path)
+        return ExcelDataPool(input.path, **kwargs)
     
     elif isinstance(input, DataPool):
         
-        return DataLake([ExcelDataPool(path) for path in input.paths()])
+        return DataLake([ExcelDataPool(path, **kwargs) for path in input.paths()])
     
     else:
         return ExcelDataPool(input, **kwargs)
