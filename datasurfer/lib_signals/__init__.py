@@ -13,12 +13,12 @@ class Signal(object):
 
     """
 
-    def __init__(self, dp) -> None:
-        self.dp = dp
+    def __init__(self, db) -> None:
+        self.db = db
         
     def __call__(self, *keys, **kwargs):
         
-        return self.dp[keys].describe(**kwargs)
+        return self.db[keys].describe(**kwargs)
 
     @parse_data
     def arghisto(self, val, *, bins, **kwargs):
@@ -81,7 +81,7 @@ class Signal(object):
         >>> dataset.corr('key1', 'key2', method='pearson')
         """
         assert len(keys) >= 2, 'At least two keys are required for correlation computation.'
-        return self.dp[keys].corr(**kwargs)
+        return self.db[keys].corr(**kwargs)
     
     @parse_data
     def interp_linear(self, *vals, **kwargs):
@@ -170,7 +170,7 @@ class Signal(object):
                 except (KeyError, RuntimeError):
                     yield
         
-        res = dict(x for x in get(self.dp) if x)
+        res = dict(x for x in get(self.db) if x)
         
         return pd.DataFrame.from_dict(res, orient='index').transpose()
     

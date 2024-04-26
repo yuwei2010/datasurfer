@@ -6,7 +6,7 @@ from datasurfer.lib_objects.pandas_object import PandasObject
 #%%
 class ExcelDataPool(DataPool):
        
-    def __init__(self, path=None, config=None, name=None, comment=None, sheets=None, **kwargs):
+    def __init__(self, path, config=None, name=None, comment=None, sheets=None, **kwargs):
         
         shnames = pd.ExcelFile(path).sheet_names
         
@@ -19,7 +19,7 @@ class ExcelDataPool(DataPool):
                 
         super().__init__(objs)
         
-        self.name = Path(path).stem
+        self.name = name or Path(path).stem
         
 
 

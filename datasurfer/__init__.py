@@ -77,6 +77,24 @@ def df2object(df, name, **kwargs):
     return NumpyObject(df, name=name, **kwargs)
 
 #%%
+def excel2datapool(input, **kwargs):
+    
+    from datasurfer.lib_objects.multisheet_object import ExcelDataPool
+    
+    if isinstance(input, DataInterface):
+        
+        return ExcelDataPool(input.path)
+    
+    elif isinstance(input, DataPool):
+        
+        return DataLake([ExcelDataPool(path) for path in input.paths()])
+    
+    else:
+        return ExcelDataPool(input, **kwargs)
+    
+    
+
+#%%
 
 def set_default_interface(ext, path, cls):
     """

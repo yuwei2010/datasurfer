@@ -48,9 +48,9 @@ class MLearn(object):
     detect_outliers: Detect outliers in the given data.
     """
 
-    def __init__(self, dp=None):
+    def __init__(self, db=None):
         
-        self.dp = dp
+        self.db = db
         
     @property
     def clustering(self):
@@ -88,7 +88,7 @@ class MLearn(object):
 
         from datasurfer.datainterface import DataInterface
 
-        objs = [self.dp] if isinstance(self.dp, DataInterface) else self.dp.objs
+        objs = [self.db] if isinstance(self.db, DataInterface) else self.db.objs
 
         names, vals = zip(*get())
 

@@ -69,14 +69,14 @@ class Plots(object):
     - dp: A pandas DataFrame containing the data.
     """
     
-    def __init__(self, dp=None):
+    def __init__(self, db=None):
         """
         Initialize the Stat_Plots object.
         
         Parameters:
         - dp: A pandas DataFrame containing the data.
         """
-        self.dp = dp
+        self.db = db
         
     def __call__(self, *key, **kwargs):
         """
@@ -135,7 +135,7 @@ class Plots(object):
         - ax: The matplotlib Axes object containing the histogram plot.
         """
         if all(isinstance(key, str) for key in keys):
-            data = self.dp[keys].dropna().to_numpy().T
+            data = self.db[keys].dropna().to_numpy().T
         else:
             data = keys
 
@@ -311,7 +311,7 @@ class Plots(object):
 
         cmap = kwargs.pop('cmap', sns.diverging_palette(230, 20, as_cmap=True))
 
-        corr = self.dp.stats.corr(*keys)
+        corr = self.db.stats.corr(*keys)
 
         default = dict(annot=True, cmap=cmap, cbar=False, vmin=-1, vmax=1)
 
@@ -335,10 +335,13 @@ class Plots(object):
         Returns:
             matplotlib.axes.Axes: The matplotlib axes containing the word cloud plot.
         """
+
         from datasurfer.lib_plots.plot_collection import plot_wordcloud
 
-        if text is None:
-            text = ' '.join([txt for txt in self.dp.comments().values.tolist() if isinstance(txt, str)])
+        if text is None and hasattr(self.db, 'comments'):
+            text = ' '.join([txt for txt in self.db.comments().values.tolist() if isinstance(txt, str)])
+        else:
+            raise ValueError, "Expect text input for word cloud."
 
         for r in remove:
             text = text.replace(r, ' ')

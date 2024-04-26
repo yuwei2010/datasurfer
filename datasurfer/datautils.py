@@ -409,7 +409,7 @@ def parse_data(func):
             lbls = []
             for key in keys:
                 if isinstance(key, str):
-                    out.append(self.dp[[key]].dropna().to_numpy().ravel())
+                    out.append(self.db[[key]].dropna().to_numpy().ravel())
                     lbls.append(key)
                 elif isinstance(key, pd.Series):
                     out.append(key.dropna().to_numpy())
@@ -431,7 +431,7 @@ def parse_data(func):
             return out, lbls
         
         if all(isinstance(key, str) for key in keys):
-            out = self.dp[keys].dropna().to_numpy().T    
+            out = self.db[keys].dropna().to_numpy().T    
             lbls = keys
         else:        
             out, lbls = get(keys)
