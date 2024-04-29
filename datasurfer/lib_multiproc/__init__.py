@@ -1,5 +1,7 @@
+from typing import Any
 import dask
 import dask.compatibility
+import dask.delayed
 import dask.delayed
 import dask.distributed
 
@@ -19,6 +21,16 @@ class MultiProc(object):
         self.memory_limit = memory_limit or self.memory_limit
         self.n_workers = n_workers or self.n_workers
         return self
+    
+    def __getattr__(self, name: str) -> Any:
+        
+        try:
+            return self.__getattribute__(name)
+        
+        except AttributeError:
+            
+            return dask.delayed(getattr(self.db, name))
+        
    
     @property
     def n_workers(self):
@@ -46,12 +58,12 @@ class MultiProc(object):
     
     def map(self, func, items=None):
         
-        if items is None:
+        if items is None and hasattr(self.db, 'items'):
             items = self.db.items()
                 
-        L =  self.client.map(func, items)
+        res =  self.client.map(func, items)
         
-        return self.client.gather(L)
+        return self.client.gather(res)
        
     def scheduler_info(self):
 

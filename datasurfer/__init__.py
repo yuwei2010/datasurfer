@@ -141,5 +141,48 @@ def set_default_interface(ext, path, cls):
     json.dump(dict_map, open(json_file, 'w'), indent=4)
 
     return dict_map
-    
 
+#%%
+
+def ProcessPool(n_workers=4, threads_per_worker=1, memory_limit='8GB'):
+    """
+    Initializes a new instance of the ProcessPool class.
+
+    Args:
+        n_workers (int, optional): The number of workers to use. Defaults to 4.
+        threads_per_worker (int, optional): The number of threads per worker. Defaults to 1.
+        memory_limit (str, optional): The memory limit per worker. Defaults to '8GB'.
+
+    Returns:
+        ProcessPool: The created ProcessPool object.
+    """
+    from datasurfer.lib_multiproc import MultiProc
+
+    return MultiProc(db=None, n_workers=n_workers, threads_per_worker=threads_per_worker, memory_limit=memory_limit)
+
+#%%
+def ignore_error(fun, *args, **kwargs):
+    """
+    Calls a function and ignores any errors that occur.
+
+    Parameters:
+    - fun: The function to call.
+    - *args: Positional arguments to pass to the function.
+    - **kwargs: Keyword arguments to pass to the function.
+
+    Returns:
+    - The result of the function call, or None if an error occurs.
+    """
+    import traceback
+    import warnings
+    def wrapper(*args, **kwargs):
+        try:
+            return fun(*args, **kwargs)
+        except Exception as err:
+
+            errname = err.__class__.__name__
+            tb = traceback.format_exc(limit=0, chain=False)
+            warnings.warn(f'Exception "{errname}" is raised while processing "{fun.__name__}": "{tb}"')
+            
+    return wrapper
+#%%

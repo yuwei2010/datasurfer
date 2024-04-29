@@ -542,7 +542,7 @@ class DataPool(object):
         """
         return pd.DataFrame(dict((obj.name, obj.config) for obj in self.objs))
         
-    def list_signals(self, count=None, pbar=False):
+    def list_signals(self, count=None, pbar=True):
         """
         Returns a list of unique keys from the objects in the datapool.
 
@@ -1024,11 +1024,27 @@ class DataPool(object):
         
         return list(self.objs[:]).sort(key=lambda obj:obj.key)
     
-    def map(self, func, items=None):
+    def map(self, func, ignore_error=True, pbar=True):
+               
+        @show_pool_progress('Processing', pbar)
+        def get(self):
+            
+            for obj in self.objs:
+
+                try:
+                    yield func(obj)
+                except Exception as err:
+                    if ignore_error:
+                        errname = err.__class__.__name__
+                        tb = traceback.format_exc(limit=0, chain=False)
+                        warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                        yield None
+                    else:
+                        raise
+
+        return list(get(self))
         
-        items = items or self.objs
-        
-        return list(map(func, items))
+
         
     def apply(self, signame, methode, ignore_error=True, pbar=True):
         """

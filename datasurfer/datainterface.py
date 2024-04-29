@@ -1040,4 +1040,16 @@ class DataInterface(ABC):
         from datasurfer.lib_mlearn import MLearn
         
         return MLearn(self)
+    
+    @property
+    def multiprocessor(self):
+        
+        if not hasattr(self, '_multiproc'):   
+                
+            from datasurfer.lib_multiproc import MultiProc       
+            self._multiproc = MultiProc(self)
+            
+        return self._multiproc
+ 
+    mlp = multiprocessor
 # %%

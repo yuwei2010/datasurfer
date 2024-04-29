@@ -17,8 +17,7 @@ class FinanceObject(PandasObject):
         time_format (str): The format of the time values in the finance object.
     """
     exts = ['.csv', '.xlsx', '.xls']
-    def __init__(self, path=None, config=None, name=None, comment=None, 
-                 df=None, time_format='%Y%m%d'):
+    def __init__(self, path=None, config=None, name=None, comment=None, time_format='%Y%m%d'):
         """
         Initializes a new instance of the FinanceObject class.
         
@@ -54,3 +53,16 @@ class FinanceObject(PandasObject):
             df[c] = pd.to_datetime(df[c], format=self.time_format)
         
         return df
+    
+    @staticmethod
+    def from_other(other):
+        
+        assert isinstance(other, PandasObject)
+        
+        obj = FinanceObject(path=other.path,
+                    config=other.config,
+                    comment=other.comment,
+                    name=other.name)
+
+  
+        return obj  
