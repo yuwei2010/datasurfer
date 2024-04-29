@@ -38,8 +38,8 @@ class DataLake(object):
 
         if not isinstance(patts, (list, tuple, set)):
             patts = [patts]
-        
-        if isinstance(root, str):
+               
+        if isinstance(root, (str, Path)):
             founds = sorted(collect_dirs(root, *patts))
             objs = [DataPool([d/f for f in fs], name=d.stem, config=config, **kwargs) for d, fs in founds]
 
@@ -123,6 +123,16 @@ class DataLake(object):
     def __len__(self):
         
         return len(self.objs)
+    
+    def __sub__(self, dlk0):
+        
+        if isinstance(dlk0, DataPool) and dlk0.name in self.keys():
+            return self.__class__(list(set(self.objs).difference([dlk0])))
+            
+        
+        objs = list(set(self.objs).difference(dlk0.objs))
+        
+        return self.__class__(objs)
     
     def size(self):
         """

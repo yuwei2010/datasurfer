@@ -377,13 +377,13 @@ def collect_dirs(root, *patts, patt_filter=None):
 
     for r, _, fs in os.walk(root):
         d = Path(r).stem
-        ismatch = (any(re.match(patt, d) for patt in patts) 
-                    and (not any(re.match(patt, d) for patt in patt_filter)))
+        
+        fs = [f for f in fs if (any(re.match(patt, os.path.join(d, f)) for patt in patts) and 
+                               (not any(re.match(patt, os.path.join(d, f)) for patt in patt_filter)) )]
 
-        if ismatch:
-            path = Path(r)
-            if fs:
-                yield path, fs
+        path = Path(r)
+        if fs:
+            yield path, fs
                 
 
 #%%

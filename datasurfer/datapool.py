@@ -168,7 +168,7 @@ class DataPool(object):
                     cls = getattr(importlib.import_module(f'datasurfer.{module}'), cls)               
                     objs.append(cls(obj, config=config, **kwargs))
                 else:
-                    raise ValueError(f'Can not find any interface for "{obj}"')
+                    warnings.warn(f'Can not find any interface for "{obj}"')
       
         self.objs = sorted(set(objs), key=lambda x:x.name)
         self.apply_comments(**comments)
@@ -241,6 +241,11 @@ class DataPool(object):
         objs = list(set(self.objs).difference(pool0.objs))
         
         return self.__class__(objs)
+    
+    def __hash__(self):
+        
+
+        return hash(tuple([obj.__hash__() for obj in self.objs ]))
     
     def __eq__(self, pool0):
         
@@ -480,7 +485,7 @@ class DataPool(object):
         Returns:
             pd.Series: A pandas Series object with the file paths as values and object names as index.
         """
-        return pd.Series([str(obj.path) for obj in self.objs], index=self.names(), name='File Path')
+        return pd.Series([obj.path for obj in self.objs], index=self.names(), name='File Path')
 
     def file_size(self):
         """
@@ -489,7 +494,8 @@ class DataPool(object):
         Returns:
             pd.Series: A pandas Series object containing the file sizes, with the file names as the index.
         """
-        return pd.Series(dict(zip(self.names(), map(os.path.getsize, self.paths().values))), name='File Size')
+        
+        return pd.Series(dict((name, path.stat().st_size) for name, path in self.paths().items()), name='File Size')
    
     def file_date(self):
         """
@@ -498,6 +504,7 @@ class DataPool(object):
         Returns:
             pd.Series: A pandas Series with the file modification dates.
         """
+
         ctimes = [datetime.datetime.fromtimestamp(os.path.getmtime(obj.path)) 
                   for obj in self.objs]
         return pd.Series(ctimes, index=self.names(), name='File Date')
@@ -1467,7 +1474,7 @@ class DataPool(object):
         self.initialized = True
         return self
     
-    def save_def(self, name=None):
+    def save_def(self, name=None, pbar=True):
         """
         Save the definitions of objects in the datapool to a file.
 
@@ -1482,12 +1489,15 @@ class DataPool(object):
 
         """
         out = dict()
-
-        for obj in self.objs:
-            out[obj.name] = dict()
-            out[obj.name]['path'] = str(obj.path)
-            if obj.comment:
-                out[obj.name]['comment'] = obj.comment
+        @show_pool_progress('Exporting', show=pbar)
+        def get(self):
+            for obj in self.objs:
+                out[obj.name] = dict()
+                out[obj.name]['path'] = str(obj.path)
+                if obj.comment:
+                    out[obj.name]['comment'] = obj.comment
+                yield
+        list(get(self))
         if name:   
             if name.lower().endswith('.json'):
                 with open(name, 'w') as file:
@@ -1705,6 +1715,18 @@ class DataPool(object):
         from datasurfer.lib_mlearn import MLearn
         
         return MLearn(self)
+    
+    @property
+    def multiprocessor(self):
+        
+        if not hasattr(self, '_multiproc'):   
+                
+            from datasurfer.lib_multiproc import MultiProc       
+            self._multiproc = MultiProc(self)
+            
+        return self._multiproc
+ 
+    mlp = multiprocessor
 
 
 
