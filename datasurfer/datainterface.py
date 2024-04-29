@@ -730,7 +730,7 @@ class DataInterface(ABC):
         return self.squeeze(*keys)
 
     @staticmethod
-    def pipeline(*funs, hook=None, ignore_error=True):
+    def pipeline(*funs, hook=None, ignore_error=True, asiterator=True):
         """
         Executes a series of functions on an object in a pipeline fashion.
 
@@ -766,17 +766,23 @@ class DataInterface(ABC):
             raise ValueError('No callable functions provided.')
 
         def wrapper(obj):
-            for fun in funs:
-                try:
-                    yield fun(obj)
-                except Exception as err:
-                    if ignore_error:
-                        errname = err.__class__.__name__
-                        tb = traceback.format_exc(limit=0, chain=False)
-                        warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
-                        yield None
-                    else:
-                        raise
+            def run():
+                for fun in funs:
+                    try:
+                        yield fun(obj)
+                    except Exception as err:
+                        if ignore_error:
+                            errname = err.__class__.__name__
+                            tb = traceback.format_exc(limit=0, chain=False)
+                            warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                            yield None
+                        else:
+                            raise
+            if asiterator:
+                return run()
+            else:
+                return list(run())            
+            
         return wrapper
 
     

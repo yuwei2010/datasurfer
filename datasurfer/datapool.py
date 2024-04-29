@@ -529,7 +529,7 @@ class DataPool(object):
             try:
                 if comment:
                     self.get_object(name).comment = comment
-            except NameError:
+            except (NameError, AttributeError):
                 pass
         return self
     
@@ -1024,7 +1024,12 @@ class DataPool(object):
         
         return list(self.objs[:]).sort(key=lambda obj:obj.key)
     
-
+    def map(self, func, items=None):
+        
+        items = items or self.objs
+        
+        return list(map(func, items))
+        
     def apply(self, signame, methode, ignore_error=True, pbar=True):
         """
         Apply a given method to each object in the datapool.
