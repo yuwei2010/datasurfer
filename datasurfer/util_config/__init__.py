@@ -1,3 +1,4 @@
+import re
 import warnings
 
 #%%
@@ -28,6 +29,24 @@ class Config(object):
                 self.add_keys(*self.search_signal(key))
             else:
                 self.add_key(key, key)
+                
+    def rename(self, pattern, repl):
+        
+        out = dict()
+        
+        for key in self._cfg.keys():
+            
+            new_key = re.sub(pattern, repl, key)
+            out[new_key] = self._cfg[key]
+            
+        self._cfg = out
+        return self
+    
+    def pop(self, key):
+        
+        return self._cfg.pop(key)
+            
+        
         
         
         

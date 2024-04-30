@@ -4,7 +4,7 @@ import ssl
 import tempfile
 from requests_kerberos import HTTPKerberosAuth, OPTIONAL
 
-class SharepointObject(object):
+class SharepointAccess(object):
     
     def __init__(self, url):
 
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     from io import BytesIO
     url = "https://sites.inside-share3.bosch.com/sites/144527/Documents/03_OnSpecification/24-QAT_CustomerRequiremt/Daimler_MGU/Load_Spectrum/V2_MBC-SK/MAT-Files/Fahrer1/Alb650/Alb650.mat"
 
-    r = SharepointObject(url)
+    r = SharepointAccess(url)
 
 
     with open("test.mat", "wb") as f:
