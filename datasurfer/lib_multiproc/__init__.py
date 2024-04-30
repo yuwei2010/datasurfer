@@ -58,8 +58,8 @@ class MultiProc(object):
     
     def map(self, func, items=None):
         
-        if items is None and hasattr(self.db, 'items'):
-            items = self.db.items()
+        if items is None:
+            items = self.db
                 
         res =  self.client.map(func, items)
         
