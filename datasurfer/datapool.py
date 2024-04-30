@@ -161,6 +161,7 @@ class DataPool(object):
                 itfs = list_interfaces()
                 interface_ = itfs['class'][interface]
                 objs.append(interface_(obj, config=config, **kwargs))
+                
             elif isinstance(obj, (str, Path)):
                 key = Path(obj).suffix.lower()               
                 if key in map_interface:
@@ -265,6 +266,7 @@ class DataPool(object):
         Returns:
             object: The retrieved item(s) from the datapool.
         """
+        
         if isinstance(inval, str):
             
             if '*' in inval:
@@ -1742,12 +1744,22 @@ class DataPool(object):
         
         if not hasattr(self, '_multiproc'):   
                 
-            from datasurfer.lib_multiproc import MultiProc       
+            from datasurfer.util_multiproc import MultiProc       
             self._multiproc = MultiProc(self)
             
         return self._multiproc
  
     mlp = multiprocessor
+    
+    @property
+    def cfg(self):
+        
+        if not hasattr(self, '_config'):
+            from datasurfer.util_config import Config        
+            self._config = Config(self)
+            
+        return self._config
+
 
 
 

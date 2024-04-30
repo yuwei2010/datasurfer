@@ -156,7 +156,7 @@ def ProcessPool(n_workers=4, threads_per_worker=1, memory_limit='8GB'):
     Returns:
         ProcessPool: The created ProcessPool object.
     """
-    from datasurfer.lib_multiproc import MultiProc
+    from datasurfer.util_multiproc import MultiProc
 
     return MultiProc(db=None, n_workers=n_workers, threads_per_worker=threads_per_worker, memory_limit=memory_limit)
 
