@@ -222,7 +222,6 @@ class ASAMmdfObject(DataInterface):
             res = list(self.df.keys())
         return res
        
-    list_signals = keys
        
     def get_df(self, close=None):
         """

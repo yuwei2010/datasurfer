@@ -114,7 +114,7 @@ class MDFObject(DataInterface):
         else:
             res = list(self.df.keys())
         return res
-    list_signals = keys
+
     def search_channel(self, patt):
         """
         Searches for channels that match the given pattern.

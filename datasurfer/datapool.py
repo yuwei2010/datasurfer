@@ -1754,11 +1754,11 @@ class DataPool(object):
     @property
     def configurator(self):
         
-        if not hasattr(self, '_config'):
+        if not hasattr(self, '_configurator'):
             from datasurfer.util_config import Config        
-            self._config = Config(self)
+            self._configurator = Config(self)
             
-        return self._config
+        return self._configurator
 
     cfg = configurator
 

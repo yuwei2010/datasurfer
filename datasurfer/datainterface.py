@@ -1056,11 +1056,15 @@ class DataInterface(ABC):
         return self._multiproc
  
     mlp = multiprocessor
-# %%
+    
     @property
-    def cfg(self):
+    def configurator(self):
         
-        from datasurfer.util_config import Config
-        
-        return Config(self)
+        if not hasattr(self, '_configurator'):
+            from datasurfer.util_config import Config        
+            self._configurator = Config(self)
+            
+        return self._configurator
+
+    cfg = configurator
     
