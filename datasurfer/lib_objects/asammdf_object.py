@@ -220,7 +220,7 @@ class ASAMmdfObject(DataInterface):
         else:
             res = list(self.df.keys())
         return res   
-    
+    list_signals = keys   
     def get_df(self, close=None):
         """
         Gets the DataFrame of the object.
