@@ -15,14 +15,10 @@ class Config(object):
         self._cfg = config or dict()
         self.db = db
         
-        if self.db is not None and config is None:
+        if (self.db is not None) and (config is None):
             self._cfg = self.db.config or self._cfg
-        
-        for key, value in self._cfg.items():
-            if isinstance(value, str):
-                self._cfg[key] = set([value])
-            elif not isinstance(value, set):
-                self._cfg[key] = set(value)
+            
+        self.init_cfg()
         
     def __repr__(self):
         
@@ -70,6 +66,7 @@ class Config(object):
     def __call__(self, config=None):
         
         self._cfg = config or dict()
+        self.init_cfg()
         
         return self
     
@@ -88,8 +85,16 @@ class Config(object):
     df = dataframe
     
     @property
-    def dict(self):
+    def values(self):
         return self._cfg
+
+    def init_cfg(self):
+        for key, value in self._cfg.items():
+            if isinstance(value, str):
+                self._cfg[key] = set([value])
+            elif not isinstance(value, set):
+                self._cfg[key] = set(value)
+        return self
     
     def search(self, pattern):
         """
@@ -178,13 +183,16 @@ class Config(object):
         assert self.db is not None, 'Database is not set.'
         signals = set(self.db.list_signals())
         
-        for key, value in self._cfg.items():
-            self._cfg[key] = value.intersection(signals)
+        for key, values in self._cfg.items():
+            self._cfg[key] = values.intersection(signals)
               
         return self
  
     
     def describe(self):
+        
+        if self.dataframe.size == 0:
+            return self.dataframe
 
         if isinstance(self.db, DataInterface):
             
@@ -194,8 +202,7 @@ class Config(object):
         
         elif isinstance(self.db, DataPool):
             
-            dfs = [obj.cfg(config=self._cfg).clean().describe() for obj in self.db.objs]
-            
+            dfs = [obj.cfg(config=self._cfg).clean().describe() for obj in self.db.objs]            
             df = pd.concat(dfs, axis=1)
             
         else:
@@ -225,7 +232,37 @@ class Config(object):
             
         return self
             
+    def save(self, name):
         
+        out = dict((k, sorted(v)) for k, v in self.init_cfg()._cfg.items())
+        
+
+        if name.lower().endswith('.json'):
+            import json
+            with open(name, 'w') as file:
+                json.dump(out, file, indent=4)
+        elif name.lower().endswith('.yaml') or name.lower().endswith('.yml'):
+            import yaml
+            with open(name, 'w') as file:
+                yaml.safe_dump(out, file)            
+        
+        return self
+    
+    def load(self, name):
+        
+
+        if name.lower().endswith('.json'):
+            import json
+            with open(name, 'r') as file:
+                self._cfg = json.load(file)
+        elif name.lower().endswith('.yaml') or name.lower().endswith('.yml'):
+            import yaml
+            with open(name, 'r') as file:
+                self._cfg = yaml.safe_load(file)
+                
+        self.init_cfg()        
+        
+        return self
         
         
         

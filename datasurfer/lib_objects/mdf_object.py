@@ -109,7 +109,7 @@ class MDFObject(DataInterface):
         Returns:
             list: The list of keys.
         """
-        if not len(self.df):
+        if not hasattr(self, '_df'):
             res = self.channels
         else:
             res = list(self.df.keys())

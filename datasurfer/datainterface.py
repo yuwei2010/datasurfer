@@ -217,6 +217,8 @@ class DataInterface(ABC):
     @config.setter
     def config(self, val):                
         self._config = parse_config(val)  
+        if hasattr(self, '_df'):
+            del self._df
     
     def apply(self, name, value):
         """

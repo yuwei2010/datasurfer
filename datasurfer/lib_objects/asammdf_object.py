@@ -165,6 +165,7 @@ class ASAMmdfObject(DataInterface):
                 self._df = pd.DataFrame()
             else:
                 self._df = self.get_df()
+                
         return self._df
     
     @property
@@ -215,12 +216,14 @@ class ASAMmdfObject(DataInterface):
         Returns:
             list: The keys of the object.
         """
-        if not len(self.df):
+        if not hasattr(self, '_df'):
             res = self.channels
         else:
             res = list(self.df.keys())
-        return res   
-    list_signals = keys   
+        return res
+       
+    list_signals = keys
+       
     def get_df(self, close=None):
         """
         Gets the DataFrame of the object.

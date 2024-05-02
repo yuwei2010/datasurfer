@@ -1752,7 +1752,7 @@ class DataPool(object):
     mlp = multiprocessor
     
     @property
-    def cfg(self):
+    def configurator(self):
         
         if not hasattr(self, '_config'):
             from datasurfer.util_config import Config        
@@ -1760,7 +1760,7 @@ class DataPool(object):
             
         return self._config
 
-
+    cfg = configurator
 
 
 #%% Main Loop
