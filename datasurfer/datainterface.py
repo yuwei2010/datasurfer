@@ -382,6 +382,8 @@ class DataInterface(ABC):
             list: A list of column names.
         """
         return list(self.df.columns)
+    list_signals = keys
+
     
     def describe(self):
         """
@@ -469,7 +471,7 @@ class DataInterface(ABC):
                 
         return list(found)
 
-
+    search_signal = search
     
     def memory_usage(self):
         """
@@ -1046,10 +1048,17 @@ class DataInterface(ABC):
         
         if not hasattr(self, '_multiproc'):   
                 
-            from datasurfer.lib_multiproc import MultiProc       
+            from datasurfer.util_multiproc import MultiProc       
             self._multiproc = MultiProc(self)
             
         return self._multiproc
  
     mlp = multiprocessor
 # %%
+    @property
+    def cfg(self):
+        
+        from datasurfer.util_config import Config
+        
+        return Config(self)
+    
