@@ -5,6 +5,7 @@ import pandas as pd
         
 from datasurfer import DataInterface
 from datasurfer import DataPool
+from datasurfer.datautils import show_pool_progress
 
 #%%
 
@@ -30,7 +31,11 @@ class Config(object):
     
     def __getitem__(self, key):
         
-        return self.search(key)
+        if key.strip()[0] in '#%$&§':
+            
+            return self.search_signal(key.strip()[1:])
+        else:
+            return self.search(key.strip())
     
     def __setitem__(self, key, value):
         if key is Ellipsis:
@@ -63,10 +68,13 @@ class Config(object):
         h = pd.util.hash_pandas_object(self.dataframe, index=True).sum()
         return hash((h, self.__class__))
     
-    def __call__(self, config=None):
-        
-        self._cfg = config or dict()
-        self.init_cfg()
+    def __call__(self, config=None, **kwargs):
+        if isinstance(config, str):
+            
+            self.load(config, **kwargs)
+        else:
+            self._cfg = config or dict()
+            self.init_cfg()
         
         return self
     
@@ -89,6 +97,7 @@ class Config(object):
         return self._cfg
 
     def init_cfg(self):
+        
         for key, value in self._cfg.items():
             if isinstance(value, str):
                 self._cfg[key] = set([value])
@@ -151,7 +160,11 @@ class Config(object):
         
         for key, signal in kwargs.items():
             
-            self.add_key(key, signal, newkey=rename) 
+            if isinstance(signal, (list, tuple, set)):
+                for s in signal:
+                    self.add_key(key, s, newkey=rename)
+            else:
+                self.add_key(key, signal, newkey=rename) 
                 
         return self
                 
@@ -181,15 +194,19 @@ class Config(object):
     def clean(self):
         
         assert self.db is not None, 'Database is not set.'
+        
         signals = set(self.db.list_signals())
         
-        for key, values in self._cfg.items():
-            self._cfg[key] = values.intersection(signals)
-              
+        for key, values in list(self._cfg.items()):
+             found = values.intersection(signals)
+             if found:
+                 self._cfg[key] = found
+             else:
+                 self._cfg.pop(key)             
         return self
  
     
-    def describe(self):
+    def describe(self, pbar=True):
         
         if self.dataframe.size == 0:
             return self.dataframe
@@ -202,7 +219,14 @@ class Config(object):
         
         elif isinstance(self.db, DataPool):
             
-            dfs = [obj.cfg(config=self._cfg).clean().describe() for obj in self.db.objs]            
+            @show_pool_progress('Processing', show=pbar)
+            def fun(self):
+            
+                for obj in self.objs:
+                    
+                    yield obj.cfg(config=config).clean().describe()
+            config = self._cfg     
+            dfs = list(fun(self.db))                  
             df = pd.concat(dfs, axis=1)
             
         else:
@@ -227,10 +251,13 @@ class Config(object):
             
             for obj in self.db.objs:
                 
+                if obj.name not in df.columns:
+                    warnings.warn(f'Object "{obj.name}" not found in the configuration.')
+                    continue
                 obj.config = dict((key, val) for key, val in df[obj.name].items() if isinstance(val, str))
             
             
-        return self
+        return self.describe()
             
     def save(self, name):
         
@@ -248,17 +275,28 @@ class Config(object):
         
         return self
     
-    def load(self, name):
+    def append(self, cfg):
+        
+        assert isinstance(cfg, dict), 'Value must be a dictionary.'
+        
+    
+    def load(self, name, append=True):
         
 
         if name.lower().endswith('.json'):
             import json
             with open(name, 'r') as file:
-                self._cfg = json.load(file)
+                cfg = json.load(file)
+                
         elif name.lower().endswith('.yaml') or name.lower().endswith('.yml'):
             import yaml
             with open(name, 'r') as file:
-                self._cfg = yaml.safe_load(file)
+                cfg = yaml.safe_load(file)
+                
+        if append:
+            self.add_keys(**cfg)
+        else:
+            self._cfg = cfg
                 
         self.init_cfg()        
         

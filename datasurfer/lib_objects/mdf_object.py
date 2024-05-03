@@ -109,12 +109,13 @@ class MDFObject(DataInterface):
         Returns:
             list: The list of keys.
         """
-        if not hasattr(self, '_df'):
+        if not hasattr(self, '_df') or len(self._df) == 0:
             res = self.channels
         else:
             res = list(self.df.keys())
         return res
-
+    list_signals = keys
+    
     def search_channel(self, patt):
         """
         Searches for channels that match the given pattern.

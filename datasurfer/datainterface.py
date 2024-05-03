@@ -383,7 +383,9 @@ class DataInterface(ABC):
         Returns:
             list: A list of column names.
         """
+
         return list(self.df.columns)
+    
     list_signals = keys
 
     
