@@ -1502,7 +1502,7 @@ class DataPool(object):
         self.initialized = True
         return self
     
-    def save_def(self, name=None, pbar=True):
+    def save_def(self, name=None, pbar=True, save_comment=True):
         """
         Save the definitions of objects in the datapool to a file.
 
@@ -1522,7 +1522,7 @@ class DataPool(object):
             for obj in self.objs:
                 out[obj.name] = dict()
                 out[obj.name]['path'] = str(obj.path)
-                if obj.comment:
+                if save_comment and obj.comment:
                     out[obj.name]['comment'] = obj.comment
                 yield
         list(get(self))

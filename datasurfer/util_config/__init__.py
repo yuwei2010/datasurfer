@@ -99,6 +99,10 @@ class Config(object):
     @property
     def values(self):
         return self._cfg
+    
+    @property
+    def size(self):
+        return self.dataframe.size
 
     def init_cfg(self):
         

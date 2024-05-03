@@ -411,7 +411,7 @@ class DataLake(object):
         """
         return self.objs.pop(self.objs.index(self.get_pool(name)))
     
-    def save_def(self, name=None):
+    def save_def(self, name=None, save_comment=True):
         """
         Save the definition of the data objects in the datalake to a file.
 
@@ -435,7 +435,7 @@ class DataLake(object):
             for obj in dp:
                 out[dp.name][obj.name] = dict()
                 out[dp.name][obj.name]['path'] = str(obj.path)
-                if obj.comment:
+                if save_comment and obj.comment:
                     out[dp.name][obj.name]['comment'] = obj.comment
 
         if name:

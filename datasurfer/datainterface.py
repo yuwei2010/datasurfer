@@ -934,7 +934,7 @@ class DataInterface(ABC):
         if overwrite or not Path(name).is_file():
             self.df.to_csv(name)
         
-        return None
+        return self
 
     def to_excel(self, name=None, overwrite=True):
         """
@@ -953,7 +953,7 @@ class DataInterface(ABC):
         if overwrite or not Path(name).is_file():
             self.df.to_excel(name)
         
-        return None
+        return self
     
     def save(self, name, overwrite=True):
         
