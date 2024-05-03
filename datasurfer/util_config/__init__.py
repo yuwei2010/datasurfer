@@ -105,7 +105,12 @@ class Config(object):
         return self.dataframe.size
 
     def init_cfg(self):
-        
+        """
+        Initializes the configuration by converting string values to sets.
+
+        Returns:
+            self: The instance of the class.
+        """
         for key, value in self._cfg.items():
             if isinstance(value, str):
                 self._cfg[key] = set([value])
@@ -144,17 +149,37 @@ class Config(object):
         return self.db.search_signal(pattern, ignore_case=ignore_case, raise_error=raise_error, pbar=pbar)
     
     def add_key(self, key, signal, newkey=None):
-                      
+        """
+        Adds a signal to the specified key in the configuration.
+
+        Parameters:
+        - key (str): The key to add the signal to.
+        - signal: The signal to add.
+        - newkey (str, optional): If provided, renames the key to the newkey.
+
+        Returns:
+        - self: The updated configuration object.
+
+        """
         self._cfg.setdefault(key, set()).add(signal)
-        
+
         if newkey is not None:
-            
             self.rename(key, newkey)
-            
+
         return self
         
     def add_keys(self, *names, **kwargs):
-        
+        """
+        Add keys to the configuration.
+
+        Args:
+            *names: Variable length argument list of names to be added as keys.
+            **kwargs: Variable length keyword argument list of key-value pairs, where the key is the name of the key to be added and the value is the corresponding signal.
+
+        Returns:
+            self: The instance of the configuration object.
+
+        """
         rename = kwargs.pop('rename', None)
         
         for name in names:
@@ -177,100 +202,143 @@ class Config(object):
         return self
                 
     def rename(self, pattern, repl):
-            
+        """
+        Renames keys in the configuration dictionary based on a pattern.
+
+        Args:
+            pattern (str or re.Pattern): The pattern to match against the keys.
+            repl (str): The replacement string for the matched keys.
+
+        Raises:
+            KeyError: If the specified key pattern is not found in the configuration.
+
+        Returns:
+            self: The instance of the class with the renamed keys.
+        """
         if any(s in pattern for s in ['*', '?']) or isinstance(pattern, re.Pattern):
             r = re.compile(pattern)
             for key in filter(r.match, list(self._cfg.keys())):
                 new_key = re.sub(pattern, repl, key)
                 for name in self._cfg.pop(key):
                     self.add_key(new_key, name)
-                    
         elif pattern in self._cfg:
             for name in self._cfg.pop(pattern):
                 self.add_key(repl, name)
-
-        else:           
+        else:
             raise KeyError(f'Key "{pattern}" not found in the configuration.')
-                           
+
         return self
         
     
     def pop(self, key):
+        """
+        Remove and return the value associated with the given key.
         
+        Args:
+            key: The key to be removed.
+        
+        Returns:
+            The value associated with the given key.
+        
+        """
         return self._cfg.pop(key)
     
     def clean(self):
-        
+        """
+        Clean the configuration by removing keys that do not have any matching signals in the database.
+
+        Returns:
+            self: The updated instance of the configuration object.
+        """
         assert self.db is not None, 'Database is not set.'
-        
+
         signals = set(self.db.list_signals())
-        
+
         for key, values in list(self._cfg.items()):
-             found = values.intersection(signals)
-             if found:
-                 self._cfg[key] = found
-             else:
-                 self._cfg.pop(key)             
+            found = values.intersection(signals)
+            if found:
+                self._cfg[key] = found
+            else:
+                self._cfg.pop(key)
         return self
  
     
     def describe(self, pbar=True):
-        
+        """
+        Returns a DataFrame that describes the data.
+
+        Args:
+            pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+
+        Returns:
+            pandas.DataFrame: A DataFrame containing the description of the data.
+        """
         if self.dataframe.size == 0:
             return self.dataframe
 
         if isinstance(self.db, DataInterface):
-            
             df = self.dataframe
             df.columns = [self.db.name]
-            
-        
         elif isinstance(self.db, DataPool):
-            
             @show_pool_progress('Processing', show=pbar)
             def fun(self):
-            
                 for obj in self.objs:
-                    
                     yield obj.cfg(config=config).clean().describe()
-            config = self._cfg     
-            dfs = list(fun(self.db))                  
+            config = self._cfg
+            dfs = list(fun(self.db))
             df = pd.concat(dfs, axis=1)
-            
         else:
             raise ValueError('Database is not set.')
-            
+
         return df
     
     def apply2obj(self, pbar=True):
-        
+        """
+        Applies the configuration settings to the objects in the database.
+
+        Args:
+            pbar (bool, optional): Whether to display a progress bar. Defaults to True.
+
+        Returns:
+            str: A description of the applied configuration settings.
+        """
         assert self.db is not None, 'Database is not set.'
-        
+
         if isinstance(self.db, DataInterface):
-            
+
             df = self.clean().describe(pbar=pbar)
             obj = self.db
-            
+
             obj.config = dict((key, val) for key, val in df[obj.name].items() if isinstance(val, str))
-            
+
         elif isinstance(self.db, DataPool):
-            
+
             df = self.clean().describe(pbar=pbar)
-            
+
             for obj in self.db.objs:
-                
+
                 if obj.name not in df.columns:
                     warnings.warn(f'Object "{obj.name}" not found in the configuration.')
                     continue
                 obj.config = dict((key, val) for key, val in df[obj.name].items() if isinstance(val, str))
-            
-            
+
         return self.describe(pbar=pbar)
             
     def save(self, name):
-        
+        """
+        Save the configuration to a file.
+
+        Args:
+            name (str): The name of the file to save the configuration to.
+
+        Returns:
+            self: The instance of the class.
+
+        Raises:
+            None
+
+        """
         out = dict((k, sorted(v)) for k, v in self.init_cfg()._cfg.items())
-        
 
         if name.lower().endswith('.json'):
             import json
@@ -280,11 +348,19 @@ class Config(object):
             import yaml
             with open(name, 'w') as file:
                 yaml.safe_dump(out, file)            
-        
+
         return self
     
     def append(self, cfg):
-        
+        """
+        Appends the given configuration dictionary to the existing configuration.
+
+        Args:
+            cfg (dict): The configuration dictionary to append.
+
+        Returns:
+            self: Returns the updated instance of the configuration object.
+        """
         assert isinstance(cfg, dict), 'Value must be a dictionary.'
         
         self.add_keys(**cfg)
@@ -293,8 +369,22 @@ class Config(object):
         
     
     def load(self, name, append=True):
-        
+        """
+        Load configuration from a file.
 
+        Args:
+            name (str): The name of the file to load the configuration from.
+            append (bool, optional): Whether to append the loaded configuration to the existing configuration. 
+                                     Defaults to True.
+
+        Returns:
+            self: The instance of the Config class.
+
+        Raises:
+            FileNotFoundError: If the specified file does not exist.
+            ValueError: If the file extension is not supported.
+
+        """
         if name.lower().endswith('.json'):
             import json
             with open(name, 'r') as file:
