@@ -133,7 +133,7 @@ class DataLake(object):
         objs = list(set(self.objs).difference(dlk0.objs))
         
         return self.__class__(objs)
-    
+    @property
     def size(self):
         """
         Returns the total size of the objects in the datalake.

@@ -363,7 +363,12 @@ class DataPool(object):
                 gc.collect()
             
             obj.config = value
-            
+    
+    @property
+    def size(self):
+        return self.__len__()
+    
+    
     def describe(self, verbose=False, pbar=False):
         """
         Generates a summary DataFrame containing information about the data pool.

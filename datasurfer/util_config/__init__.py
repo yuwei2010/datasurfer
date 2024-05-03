@@ -29,6 +29,10 @@ class Config(object):
         
         return self.dataframe.__str__()
     
+    def __len__(self):
+        
+        return self._cfg.__len__()
+    
     def __getitem__(self, key):
         
         if key.strip()[0] in '#%$&§':
@@ -234,20 +238,20 @@ class Config(object):
             
         return df
     
-    def apply2obj(self):
+    def apply2obj(self, pbar=True):
         
         assert self.db is not None, 'Database is not set.'
         
         if isinstance(self.db, DataInterface):
             
-            df = self.clean().describe()
+            df = self.clean().describe(pbar=pbar)
             obj = self.db
             
             obj.config = dict((key, val) for key, val in df[obj.name].items() if isinstance(val, str))
             
         elif isinstance(self.db, DataPool):
             
-            df = self.clean().describe()
+            df = self.clean().describe(pbar=pbar)
             
             for obj in self.db.objs:
                 
@@ -257,7 +261,7 @@ class Config(object):
                 obj.config = dict((key, val) for key, val in df[obj.name].items() if isinstance(val, str))
             
             
-        return self.describe()
+        return self.describe(pbar=pbar)
             
     def save(self, name):
         
@@ -278,6 +282,10 @@ class Config(object):
     def append(self, cfg):
         
         assert isinstance(cfg, dict), 'Value must be a dictionary.'
+        
+        self.add_keys(**cfg)
+        self.init_cfg() 
+        return self
         
     
     def load(self, name, append=True):
