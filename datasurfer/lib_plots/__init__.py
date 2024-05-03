@@ -341,7 +341,7 @@ class Plots(object):
         if text is None and hasattr(self.db, 'comments'):
             text = ' '.join([txt for txt in self.db.comments().values.tolist() if isinstance(txt, str)])
         else:
-            raise ValueError, "Expect text input for word cloud."
+            raise ValueError("Expect text input for word cloud.")
 
         for r in remove:
             text = text.replace(r, ' ')

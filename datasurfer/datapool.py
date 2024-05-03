@@ -516,11 +516,16 @@ class DataPool(object):
                   for obj in self.objs]
         return pd.Series(ctimes, index=self.names(), name='File Date')
     
-    def comments(self):
+    def comments(self, pbar=True):
         """
         Returns a DataFrame containing the names and comments of the objects in the datapool.
         """
-        return pd.Series(dict((obj.name, obj.comment) for obj in self.objs), name='Comment')
+        @show_pool_progress('Processing', show=pbar)
+        def get(self):
+            for obj in self.objs:
+                yield obj.name, obj.comment
+                
+        return pd.Series(dict((name, comment) for name, comment in get(self)), name='Comment')
     
     def apply_comments(self, **comments):
         """

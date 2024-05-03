@@ -7,7 +7,16 @@ from requests_kerberos import HTTPKerberosAuth, OPTIONAL
 class SharepointAccess(object):
     
     def __init__(self, url):
+        """
+        Initializes a SharepointAccess object.
 
+        Args:
+            url (str): The URL of the Sharepoint server.
+
+        Raises:
+            AssertionError: If the connection to the Sharepoint server fails.
+
+        """
         context = ssl.create_default_context()
         der_certs = context.get_ca_certs(binary_form=True)
         pem_certs = [ssl.DER_cert_to_PEM_cert(der) for der in der_certs]
