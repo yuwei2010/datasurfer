@@ -20,7 +20,7 @@ class Signal(object):
         
         return self.db[keys].describe(**kwargs)
 
-    @parse_data
+    @parse_data(add_labels=False)
     def arghisto(self, val, *, bins, **kwargs):
         """
         Compute the histogram of a given value.
@@ -34,8 +34,7 @@ class Signal(object):
 
         """
         from datasurfer.lib_signals.distrib_methods import arghisto
-        
-        kwargs.pop('labels', None)
+
         output = kwargs.pop('on_value', None)
         
         out = arghisto(val, bins, on_value=output, **kwargs)
@@ -44,7 +43,7 @@ class Signal(object):
     
 
     
-    @parse_data
+    @parse_data(add_labels=False)
     def kde(self, key, **kwargs):
         """
         Calculate the kernel density estimate (KDE) for a given key or array.
@@ -58,9 +57,7 @@ class Signal(object):
 
         """
         from datasurfer.lib_signals.distrib_methods import get_kde
-
-        kwargs.pop('labels', None)
-
+        
         return get_kde(key, **kwargs)
     
     def corr(self, *keys, **kwargs):
@@ -83,7 +80,7 @@ class Signal(object):
         assert len(keys) >= 2, 'At least two keys are required for correlation computation.'
         return self.db[keys].corr(**kwargs)
     
-    @parse_data
+    @parse_data(add_labels=False)
     def interp_linear(self, *vals, **kwargs):
         """
         Perform linear interpolation in N-dimensional space.
@@ -114,7 +111,6 @@ class Signal(object):
 
         assert len(vals) >= 2, 'At least two inputs are required for interpolation.'
 
-        kwargs.pop('labels', None)
         
         if len(vals) == 2:
             x, y = vals
@@ -127,28 +123,24 @@ class Signal(object):
 
         return f
     
-    @parse_data
+    @parse_data(add_labels=False)
     def fit_curve(self, *vals, f=None, **kwargs):
         
         from datasurfer.lib_signals.interp_methods import fit_curve
         
         assert len(vals) == 2, 'Only two inputs are required for curve fitting.'
         
-        kwargs.pop('labels', None)
-        
         if f is None:
             f = lambda x, a, b: a*x + b
             
         return fit_curve(f, *vals, **kwargs)
         
-    @parse_data
+    @parse_data(add_labels=False)
     def polyfit(self, *vals, degree=1, **kwargs):
         
         
         assert len(vals) == 2, 'Only two inputs are required for curve fitting.'
-        
-        kwargs.pop('labels', None)
-        
+                
         return np.poly1d(np.polyfit(*vals, degree, **kwargs))
             
     def cdist(self, df, axis=0, pbar=True):
@@ -174,7 +166,7 @@ class Signal(object):
         
         return pd.DataFrame.from_dict(res, orient='index').transpose()
     
-    @parse_data
+    @parse_data(add_labels=False)
     def detect_lags(self, *vals, **kwargs):
         
         from scipy.signal import correlate
@@ -193,7 +185,7 @@ class Signal(object):
 
         return lag
     
-    @parse_data    
+    @parse_data(add_labels=False)    
     def groupby(self, dat, indices=None,  remove_nan=True, **kwargs):
         """
         Group the data points based on the given bins.

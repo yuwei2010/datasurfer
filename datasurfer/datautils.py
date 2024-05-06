@@ -387,7 +387,77 @@ def collect_dirs(root, *patts, patt_filter=None):
                 
 
 #%%
-def parse_data(func):   
+def parse_data(*argnames, add_labels=True, label_keys=None):   
+    """
+    A decorator function that parses the input data before passing it to the decorated function.
+
+    Args:
+        func (function): The function to be decorated.
+
+    Returns:
+        function: The decorated function.
+
+    Raises:
+        ValueError: If the keys are not strings or numpy arrays.
+
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *keys, **kwargs):
+            
+            def get(keys):
+                out = []
+                lbls = []
+                for key in keys:
+                    if isinstance(key, str):
+                        out.append(self.db[[key]].dropna().to_numpy().ravel())
+                        lbls.append(key)
+                    elif isinstance(key, pd.Series):
+                        out.append(key.dropna().to_numpy())
+                        lbls.append(key.name)
+                    elif isinstance(key, pd.DataFrame):
+                        out.extend(key.dropna().to_numpy().T)
+                        lbls.extend(key.columns)
+                    elif isinstance(key, np.ndarray):
+                        out.append(key)
+                        lbls.append(None)
+                    elif isinstance(key, abc.Sequence):
+                        o, ls = get(key)
+                        out.append(o)
+                        lbls.extend(ls)
+                    else:
+                        out.append(key)
+                        lbls.append(None)
+                    
+                return out, lbls
+
+            if len(keys) and all(isinstance(key, str) for key in keys):
+                out = self.db[keys].dropna().to_numpy().T    
+                lbls = keys
+            else:        
+                out, lbls = get(keys)
+                
+            lbls = list(lbls)
+
+            for key in argnames:
+                if key in kwargs:
+                    out_, lbls_ = get([kwargs[key]])
+                    kwargs[key] = out_[0]
+                    if label_keys and key in label_keys:
+                        lbls.extend(lbls_)
+
+            
+            if add_labels and ('labels' not in kwargs) and all(lbl is not None for lbl in lbls) :
+                kwargs['labels'] = lbls     
+            
+            return func(self, *out, **kwargs)
+        
+        return wrapper
+    return decorator
+
+
+#%%
+def parse_data_bak(func):   
     """
     A decorator function that parses the input data before passing it to the decorated function.
 

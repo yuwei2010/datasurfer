@@ -42,7 +42,7 @@ def define_ax(func):
     """
 
     @wraps(func)
-    def wrapper(self, *keys, **kwargs): 
+    def wrapper(self, *args, **kwargs): 
           
         ax = kwargs.pop('ax', None)
         setax = kwargs.pop('setax', False)
@@ -50,7 +50,7 @@ def define_ax(func):
         if not ax:
             _, ax = plt.subplots(**figparams)        
         
-        ax = func(self, *keys, ax=ax, **kwargs)
+        ax = func(self, *args, ax=ax, **kwargs)
         
         if setax:
             axisfunc(ax)
@@ -117,7 +117,7 @@ class Plots(object):
         return self
         
     @define_ax   
-    @parse_data
+    @parse_data(add_labels=True)
     def histogram(self, *keys, ax=None, bins=None, **kwargs):
         """
         Generate a histogram plot.
@@ -162,8 +162,8 @@ class Plots(object):
         return ax
     
     @define_ax
-    @parse_data
-    def scatter(self, *keys, ax=None, setax=True, **kwargs):
+    @parse_data('x', 'y', 'c', 's', add_labels=True, label_keys=['x', 'y'])
+    def scatter(self, x, y, ax=None, **kwargs):
         """
         Create a scatter plot.
 
@@ -178,24 +178,19 @@ class Plots(object):
         - ax: The matplotlib Axes object containing the scatter plot.
         """
         labels = kwargs.pop('labels', None) 
+
+
+        ax.scatter(x, y, **kwargs)
+
         
-        if len(keys) == 2:
-            ax.scatter(keys[0], keys[1], **kwargs)
-        elif len(keys) == 3:
-            ax.scatter(keys[0], keys[1], c=keys[2], **kwargs)   
-        elif len(keys) == 4:
-            ax.scatter(keys[0], keys[1], c=keys[2], s=keys[3], **kwargs)    
-        else:
-            raise ValueError('keys must contain 2-4 elements')
-        
-        if labels:
+        if labels and len(labels) == 2:
             ax.set_xlabel(labels[0])   
             ax.set_ylabel(labels[1])
         
         return ax
     
     @define_ax
-    @parse_data
+    @parse_data(add_labels=True)
     def line(self, *keys, ax=None, **kwargs):
         """
         Plot a line graph.
@@ -228,7 +223,7 @@ class Plots(object):
         return ax
      
     @define_ax
-    @parse_data
+    @parse_data(add_labels=True)
     def dendrogram(self, *keys, ax=None, **kwargs):
         """
         Generate a dendrogram plot.
@@ -247,7 +242,7 @@ class Plots(object):
         return ax
     
     @define_ax
-    @parse_data
+    @parse_data(add_labels=True)
     def parallel_coordinate(self, *keys, ax=None, **kwargs):
         """
         Plots a parallel coordinate plot based on the given keys.
@@ -269,7 +264,7 @@ class Plots(object):
         return ax
     
     @define_ax
-    @parse_data
+    @parse_data(add_labels=True)
     def parallel_coordis(self, *keys, **kwargs):
         """
         Generate a parallel coordinates plot using the given keys as dimensions.
@@ -351,7 +346,7 @@ class Plots(object):
         return ax
     
     @define_ax
-    @parse_data
+    @parse_data(add_labels=True)
     def kde(self, *keys, ax=None, **kwargs):
 
         from datasurfer.lib_signals.distrib_methods import get_kde

@@ -149,7 +149,7 @@ class MultiProc(object):
         Returns:
             The computed result of the delayed object.
         """
-        assert isinstance(lzfun, dask.delayed.Delayed), 'The input must be a delayed object.'
+        # assert isinstance(lzfun, dask.delayed.Delayed), 'The input must be a delayed object.'
         
         return dask.compute(lzfun)
     

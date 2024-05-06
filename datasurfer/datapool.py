@@ -91,8 +91,10 @@ class DataPool(object):
 
         
         self.silent = kwargs.pop('silent', False)
-        self.name = kwargs.pop('name', None)
+        self.name = kwargs.pop('name', None)       
         comments = kwargs.pop('comments', {})
+        if isinstance(comments, (pd.DataFrame, pd.Series)):
+            comments = comments.to_dict()
         
         
         if isinstance(datobjects, (str, Path)): 
@@ -285,7 +287,7 @@ class DataPool(object):
                     out = self.get_signal(inval.strip())
                     
             
-        elif isinstance(inval, (list, tuple, set)):
+        elif isinstance(inval, (list, tuple, set)) and len(inval):
             
             
             if all(na in self.keys() for na in inval):
