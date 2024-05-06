@@ -406,7 +406,7 @@ class DataPool(object):
             signal = self.signal_count(pbar=False)
             length = pd.Series([obj.__len__() for obj in self.objs], 
                             index=self.names(), name='Signal Length')
-            count = self.count(pbar=False)
+            count = self.count_signal_size(pbar=False)
             
             memory = (self.memory_usage(pbar=pbar) / 1e6).round(4) 
             comments = pd.Series(self.comments(), name='Comment')      
@@ -604,7 +604,7 @@ class DataPool(object):
                 
         return pd.Series(dict(get(self)), name='Signal Count')
     
-    def count(self, pbar=True):
+    def count_signal_size(self, pbar=True):
         """
         Count the signal size for each object in the datapool.
 
