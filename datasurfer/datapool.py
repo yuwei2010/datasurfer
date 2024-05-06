@@ -18,7 +18,6 @@ from pathlib import Path
 from itertools import chain
 from functools import reduce
 
-from datasurfer.datainterface import DataInterface
 from datasurfer.datautils import collect_files, combine_configs, show_pool_progress
     
 random.seed()
@@ -138,7 +137,7 @@ class DataPool(object):
             datobjects = []
             
         objs = []
-        
+        from datasurfer import DataInterface
         for obj in datobjects:
             
             if isinstance(obj, DataInterface):
@@ -299,7 +298,7 @@ class DataPool(object):
             
             
         elif hasattr(inval, '__call__'):
-            
+            from datasurfer import DataInterface
             if isinstance(inval, type) and issubclass(inval, DataInterface):
                 
                 out = self.__class__([obj for obj in self.objs if isinstance(obj, inval)])
@@ -651,7 +650,7 @@ class DataPool(object):
         Returns:
             self: The updated datapool object.
         """
-        
+        from datasurfer import DataInterface
         assert isinstance(obj, DataInterface), 'Input object must be a DataInterface object.'
 
         if obj in self.objs:
@@ -683,6 +682,7 @@ class DataPool(object):
         return self
     
     def extend(self, objs):
+        from datasurfer import DataInterface
         assert all(isinstance(obj, DataInterface) for obj in objs), 'Input objecs must be DataInterface object.'
         self.objs.extend(objs)
         return self        
@@ -1221,7 +1221,7 @@ class DataPool(object):
         Yields:
             The modified object after applying all the functions.
         """
-        
+        from datasurfer import DataInterface
         if asiterator: pbar=False
         
         def wrapper(dp):
@@ -1247,7 +1247,7 @@ class DataPool(object):
         Returns:
         - DataPool: A new DataPool object that is a deep copy of the original object.
         """
-        
+        from datasurfer import DataInterface
         from datasurfer.lib_objects.numpy_object import NumpyObject
         
         @show_pool_progress('Copying', show=pbar)

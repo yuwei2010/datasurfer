@@ -57,7 +57,7 @@ def list_interfaces():
 
 
 #%%
-class DataInterface(ABC):
+class DataInterface(object):
     """
     A class representing parent class of all data interfaces.
 
@@ -349,9 +349,10 @@ class DataInterface(ABC):
         
         self._name = val
         
-    @abstractmethod
+
     def get_df(self):
-        pass
+        
+        raise NotImplementedError('Method is not implemented.')
     
     def to_object(self, cls, name=None):
         

@@ -190,7 +190,7 @@ class Plots(object):
         return ax
     
     @define_ax
-    @parse_data(add_labels=True)
+    @parse_data('x', add_labels=True)
     def line(self, *keys, ax=None, **kwargs):
         """
         Plot a line graph.
@@ -203,23 +203,28 @@ class Plots(object):
         Returns:
         - ax: The matplotlib Axes object with the line graph plotted.
         """
-        assert len(keys) > 0, 'keys must contain at least one element'
+        #assert len(keys) > 0, 'keys must contain at least one element'
         labels = kwargs.pop('labels', None)
+        x = kwargs.pop('x', None)
+        
+        func = lambda x, y, label=None: (ax.plot(x, y, label=label, **kwargs) if x is not None 
+                                                else ax.plot(y, label=label, **kwargs))
+         
         if len(keys) == 1:
-            ax.plot(keys[0], **kwargs)  
+            if labels is not None:
+                func(x, keys[0], labels[0])
+            else:   
+                func(x, keys[0])
+            
             if labels:
                 ax.set_ylabel(labels[0]) 
-        elif len(keys) == 2:
-            ax.plot(keys[0], keys[1], **kwargs) 
-            if labels:
-                ax.set_xlabel(labels[0])   
-                ax.set_ylabel(labels[1])           
-        else:
-            for idx, key in enumerate(keys[1:], 1):
-                ax.plot(keys[0], key, label=labels[idx],**kwargs) 
-            
-            ax.set_xlabel(labels[0])
        
+        elif len(keys) > 1 :
+            for idx, key in enumerate(keys):
+                if labels is not None:
+                    func(x, key, labels[idx])
+                else:   
+                    func(x, key)       
         return ax
      
     @define_ax
