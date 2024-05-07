@@ -75,6 +75,7 @@ class MultiProc(object):
             return self.__getattribute__(name)
         
         except AttributeError:
+            
             return dask.delayed(getattr(self.db, name))
         
    

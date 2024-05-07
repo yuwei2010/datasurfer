@@ -78,6 +78,33 @@ class Plots(object):
         """
         self.db = db
         
+    def __getattr__(self, name: str):
+        """
+        Retrieve the value of an attribute dynamically.
+
+        This method is called when an attribute is accessed that doesn't exist
+        in the current object. It attempts to retrieve the attribute from the
+        underlying database object and returns it.
+
+        Parameters:
+        - name (str): The name of the attribute to retrieve.
+
+        Returns:
+        - Any: The value of the attribute.
+
+        Raises:
+        - AttributeError: If the attribute doesn't exist in the current object
+                            or the underlying database object.
+        """
+        try:
+            return self.__getattribute__(name)
+        
+        except AttributeError:
+            
+            raise
+            
+            #return dask.delayed(getattr(self.db, name))
+        
     def __call__(self, *key, **kwargs):
         """
         Call the `line` method with the given key and keyword arguments.

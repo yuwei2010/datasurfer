@@ -458,8 +458,7 @@ def parse_data(*argnames, add_labels=True, label_keys=None):
             if add_labels and ('labels' not in kwargs) and all(lbl is not None for lbl in lbls) :
                 kwargs['labels'] = lbls     
             
-            return func(self, *out, **kwargs)
-        
+            return func(self, *out, **kwargs)        
         return wrapper
     return decorator
 
