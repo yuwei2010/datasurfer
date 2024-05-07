@@ -1024,7 +1024,7 @@ class DataInterface(object):
         return Plots(self)
     
     @property
-    def signal(self):
+    def signals(self):
         """
         Generate statistic instance for the datapool objects.
 

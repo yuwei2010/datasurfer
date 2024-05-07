@@ -102,8 +102,9 @@ class Plots(object):
         except AttributeError:
             
             raise
-            
-            #return dask.delayed(getattr(self.db, name))
+               
+
+                
         
     def __call__(self, *key, **kwargs):
         """
@@ -119,6 +120,171 @@ class Plots(object):
         """
         return self.line(*key, **kwargs)
     
+    @property
+    def pandas(self):
+        
+        __all__ = [
+            'area',
+            'bar',
+            'barh',
+            'box',
+            'density',
+            'hexbin',
+            'hist',
+            'kde',
+            'line',
+            'pie',
+            'scatter'
+        ]
+               
+        class wrapper(object):           
+            def __init__(self, db):
+                self.db = db
+                       
+            def __getattr__(self, name):
+                
+                assert name in __all__, f'"{name}" is not a valid pandas plotting method. Please choose from {__all__}'
+                
+                def foo(*args, **kwargs):
+                    @define_ax
+                    @parse_data(add_labels=True)
+                    def boo(self, *args, **kwargs):                       
+                        labels = kwargs.pop('labels', None)
+                        ax = kwargs.pop('ax', None)
+                        if labels:
+                            df = pd.DataFrame(dict(zip(labels, args)))
+                            out = getattr(df.plot, name)(ax=ax, **kwargs)
+                        else:
+                            raise ValueError('Keys or dataframe must be provided')                        
+                        return out
+                    return boo(self, *args, **kwargs)  
+                
+                foo.__name__ = name     
+              
+                return foo  
+                      
+        return wrapper(self.db)
+    
+    @property
+    def seaborn(self):
+        import seaborn as sns
+        __all__ = [
+            'clustermap',
+            'jointplot',
+            'pairplot',
+            'swarmplot',
+            'violinplot',
+            'heatmap',
+            'scatterplot',
+            'lineplot',
+            'boxplot',
+            'kdeplot',
+            'lmplot',
+            'relplot',
+            'catplot',
+            'barplot',
+            'countplot',
+            'pointplot',
+            'stripplot',
+            'pairplot',
+            'FacetGrid',
+            'PairGrid',
+        ]
+        
+        class wrapper(object):           
+            def __init__(self, db):
+                self.db = db 
+            
+            def set_theme(self, style='darkgrid', **kwargs):
+                sns.set_theme(style=style, **kwargs)
+                return self
+                
+            def __getattr__(self, name):
+                
+                assert name in __all__, f'"{name}" is not a valid pandas plotting method. Please choose from {__all__}'
+                def foo(*args, **kwargs):
+                    @parse_data(add_labels=True)
+                    def boo(self, *args, **kwargs):                       
+                        labels = kwargs.pop('labels', None)
+
+                        if labels:
+                            df = pd.DataFrame(dict(zip(labels, args)))
+                            out = getattr(sns, name)(data=df, **kwargs)  
+                        else:
+                            raise ValueError('Keys or dataframe must be provided')                        
+                        return out
+                    return boo(self, *args, **kwargs)  
+                
+                foo.__name__ = name     
+              
+                return foo  
+                      
+        return wrapper(self.db)    
+    
+    @property
+    def plotly(self):
+        
+        import plotly.express as px
+        import plotly.graph_objects as go
+        
+        __all__ =  [
+                    'scatter',
+                    'line',
+                    'bar',
+                    'histogram',
+                    'box',
+                    'violin',
+                    'density_contour',
+                    'density_heatmap',
+                    'density_mapbox',
+                    'density_violin',   
+                    'scatter_3d',
+                    'line_3d',
+                    'scatter_polar',
+                    'line_polar',
+                    'bar_polar',
+                    'scatter_ternary',
+                    'line_ternary',
+                    'scatter_geo',
+                    'line_geo',
+                    'scatter_mapbox',
+                    'line_mapbox',
+                    'scatter_matrix',
+                    'parallel_coordinates',
+                     ]
+        class wrapper(object):           
+            def __init__(self, db):
+                self.db = db 
+            
+                
+            def __getattr__(self, name):
+                
+                assert name in __all__, f'"{name}" is not a valid pandas plotting method. Please choose from {__all__}'
+                def foo(*args, **kwargs):
+                    @parse_data(add_labels=True)
+                    def boo(self, *args, **kwargs):                       
+                        labels = kwargs.pop('labels', None)
+
+                        if labels:
+                            df = pd.DataFrame(dict(zip(labels, args)))
+                            fig = getattr(px, name)(df, **kwargs)  
+
+                        else:
+                            raise ValueError('Keys or dataframe must be provided')                        
+                        return fig
+                    return boo(self, *args, **kwargs)  
+                
+                foo.__name__ = name     
+              
+                return foo  
+                      
+        return wrapper(self.db) 
+    
+    @property
+    def bokeh(self):
+        from bokeh.plotting import figure, show
+        
+                              
     
     def set_params(self, **kwargs):
         """
@@ -142,6 +308,20 @@ class Plots(object):
         global axisfunc
         axisfunc = func
         return self
+    
+    @define_ax
+    def get_ax(self, ax=None, setax=False, **kwargs):
+        """
+        Get the axis for plotting.
+        
+        Parameters:
+        - ax: The matplotlib Axes object to plot on. If None, a new figure and axes will be created.
+        
+        Returns:
+        - ax: The matplotlib Axes object to plot on.
+        """
+        self.set_params(**kwargs)
+        return ax
         
     @define_ax   
     @parse_data(add_labels=True)
@@ -339,7 +519,7 @@ class Plots(object):
 
         cmap = kwargs.pop('cmap', sns.diverging_palette(230, 20, as_cmap=True))
 
-        corr = self.db.stats.corr(*keys)
+        corr = self.db.signals.corr(*keys)
 
         default = dict(annot=True, cmap=cmap, cbar=False, vmin=-1, vmax=1)
 
