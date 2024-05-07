@@ -1,85 +1,68 @@
 import numpy as np
 import pandas as pd
-from datasurfer.datainterface import DataInterface
+from datasurfer.lib_objects import DataInterface
 
 #%%
 
-class KFObject(DataInterface):
-    """
-    A class representing a KFObject.
+class KF_OBJECT(DataInterface):
 
-    Attributes:
-        path (str): The path to the data file.
-        key_x (str): The column name for the x-coordinate values.
-        key_y (str): The column name for the y-coordinate values.
-        config (dict): A dictionary containing configuration options.
-        name (str): The name of the object.
-        comment (str): Additional comments or information.
-
-    Methods:
-        get_df(): Reads the data file and returns a pandas DataFrame.
-        getx(): Returns the unique x-coordinate values from the DataFrame.
-        gety(): Returns the unique y-coordinate values from the DataFrame for the minimum x-coordinate value.
-        get_triangles(): Returns the triangles for plotting.
-        getXY(): Returns the meshgrid of x and y coordinates.
-        getZ(key, **kwargs): Interpolates the values of a given key in the DataFrame based on the x and y coordinates.
-
-    """
-    exts = ['*.kf']
     def __init__(self, path, key_x='n', key_y='Trq', config=None, name=None, comment=None):       
         super().__init__(path, config, comment=comment, name=name)
         self.key_x = key_x
         self.key_y = key_y
 
+    
     def get_df(self):
-        """
-        Reads the data file and returns a pandas DataFrame.
+        
+        with open(self.path, 'r') as fobj:
+            lines = [l.strip() for l in fobj.readlines() if l.strip()]  
+            
+        for idx, l in enumerate(lines):
+            if l.startswith('KF') and l.split()[0] == 'KF':
+                break
 
-        Returns:
-            pandas.DataFrame: The DataFrame containing the data.
-        """
-        # Code implementation...
-
+        cols = lines[idx+1].split()
+        data = []
+        
+        for l in lines[idx+2:]:
+            s = l.split()
+            if s[0].isnumeric():
+                data.append(list(map(float, s)))
+        
+        data = np.array(data, dtype=float)
+        df = pd.DataFrame(data, columns=cols)
+        return df
+    
     def getx(self):
-        """
-        Returns the unique x-coordinate values from the DataFrame.
-
-        Returns:
-            numpy.ndarray: The unique x-coordinate values.
-        """
-        # Code implementation...
-
+        
+        return np.unique(self.df[self.key_x].values)
+    
     def gety(self):
-        """
-        Returns the unique y-coordinate values from the DataFrame for the minimum x-coordinate value.
-
-        Returns:
-            numpy.ndarray: The unique y-coordinate values.
-        """
-        # Code implementation...
-
+        
+        return np.unique(self.df[self.key_y][self.df[self.key_x]==self.getx().min()].values.ravel())
+    
     def get_triangles(self):
-        """
-        Returns the triangles for plotting.
-
-        Returns:
-            numpy.ndarray: The triangles for plotting.
-        """
-        # Code implementation...
-
+        
+        from datasurfer.lib_plots.plot_utils import trigrid
+        x = self.df[self.key_x].values.ravel()
+        y = self.df[self.key_y].values.ravel()
+        tris = trigrid(x, y, axis=0)
+        
+        return tris
+    
     def getXY(self):
-        """
-        Returns the meshgrid of x and y coordinates.
-
-        Returns:
-            numpy.ndarray: The meshgrid of x and y coordinates.
-        """
-        # Code implementation...
-
+        
+        x = self.getx()
+        y = self.gety()
+        
+        X, Y = np.meshgrid(x, y)
+        
+        return X, Y
+    
     def getZ(self, key, **kwargs):
         """
         Interpolates the values of a given key in the DataFrame based on the x and y coordinates.
-
+        
         Parameters:
             key (str): The column name of the values to be interpolated.
             **kwargs: Additional keyword arguments to be passed to the interpolation function.
@@ -87,7 +70,26 @@ class KFObject(DataInterface):
         Returns:
             numpy.ndarray: The interpolated values reshaped to match the shape of the x and y coordinates.
         """
-        # Code implementation...
+        from datasurfer.lib_signals.interp_methods import interp_linearND 
+        import numpy as np
+        import pandas as pd
+        
+        X = self.df[[self.key_x, self.key_y]].values
+        z = self.df[key].values.ravel()
+         
+        f = interp_linearND(X, z, **kwargs)
+        
+        XX, YY = self.getXY()
+        
+        xx = XX.ravel()
+        yy = YY.ravel()
+        
+        zz = f(np.column_stack((xx, yy)))
+        
+        df = pd.DataFrame({'x': xx, 'y': yy, key: zz})
+        df.interpolate(limit_direction='both', inplace=True)
+        
+        return df[key].values.reshape(XX.shape)
     
     
         
