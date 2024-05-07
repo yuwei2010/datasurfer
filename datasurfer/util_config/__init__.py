@@ -9,7 +9,7 @@ from datasurfer.datautils import show_pool_progress
 
 #%%
 
-class Config(object):
+class Configurator(object):
     
     def __init__(self, db=None, config=None):
         
@@ -402,6 +402,10 @@ class Config(object):
                 
         self.init_cfg()        
         
+        return self
+    
+    def clear_all(self):
+        self._cfg = dict()
         return self
         
         

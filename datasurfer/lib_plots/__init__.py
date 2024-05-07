@@ -204,6 +204,7 @@ class Plots(object):
         - ax: The matplotlib Axes object with the line graph plotted.
         """
         #assert len(keys) > 0, 'keys must contain at least one element'
+        
         labels = kwargs.pop('labels', None)
         x = kwargs.pop('x', None)
         

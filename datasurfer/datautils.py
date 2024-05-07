@@ -410,7 +410,7 @@ def parse_data(*argnames, add_labels=True, label_keys=None):
                 lbls = []
                 for key in keys:
                     if isinstance(key, str):
-                        out.append(self.db[[key]].dropna().to_numpy().ravel())
+                        out.append(buffer[key].to_numpy().ravel())
                         lbls.append(key)
                     elif isinstance(key, pd.Series):
                         out.append(key.dropna().to_numpy())
@@ -430,9 +430,17 @@ def parse_data(*argnames, add_labels=True, label_keys=None):
                         lbls.append(None)
                     
                 return out, lbls
+            
+            
+            buffer_keys = ([key for key in keys if isinstance(key, str)] 
+                         + [key for key in [kwargs.get(k, None) for k in argnames]])
+            
+            buffer_keys = [key for key in buffer_keys if key is not None] 
+            
+            buffer = self.db[buffer_keys].dropna()
 
             if len(keys) and all(isinstance(key, str) for key in keys):
-                out = self.db[keys].dropna().to_numpy().T    
+                out = buffer[list(keys)].to_numpy().T    
                 lbls = keys
             else:        
                 out, lbls = get(keys)
