@@ -1575,8 +1575,8 @@ class DataPool(object):
         
         paths = [val['path'] for val in values]
         comments = (dict((key, val.get('comment', None)) for key, val in data.items()) 
-                    if kwargs.pop('apply_comments', False) else dict())
-        
+                    if kwargs.pop('apply_comments', True) else dict())
+
         dp = DataPool(paths, comments=comments, **kwargs)    
 
         return dp

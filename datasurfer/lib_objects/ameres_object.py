@@ -231,7 +231,15 @@ class AMEResObject(DataInterface):
         return res   
     
     def search_channel(self, patt):
-        
+        """
+        Searches for channels in the `self.channels` list that match the given pattern.
+
+        Parameters:
+        patt (str): The pattern to search for.
+
+        Returns:
+        list: A list of channels that match the given pattern.
+        """
         r = re.compile(patt)
         
         return list(filter(r.match, self.channels))

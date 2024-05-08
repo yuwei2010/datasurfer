@@ -379,7 +379,7 @@ def collect_dirs(root, *patts, patt_filter=None):
         d = Path(r).stem
         
         fs = [f for f in fs if (any(re.match(patt, os.path.join(d, f)) for patt in patts) and 
-                               (not any(re.match(patt, os.path.join(d, f)) for patt in patt_filter)) )]
+                               (not any(re.match(patt, os.path.join(d, f)) for patt in patt_filter)))]
 
         path = Path(r)
         if fs:
@@ -462,63 +462,6 @@ def parse_data(*argnames, add_labels=True, label_keys=None):
         return wrapper
     return decorator
 
-
-#%%
-def parse_data_bak(func):   
-    """
-    A decorator function that parses the input data before passing it to the decorated function.
-
-    Args:
-        func (function): The function to be decorated.
-
-    Returns:
-        function: The decorated function.
-
-    Raises:
-        ValueError: If the keys are not strings or numpy arrays.
-
-    """
-    @wraps(func)
-    def wrapper(self, *keys, **kwargs):
-        
-        def get(keys):
-            out = []
-            lbls = []
-            for key in keys:
-                if isinstance(key, str):
-                    out.append(self.db[[key]].dropna().to_numpy().ravel())
-                    lbls.append(key)
-                elif isinstance(key, pd.Series):
-                    out.append(key.dropna().to_numpy())
-                    lbls.append(key.name)
-                elif isinstance(key, pd.DataFrame):
-                    out.extend(key.dropna().to_numpy().T)
-                    lbls.extend(key.columns)
-                elif isinstance(key, np.ndarray):
-                    out.append(key)
-                    lbls.append(None)
-                elif isinstance(key, abc.Sequence):
-                    o, ls = get(key)
-                    out.append(o)
-                    lbls.extend(ls)
-                else:
-                    out.append(key)
-                    lbls.append(None)
-                
-            return out, lbls
-        
-        if all(isinstance(key, str) for key in keys):
-            out = self.db[keys].dropna().to_numpy().T    
-            lbls = keys
-        else:        
-            out, lbls = get(keys)
-        
-        if ('labels' not in kwargs) and all(lbl is not None for lbl in lbls) :
-            kwargs['labels'] = lbls     
-
-        return func(self, *out, **kwargs)
-    
-    return wrapper
 
 #%%
 

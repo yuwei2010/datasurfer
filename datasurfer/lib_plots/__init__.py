@@ -281,8 +281,78 @@ class Plots(object):
     
     @property
     def bokeh(self):
-        from bokeh.plotting import figure, show
+        """
+        https://docs.bokeh.org/en/2.4.1/index.html
         
+        Example:
+        fig = obj.plot.bokeh(theme='dark_minimal', output_nb=True)
+        fig.figure(height=400, width=600, x_axis_label='x')
+        fig.line('time', keys[2], legend_label=keys[2], color='red')
+        fig.line('time', keys[3], legend_label=keys[3])
+        fig.scatter('time', keys[0], line_color='yellow', legend_label=keys[0])
+        fig.p.legend.location = "bottom_left"
+        fig.p.legend.label_text_font_size = '8pt'
+        fig.p.legend.click_policy = "hide"
+
+        fig.show()
+        
+        """
+
+        import bokeh.plotting as bp
+        
+        
+        class wrapper(object):         
+              
+            def __init__(self, db):
+                self.db = db 
+                
+            def __call__(self, **kwargs):
+                                    
+                if kwargs.pop('output_nb', False):
+                    from bokeh.io import output_notebook
+                    output_notebook()
+                if kwargs.get('theme', None):
+                    from bokeh.io import curdoc
+                    curdoc().theme = kwargs.pop('theme')
+                return self
+
+            
+            
+            def figure(self, **kwargs):
+                
+                self.p = bp.figure(**kwargs)
+                return self
+            
+            def show(self):
+                bp.show(self.p)
+                return self
+            
+            def save(self, path):
+                from bokeh.plotting import output_file, save
+                
+                output_file(filename=path, title="Static HTML file")
+                save(self.p)
+                return self
+                          
+            def __getattr__(self, name):
+                
+                def foo(*args, **kwargs):                   
+                    @parse_data(add_labels=True)
+                    def boo(self, *args, **kwargs): 
+                                              
+                        labels = kwargs.pop('labels', None)  
+                        if not isinstance(self.p, bp.Figure):
+                            self.figure()
+                        getattr(self.p, name)(*args, **kwargs)
+                                              
+                        return self
+                    return boo(self, *args, **kwargs)  
+                
+                foo.__name__ = name     
+              
+                return foo  
+                      
+        return wrapper(self.db)         
                               
     
     def set_params(self, **kwargs):
