@@ -255,8 +255,7 @@ class Plots(object):
         class wrapper(object):           
             def __init__(self, db):
                 self.db = db 
-            
-                
+               
             def __getattr__(self, name):
                 
                 assert name in __all__, f'"{name}" is not a valid pandas plotting method. Please choose from {__all__}'
@@ -310,7 +309,7 @@ class Plots(object):
         return self
     
     @define_ax
-    def get_ax(self, ax=None, setax=False, **kwargs):
+    def gca(self, ax=None, setax=False, **kwargs):
         """
         Get the axis for plotting.
         

@@ -74,7 +74,7 @@ class NumpyObject(DataInterface):
     
     @staticmethod
     def from_other(other):
-        
+
         assert isinstance(other, DataInterface)
         dat = other.to_dict()
         df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])

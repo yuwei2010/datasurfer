@@ -541,7 +541,7 @@ class DataPool(object):
         for name, comment in comments.items():
             try:
                 if comment:
-                    self.get_object(name).comment = comment
+                    self.get_object(name)._comment = comment
             except (NameError, AttributeError):
                 pass
         return self
@@ -1574,7 +1574,8 @@ class DataPool(object):
         _, values = zip(*data.items())
         
         paths = [val['path'] for val in values]
-        comments = dict((key, val.get('comment', None)) for key, val in data.items())
+        comments = (dict((key, val.get('comment', None)) for key, val in data.items()) 
+                    if kwargs.pop('apply_comments', False) else dict())
         
         dp = DataPool(paths, comments=comments, **kwargs)    
 

@@ -94,7 +94,7 @@ def read_multisheets_excel(input, **kwargs):
     ```
 
     """
-    from datasurfer.lib_objects.multisheet_object import ExcelDataPool
+    from datasurfer.lib_poolobjects.multisheet_object import ExcelDataPool
     
     if isinstance(input, DataInterface):
         
