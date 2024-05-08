@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
-from datasurfer.lib_objects import DataInterface
+from datasurfer import DataInterface
 
 #%%
 
-class KF_OBJECT(DataInterface):
+class KFObject(DataInterface):
 
     def __init__(self, path, key_x='n', key_y='Trq', config=None, name=None, comment=None):       
         super().__init__(path, config, comment=comment, name=name)

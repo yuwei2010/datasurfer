@@ -97,9 +97,9 @@ class MDFObject(DataInterface):
             warnings.warn('Time axis may have deviation due to missing configuration.')
         if not len(self.df):
             df = self.get_channels(self.channels[0])
-            t = df.index
+            t = df['time']
         else:
-            t = self.df.index
+            t = self.df['time']
         return np.asarray(t)
 
     def keys(self):
@@ -160,7 +160,10 @@ class MDFObject(DataInterface):
             except ValueError:
                 raise
                 warnings.warn(f'Channel "{chn}" not found.')
-        return pd.concat(outs, axis=1)
+        df = pd.concat(outs, axis=1)
+        df.index.name = 'time'
+        df.reset_index(inplace=True)
+        return df
 
     def get_df(self):
         """

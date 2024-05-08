@@ -136,6 +136,8 @@ class DataPool(object):
         if datobjects is None or len(datobjects)==0:
             datobjects = []
             
+
+            
         objs = []
         from datasurfer import DataInterface
         for obj in datobjects:
@@ -1093,7 +1095,7 @@ class DataPool(object):
         list(get(self))
         return self
 
-    def merge(self, pool0, raise_error=False):  
+    def merge(self, pool0, only_data=True, raise_error=False):  
         """
         Merges the objects from another datapool into the current datapool.
 
@@ -1103,13 +1105,13 @@ class DataPool(object):
         Returns:
             DataPool: The merged datapool.
         """
-        names = [obj.name for obj in self.objs]
+        names = self.names()
 
         for obj in pool0.objs:
-            if obj.name not in names:
+            if not only_data and obj.name not in names:
                 self.objs.append(obj)
-            elif raise_error:
-                raise ValueError(f'Object "{obj.name}" already exists in the datapool.')    
+            elif obj.name in names:
+                self.get_object(obj.name).merge(obj)
 
         return self
     

@@ -663,8 +663,12 @@ class DataInterface(object):
         Returns:
             The loaded data as a dictionary.
         """
-        if not keys:       
-            keys = mapping.values()
+        mapping = mapping or dict()
+        
+        for key in keys:           
+            mapping[key] = key  
+            
+        keys = mapping.values()
             
         @translate_config(mapping)
         @extract_channels(mapping)
@@ -690,7 +694,7 @@ class DataInterface(object):
             del self._df
         return self
    
-    def merge(self, obj0, reset_index=False):
+    def merge(self, obj0):
         """
         Merges the columns of another object into the current object.
 
@@ -703,9 +707,6 @@ class DataInterface(object):
         keys = obj0.df.columns.difference(self.df.columns)
         
         if len(keys):
-            if reset_index:
-                self.reset_index()
-                obj0.reset_index()
                 
             self._df[keys] = obj0[keys]
                     

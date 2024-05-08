@@ -147,9 +147,9 @@ class ASAMmdfObject(DataInterface):
                 if len(df):
                     break
                 n = n + 1
-            t = df.index
+            t = df['time']
         else:
-            t = self.df.index
+            t = self.df['time']
         return np.asarray(t)
     
     @property
@@ -207,6 +207,7 @@ class ASAMmdfObject(DataInterface):
                                     raster=self.sampling,
                                     time_from_zero=True)
         df.index.name = 'time'
+        df.reset_index(inplace=True)
         return df 
     
     def keys(self):
