@@ -77,7 +77,7 @@ def collect_files(root, *patts, warn_if_double=True, ignore_double=False):
                 
                 
 #%% Show_Pool_Progress_bar
-def show_pool_progress(msg, show=False, set_init=True, count=None):
+def show_pool_progress(msg, show=False, set_init=True, count=None, leave=True):
     """
     Decorator function that adds progress bar functionality to a method in a data pool object.
 
@@ -108,7 +108,7 @@ def show_pool_progress(msg, show=False, set_init=True, count=None):
             rng = range(num)
             
             if flag_pbar:
-                pbar = tqdm(rng)
+                pbar = tqdm(rng, leave=leave)
                 iterator = pbar
             else:
                 iterator = rng
@@ -501,3 +501,5 @@ def str2df(s, **kwargs):
     df = pd.read_csv(StringIO(s), **kwargs)
     
     return df
+
+#%%

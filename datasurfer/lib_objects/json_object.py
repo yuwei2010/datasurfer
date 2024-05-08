@@ -33,9 +33,11 @@ class JSONObject(DataInterface):
         Returns:
             pandas.DataFrame: The DataFrame representation of the JSON object.
         """
-        dat = json.load(open(self.path, 'r'))
-        df = pd.DataFrame(dat).transpose()
-        return df
+        
+        with open(self.path, 'r') as fobj:
+            dat = json.load(fobj)
+            df = pd.DataFrame(dat).transpose()
+            return df
         
 if __name__ == '__main__':
     

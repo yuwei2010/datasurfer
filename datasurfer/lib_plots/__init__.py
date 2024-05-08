@@ -173,6 +173,12 @@ class Plots(object):
     
     @property
     def seaborn(self):
+        """
+        A method that provides a wrapper for seaborn plotting functions.
+
+        Returns:
+            wrapper: An instance of the wrapper class that allows access to seaborn plotting functions.
+        """
         import seaborn as sns
         __all__ = [
             'clustermap',
@@ -295,7 +301,10 @@ class Plots(object):
     @property
     def bokeh(self):
         """
+        Homepage:
         https://docs.bokeh.org/en/2.4.1/index.html
+        Notebooks:
+        https://hub.ovh2.mybinder.org/user/bokeh-tutorial-zprt8vtz/lab
         
         Example:
         fig = obj.plot.bokeh(theme='dark_minimal', output_nb=True)
@@ -643,20 +652,33 @@ class Plots(object):
     @define_ax
     @parse_data(add_labels=True)
     def kde(self, *keys, ax=None, **kwargs):
+        """
+        Plot the kernel density estimate (KDE) for the given keys.
 
+        Parameters:
+        *keys : array-like
+            The keys for which the KDE will be computed and plotted.
+        ax : matplotlib.axes.Axes, optional
+            The axes on which the KDE plot will be drawn. If not provided, a new figure and axes will be created.
+        **kwargs : dict
+            Additional keyword arguments to customize the KDE plot.
+
+        Returns:
+        ax : matplotlib.axes.Axes
+            The axes on which the KDE plot is drawn.
+
+        """
         from datasurfer.lib_signals.distrib_methods import get_kde
-        
+
         lbls = kwargs.pop('labels', [None]*len(keys))
         num = kwargs.pop('count', 100)
         pltkws = kwargs.pop('plot_kws', {})
-        
+
         for key, lbl in zip(keys, lbls):
-            
             kde = get_kde(key, **kwargs)
             x = np.linspace(np.min(key), np.max(key), num)
             ax.plot(x, kde(x), label=lbl, **pltkws)
 
-        
         return ax
         
     
