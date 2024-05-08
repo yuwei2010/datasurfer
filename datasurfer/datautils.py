@@ -435,9 +435,12 @@ def parse_data(*argnames, add_labels=True, label_keys=None):
             buffer_keys = ([key for key in keys if isinstance(key, str)] 
                          + [key for key in [kwargs.get(k, None) for k in argnames]])
             
-            buffer_keys = [key for key in buffer_keys if key is not None] 
+            buffer_keys = [key for key in buffer_keys if (key is not None) and isinstance(key, str)] 
             
-            buffer = self.db[buffer_keys].dropna()
+            if len(buffer_keys):
+                buffer = self.db[buffer_keys].dropna() 
+            else:
+                buffer = pd.DataFrame()
 
             if len(keys) and all(isinstance(key, str) for key in keys):
                 out = buffer[list(keys)].to_numpy().T    

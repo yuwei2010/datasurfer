@@ -137,8 +137,7 @@ class Signal(object):
         
     @parse_data(add_labels=False)
     def polyfit(self, *vals, degree=1, **kwargs):
-        
-        
+                
         assert len(vals) == 2, 'Only two inputs are required for curve fitting.'
                 
         return np.poly1d(np.polyfit(*vals, degree, **kwargs))
@@ -201,6 +200,24 @@ class Signal(object):
         from datasurfer.lib_signals.distrib_methods import groupby
             
         return groupby(dat, indices, remove_nan=remove_nan)
+    
+    @parse_data(add_labels=False)
+    def smooth(self, key, window_length, polyorder, method='savgol', **kwargs):
+        """
+        Smooth the data using a specified method.
+
+        Parameters:
+        - key: The key to smooth.
+        - method: The smoothing method to use. Default is 'savgol'.
+        - **kwargs: Additional keyword arguments to be passed to the smoothing method.
+
+        Returns:
+        - The smoothed data.
+
+        """
+        from datasurfer.lib_signals.filter_methods import savgol_filter
+        
+        return savgol_filter(key, window_length=window_length, polyorder=polyorder, **kwargs)
 
         
             

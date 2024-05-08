@@ -424,7 +424,7 @@ class DataInterface(object):
         if len(names) == 1:
             signame, = names
 
-            if signame not in self.df.columns and (signame.lower() == 't' or signame.lower() == 'index'):
+            if signame not in self.df.columns and signame.lower() == 'index':
                 return pd.DataFrame(np.asarray(self.df.index), index=self.df.index)
 
         return self.df[list(names)]

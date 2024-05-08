@@ -102,9 +102,7 @@ class Plots(object):
         except AttributeError:
             
             raise
-               
-
-                
+                       
         
     def __call__(self, *key, **kwargs):
         """
@@ -118,10 +116,18 @@ class Plots(object):
         - The result of the `line` method.
 
         """
+
         return self.line(*key, **kwargs)
+
     
     @property
     def pandas(self):
+        
+        """
+        Further information at https://pandas.pydata.org/docs/reference/plotting.html
+        
+        
+        """
         
         __all__ = [
             'area',
@@ -223,6 +229,13 @@ class Plots(object):
     
     @property
     def plotly(self):
+        
+        """
+        Example:
+        df = pd.DataFrame([y, yhat, time], index=['y', 'yhat', 'time']).T
+
+        obj.plot.plotly.line(df, x='time', y=['y', 'yhat'], height=400, width=600)
+        """
         
         import plotly.express as px
         import plotly.graph_objects as go
