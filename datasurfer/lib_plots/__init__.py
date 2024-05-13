@@ -305,6 +305,8 @@ class Plots(object):
         https://docs.bokeh.org/en/2.4.1/index.html
         Notebooks:
         https://hub.ovh2.mybinder.org/user/bokeh-tutorial-zprt8vtz/lab
+        Demos:
+        https://demo.bokeh.org/
         
         Example:
         fig = obj.plot.bokeh(theme='dark_minimal', output_nb=True)
@@ -317,6 +319,10 @@ class Plots(object):
         fig.p.legend.click_policy = "hide"
 
         fig.show()
+        
+        Post html to notebook:
+        from IPython.core.display import HTML
+        HTML('test.html')
         
         """
 

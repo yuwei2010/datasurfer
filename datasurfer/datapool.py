@@ -1036,17 +1036,48 @@ class DataPool(object):
             None. The objects in the datapool are sorted in-place.
         """
         return list(self.objs[:]).sort(key=lambda obj: obj.key)
+    
     def sort_objects(self, key):
-        
+        """
+        Sorts the objects in the datapool based on the specified key.
+
+        Args:
+            key (str): The key to sort the objects by.
+
+        Returns:
+            list: A sorted list of objects.
+
+        """
+        return list(self.objs[:]).sort(key=lambda obj: obj.key)
+    
+    def sort_objects(self, key):
+        """
+        Sorts the objects in the datapool based on the specified key.
+
+        Args:
+            key: The key to sort the objects by.
+
+        Returns:
+            A sorted list of objects.
+
+        """
         return list(self.objs[:]).sort(key=lambda obj:obj.key)
     
     def map(self, func, ignore_error=True, pbar=True):
-               
+        """
+        Apply a function to each object in the datapool and return the results.
+
+        Args:
+            func (function): The function to apply to each object.
+            ignore_error (bool, optional): Whether to ignore any exceptions raised during processing. Defaults to True.
+            pbar (bool, optional): Whether to show a progress bar during processing. Defaults to True.
+
+        Returns:
+            list: A list of the results of applying the function to each object.
+        """
         @show_pool_progress('Processing', pbar)
         def get(self):
-            
             for obj in self.objs:
-
                 try:
                     yield func(obj)
                 except Exception as err:
@@ -1095,7 +1126,7 @@ class DataPool(object):
         list(get(self))
         return self
 
-    def merge(self, pool0, only_data=True, raise_error=False):  
+    def merge(self, pool0, only_data=True):  
         """
         Merges the objects from another datapool into the current datapool.
 
