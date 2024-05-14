@@ -75,8 +75,10 @@ class MultiProc(object):
             return self.__getattribute__(name)
         
         except AttributeError:
-            
-            return dask.delayed(getattr(self.db, name))
+            try:
+                return getattr(self.db, 'mlp_'+name)
+            except AttributeError:
+                raise AttributeError(f"The attribute '{name}' does not exist in the current object or can not be parallized.")
         
    
     @property

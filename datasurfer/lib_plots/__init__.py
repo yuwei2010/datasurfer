@@ -327,8 +327,9 @@ class Plots(object):
         """
 
         import bokeh.plotting as bp
-        
-        
+        import bokeh.io as bio
+        import bokeh.layouts as bl
+                
         class wrapper(object):         
               
             def __init__(self, db):
@@ -343,23 +344,30 @@ class Plots(object):
                     from bokeh.io import curdoc
                     curdoc().theme = kwargs.pop('theme')
                 return self
-
-            
-            
+           
             def figure(self, **kwargs):
                 
-                self.p = bp.figure(**kwargs)
+                self.ax = bp.figure(**kwargs)
                 return self
             
-            def show(self):
-                bp.show(self.p)
+            def show(self, layout=None):
+                if layout is None:
+                    bp.show(self.ax)
+                else:
+                    bio.show(layout)
+                    
                 return self
+            
+            def layout(self, *axs, layout):
+                
+                return getattr(bl, layout)(*axs)
+                
             
             def save(self, path):
                 from bokeh.plotting import output_file, save
                 
                 output_file(filename=path, title="Static HTML file")
-                save(self.p)
+                save(self.ax)
                 return self
                           
             def __getattr__(self, name):
@@ -369,11 +377,13 @@ class Plots(object):
                     def boo(self, *args, **kwargs): 
                                               
                         labels = kwargs.pop('labels', None)  
-                        if not isinstance(self.p, bp.Figure):
+                        if not isinstance(self.ax, bp.Figure):
                             self.figure()
-                        getattr(self.p, name)(*args, **kwargs)
+                            
+                        obj = getattr(self.ax, name)(*args, **kwargs)
                                               
                         return self
+                    
                     return boo(self, *args, **kwargs)  
                 
                 foo.__name__ = name     

@@ -623,7 +623,7 @@ class DataPool(object):
         return pd.Series(dict(get(self)), name='Signal Size')
     
     
-    def mpl_initialize(self, n_workers=4):
+    def mlp_initialize(self, **kwargs):
         """
         Initializes the datapool for multiprocessing.
 
@@ -633,11 +633,11 @@ class DataPool(object):
         Returns:
             self: The initialized datapool object.
         """
-        objs = self.mlp(n_workers=n_workers).map(lambda x: x.initialize())
+        objs = self.mlp().map(lambda x: x.initialize(**kwargs))
         
-        dp = self.__class__(objs)
-        dp.initialized = True
-        return dp
+        self.__init__(objs)
+        self.initialized = True
+        return self
     
     def initialize(self, buffer=None, pbar=True):
         """
