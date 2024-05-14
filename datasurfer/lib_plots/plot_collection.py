@@ -750,7 +750,8 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
     ax.set_xticklabels(list('abcde'))
     ax.legend()
     """
- 
+                    
+    from datasurfer.lib_signals.distrib_methods import arghisto  
 
     
     n = len(data)
@@ -789,7 +790,8 @@ def plot_histogram(ax, data, bins, width=None, labels=None, yfun=None,
             if arr1d.size == len(bins) - 1:            
                 y = arr1d
                 
-            else:               
+            else:
+                # y = np.array([len(index) for index in arghisto(arr1d, bins=bins)], dtype=int)               
                 y, _ = np.histogram(arr1d, bins)
                 
             if yfun:

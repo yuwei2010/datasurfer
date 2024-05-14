@@ -410,13 +410,13 @@ def parse_data(*argnames, add_labels=True, label_keys=None):
                 lbls = []
                 for key in keys:
                     if isinstance(key, str):
-                        out.append(buffer[key].to_numpy().ravel())
+                        out.append(buffer[key].values.ravel())
                         lbls.append(key)
                     elif isinstance(key, pd.Series):
-                        out.append(key.dropna().to_numpy())
+                        out.append(key.dropna().values)
                         lbls.append(key.name)
                     elif isinstance(key, pd.DataFrame):
-                        out.extend(key.dropna().to_numpy().T)
+                        out.extend(key.dropna().values.T)
                         lbls.extend(key.columns)
                     elif isinstance(key, np.ndarray):
                         out.append(key)

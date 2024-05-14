@@ -666,7 +666,8 @@ class DataInterface(object):
         mapping = mapping or dict()
         
         for key in keys:           
-            mapping[key] = key  
+            if key not in mapping:           
+                mapping[key] = key  
             
         keys = mapping.values()
             

@@ -21,7 +21,7 @@ def get_kde(x, **kwargs):
     return density
 
 #%%
-def arghisto(data, bins, on_value=None, align='right', clip=True):
+def arghisto(data, bins, on_value=None, align='left', clip=True):
     """
     Compute the histogram of the input data based on the given bins.
 

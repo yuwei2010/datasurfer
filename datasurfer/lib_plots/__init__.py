@@ -104,7 +104,7 @@ class Plots(object):
             raise
                        
         
-    def __call__(self, *key, **kwargs):
+    def __call__(self, **kwargs):
         """
         Call the `line` method with the given key and keyword arguments.
 
@@ -117,7 +117,7 @@ class Plots(object):
 
         """
 
-        return self.line(*key, **kwargs)
+        return self.set_params(**kwargs)
 
     
     @property

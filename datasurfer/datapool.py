@@ -746,7 +746,7 @@ class DataPool(object):
         list(get(self))
         return self
 
-    @show_pool_progress('Processing', show=False, set_init=True)
+    #@show_pool_progress('Processing', show=False, set_init=True)
     def iter_signal(self, signame, ignore_error=True, mask=None):
         '''
         Iterates over the data objects in the datapool and yields data frames for a given signal name.
@@ -801,7 +801,6 @@ class DataPool(object):
         for obj in objs:
             
             try:                
-
                                             
                 df = obj.get(signame)
                     
