@@ -623,6 +623,22 @@ class DataPool(object):
         return pd.Series(dict(get(self)), name='Signal Size')
     
     
+    def mpl_initialize(self, n_workers=4):
+        """
+        Initializes the datapool for multiprocessing.
+
+        Args:
+            n_workers (int, optional): The number of workers to use for multiprocessing. Defaults to None.
+
+        Returns:
+            self: The initialized datapool object.
+        """
+        objs = self.mlp(n_workers=n_workers).map(lambda x: x.initialize())
+        
+        dp = self.__class__(objs)
+        dp.initialized = True
+        return dp
+    
     def initialize(self, buffer=None, pbar=True):
         """
         Initializes the datapool by calling the `initialize` method on each object in the datapool.
@@ -684,10 +700,22 @@ class DataPool(object):
         return self
     
     def extend(self, objs):
+        """
+        Extends the datapool with a list of DataInterface objects.
+
+        Args:
+            objs (list): A list of DataInterface objects to be added to the datapool.
+
+        Returns:
+            self: The updated datapool object.
+
+        Raises:
+            AssertionError: If any of the input objects is not an instance of DataInterface.
+        """
         from datasurfer import DataInterface
-        assert all(isinstance(obj, DataInterface) for obj in objs), 'Input objecs must be DataInterface object.'
+        assert all(isinstance(obj, DataInterface) for obj in objs), 'Input objects must be DataInterface objects.'
         self.objs.extend(objs)
-        return self        
+        return self
     
     def load_signals(self, *keys, mapping=None, pbar=True):
         """

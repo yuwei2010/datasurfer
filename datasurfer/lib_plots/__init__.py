@@ -304,7 +304,7 @@ class Plots(object):
         Homepage:
         https://docs.bokeh.org/en/2.4.1/index.html
         Notebooks:
-        https://hub.ovh2.mybinder.org/user/bokeh-tutorial-zprt8vtz/lab
+        https://github.com/bokeh/bokeh-notebooks.git
         Demos:
         https://demo.bokeh.org/
         
