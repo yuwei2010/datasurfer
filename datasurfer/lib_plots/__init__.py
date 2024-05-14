@@ -359,6 +359,9 @@ class Plots(object):
                 return self
             
             def layout(self, *axs, layout):
+
+                
+                axs = [ax.ax for ax in axs]
                 
                 return getattr(bl, layout)(*axs)
                 

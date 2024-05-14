@@ -633,7 +633,7 @@ class DataPool(object):
         Returns:
             self: The initialized datapool object.
         """
-        objs = self.mlp().map(lambda x: x.initialize(**kwargs))
+        objs = self.mlp.map(lambda x: x.initialize(**kwargs))
         
         self.__init__(objs)
         self.initialized = True
@@ -1296,7 +1296,14 @@ class DataPool(object):
                 return fun(dp)
             else:
                 return list(fun(dp))
-        return wrapper      
+        return wrapper  
+    
+    def mlp_deepcopy(self, **kwargs):
+        from datasurfer.lib_objects.pandas_object import PandasObject
+        objs = self.mlp.map(lambda x: x.to_object(PandasObject))
+        
+        dp = DataPool(objs, **kwargs)
+        return dp            
                 
     def deepcopy(self, *pipeline, pbar=True):
         """
@@ -1309,20 +1316,19 @@ class DataPool(object):
         - DataPool: A new DataPool object that is a deep copy of the original object.
         """
         from datasurfer import DataInterface
-        from datasurfer.lib_objects.numpy_object import NumpyObject
+        from datasurfer.lib_objects.pandas_object import PandasObject
         
         @show_pool_progress('Copying', show=pbar)
         def fun(self):           
             for obj in self.objs:
-                obj = obj.to_object(NumpyObject)
+                obj = obj.to_object(PandasObject)
                 if pipeline:
                     list(DataInterface.pipeline(*pipeline)(obj))
                               
                 yield obj
                                 
         objs = list(fun(self))
-        
-                        
+                           
         return self.__class__(datobjects=objs)
     
     def iter_dict(self):

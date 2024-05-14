@@ -913,7 +913,7 @@ class DataInterface(object):
         out['config'] = self.config
         out['comment'] = self.comment  
         out['name'] = self.name
-        out['df'] = self.df.to_numpy()
+        out['df'] = self.df.values
         out['index'] = self.df.index
         out['columns'] = self.df.columns
         
