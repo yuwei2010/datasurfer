@@ -221,9 +221,12 @@ class Plots(object):
 
                         if labels:
                             df = pd.DataFrame(dict(zip(labels, args)))
-                            out = getattr(sns, name)(data=df, **kwargs)  
                         else:
-                            raise ValueError('Keys or dataframe must be provided')                        
+                            df = kwargs.pop('data')
+                            
+                        out = getattr(sns, name)(data=df, **kwargs)  
+                        # else:
+                        #     raise ValueError('Keys or dataframe must be provided')                        
                         return out
                     return boo(self, *args, **kwargs)  
                 
