@@ -62,8 +62,7 @@ class PandasObject(DataInterface):
         kwargs = dict(index_col=0)  
         kwargs.update(self.kwargs)        
         df = fun(self.path, **self.kwargs)
-        
-        
+            
         return df
     
     @staticmethod

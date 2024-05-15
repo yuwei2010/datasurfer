@@ -1153,7 +1153,7 @@ class DataPool(object):
         list(get(self))
         return self
 
-    def merge(self, pool0, only_data=True):  
+    def merge(self, pool0, only_data=True, pbar=True):  
         """
         Merges the objects from another datapool into the current datapool.
 
@@ -1164,12 +1164,16 @@ class DataPool(object):
             DataPool: The merged datapool.
         """
         names = self.names()
-
-        for obj in pool0.objs:
-            if not only_data and obj.name not in names:
-                self.objs.append(obj)
-            elif obj.name in names:
-                self.get_object(obj.name).merge(obj)
+        @show_pool_progress('Merging', pbar)
+        def get(pool0):
+            for obj in pool0.objs:
+                if not only_data and obj.name not in names:
+                    self.objs.append(obj)
+                elif obj.name in names:
+                    self.get_object(obj.name).merge(obj)
+                yield
+                
+        list(get(pool0))
 
         return self
     
@@ -1438,6 +1442,12 @@ class DataPool(object):
             
         dfs = list(fun(self))
         return pd.concat(dfs, axis=1)
+    
+    def mlp_to_csvs(self, wdir):
+        
+        self.mlp.map(lambda x: x.df.to_csv(Path(wdir) / (x.name+'.csv')))
+        
+        return self
                 
     def to_csvs(self, wdir, pbar=True):
         """

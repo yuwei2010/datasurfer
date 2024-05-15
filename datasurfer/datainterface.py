@@ -652,7 +652,7 @@ class DataInterface(object):
         return self.df[self.search(patt, ignore_case, raise_error)]
 
     
-    def load(self, *keys, mapping=None):
+    def load(self, *keys, **mapping):
         """
         Load data from the specified keys into the data object.
         
@@ -663,7 +663,7 @@ class DataInterface(object):
         Returns:
             The loaded data as a dictionary.
         """
-        mapping = mapping or dict()
+        #mapping = mapping or dict()
         
         for key in keys:           
             if key not in mapping:           
