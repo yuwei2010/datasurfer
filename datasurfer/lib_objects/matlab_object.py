@@ -1,6 +1,7 @@
 #%% Import Libraries
 import pandas as pd
 import numpy as np
+import warnings
 from datasurfer.datainterface import DataInterface
 
 #%% MATLAB_OJBECT
@@ -95,8 +96,8 @@ class MatlabObject(DataInterface):
             except ValueError:
                 if len(value) == 1:
                     df[key] = value[0]
-                else:
-                    raise ValueError(f'Can not convert "{key}" to DataFrame')
+                else:                   
+                    warnings.warn(f'Can not convert "{key}" to DataFrame')
 
         return df
     

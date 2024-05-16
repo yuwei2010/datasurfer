@@ -97,7 +97,7 @@ class DataLake(object):
         """
         if isinstance(inval, str):
             if '*' in inval:
-                if inval.strip()[0] in '#@%':
+                if inval.strip()[0] in '#@%$&§':
                     patt = inval.strip()[1:]
                     out =  sorted(set(chain(*[obj.search_signal(patt) for obj in self.objs])))
                 else:

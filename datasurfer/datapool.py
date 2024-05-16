@@ -274,10 +274,13 @@ class DataPool(object):
             
             if '*' in inval:
                 
-                if inval.strip()[0] in '#@%':
+                if inval.strip()[0] in '#@%$&§':
                     
-                    patt = inval.strip()[1:]                    
-                    out = self.search_signal(patt, ignore_case=True)
+                    patt = inval.strip()[1:]      
+                    if inval.strip()[0] == '#':
+                        out = self.search_signal(patt, ignore_case=False)
+                    else:        
+                        out = self.search_signal(patt, ignore_case=True)
                 else:
                 
                     out = self.__class__([self.get_object(name) for name in self.search_object(inval)])
