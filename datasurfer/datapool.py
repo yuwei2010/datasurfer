@@ -303,6 +303,7 @@ class DataPool(object):
             
             
         elif hasattr(inval, '__call__'):
+            
             from datasurfer import DataInterface
             if isinstance(inval, type) and issubclass(inval, DataInterface):
                 

@@ -917,6 +917,7 @@ class DataInterface(object):
         out['df'] = self.df.values
         out['index'] = self.df.index
         out['columns'] = self.df.columns
+        out['index_name'] = self.df.index.name 
         
         return out
     

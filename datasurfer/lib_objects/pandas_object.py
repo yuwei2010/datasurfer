@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 
-from datasurfer import DataPool
 from datasurfer.datainterface import DataInterface
 from datasurfer.datautils import translate_config
 

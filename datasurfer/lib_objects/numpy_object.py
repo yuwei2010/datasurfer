@@ -84,6 +84,7 @@ class NumpyObject(DataInterface):
                     name=dat['name'],
                     df=df)  
         return obj  
+    
     @staticmethod
     def load(path):
         """
