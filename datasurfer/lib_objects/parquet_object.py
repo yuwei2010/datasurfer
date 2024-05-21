@@ -2,7 +2,6 @@ import pyarrow.parquet as pq
 import pyarrow as pa 
 import pandas as pd
 import json
-
 from datasurfer.datainterface import DataInterface
 from datasurfer.datautils import translate_config, parse_config
 
@@ -16,7 +15,8 @@ class ParquetObject(DataInterface):
     def __init__(self, path=None, config=None, name=None, comment=None, **kwargs):
         
         """
-            kwargs: columns
+            kwargs: 
+                Columns: List of columns to read
         
         """
 
