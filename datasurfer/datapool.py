@@ -1278,6 +1278,8 @@ class DataPool(object):
             out = [obj for obj, msk in zip(self.objs, mask_array) if msk]
         return self.__class__(out)
     
+    
+    
     @staticmethod
     def pipeline(*funs, hook=None, pbar=True, ignore_error=True, asiterator=False):
         """

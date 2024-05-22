@@ -704,7 +704,7 @@ class Plots(object):
         return ax
     
     @define_ax    
-    def lines(self, key, *, ax=None, **kwargs):
+    def obj_lines(self, key, *, ax=None, **kwargs):
         """
         Generate a map plot based on the given keys.
 
@@ -722,13 +722,15 @@ class Plots(object):
         for obj in self.db:
             kwargs.update(labels=[obj.name])
             obj.plot.line(key, ax=ax, **kwargs)
-            
+        
+        ax.set_xlabel(kwargs.pop('x', None))    
         ax.set_ylabel(key)
+        
 
         return ax
     
     @define_ax
-    def scatters(self, xkey, ykey, *, ax=None, **kwargs):
+    def obj_scatters(self, xkey, ykey, *, ax=None, **kwargs):
  
         from datasurfer import DataPool
         assert isinstance(self.db, DataPool), 'This method is only available for DataPool objects.'       
