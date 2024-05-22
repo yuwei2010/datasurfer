@@ -131,7 +131,25 @@ class Configurator(object):
         r = re.compile(pattern)
         return self.dataframe.loc[list(filter(r.match, list(self._cfg.keys())))]
         
-         
+    def search_value(self, pattern, return_key=False):
+        
+        from itertools import chain  
+        
+        out = dict()
+
+        r = re.compile(pattern)
+        
+        for key, values in self._cfg.items():
+            found = list(filter(r.match, values))
+            if found:
+                out[key] = found
+                
+        if return_key:
+            return out  
+        else:
+            return sorted(chain(*out.values()))
+    
+    
     def search_signal(self, pattern, ignore_case=False, raise_error=False, pbar=True):
         """
         Search for a signal in the database.
@@ -407,13 +425,6 @@ class Configurator(object):
     def clear_all(self):
         self._cfg = dict()
         return self
-        
-        
-        
-        
-        
-    
-        
         
         
 if __name__ == '__main__':

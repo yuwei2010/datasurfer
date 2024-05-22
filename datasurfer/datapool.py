@@ -1203,6 +1203,38 @@ class DataPool(object):
                 obj.merge(obj0)
 
         return self
+    
+    def map(self, func, ignore_error=True, pbar=True, asiterator=False):
+        """
+        Apply a function to each object in the datapool and return the results.
+
+        Args:
+            func (function): The function to apply to each object.
+            ignore_error (bool, optional): Whether to ignore any exceptions raised during processing. Defaults to True.
+            pbar (bool, optional): Whether to show a progress bar during processing. Defaults to True.
+
+        Returns:
+            list: A list of the results of applying the function to each object.
+        """
+        @show_pool_progress('Processing', pbar)
+        def get(self):
+            for obj in self.objs:
+                try:
+                    yield func(obj)
+                except Exception as err:
+                    if ignore_error:
+                        errname = err.__class__.__name__
+                        tb = traceback.format_exc(limit=0, chain=False)
+                        warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
+                        yield None
+                    else:
+                        raise
+                    
+        pbar = False if asiterator else pbar
+        if asiterator:
+            return get(self)  
+        else:              
+            return list(get(self))
          
     def pop(self, name):
         """
@@ -1278,7 +1310,12 @@ class DataPool(object):
             out = [obj for obj, msk in zip(self.objs, mask_array) if msk]
         return self.__class__(out)
     
-    
+    def select_rows(self, conds):
+        
+        list(map(lambda x: x.select_rows(conds), self.objs))
+        
+        return self
+             
     
     @staticmethod
     def pipeline(*funs, hook=None, pbar=True, ignore_error=True, asiterator=False):

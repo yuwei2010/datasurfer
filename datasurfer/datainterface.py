@@ -629,6 +629,7 @@ class DataInterface(object):
         from collections import abc
         if hasattr(conds, '__call__'):
             self._df = self.df[conds(self.df)]
+            
         elif isinstance(conds, abc.Sequence) or isinstance(conds, pd.Series) or isinstance(conds, np.ndarray):
             self._df = self.df.loc[conds]
 
