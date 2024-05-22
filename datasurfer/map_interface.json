@@ -31,6 +31,10 @@
         "lib_objects.json_object",
         "JSONObject"
     ],
+    ".parquet": [
+        "lib_objects.parquet_object",
+        "ParquetObject"
+    ],
     ".xkf": [
         "lib_objects.femke_object",
         "KFObject"

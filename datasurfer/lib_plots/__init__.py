@@ -423,7 +423,7 @@ class Plots(object):
         return self
     
     @define_ax
-    def gca(self, ax=None, setax=False, **kwargs):
+    def gca(self, ax=None, setax=False):
         """
         Get the axis for plotting.
         
@@ -433,7 +433,7 @@ class Plots(object):
         Returns:
         - ax: The matplotlib Axes object to plot on.
         """
-        self.set_params(**kwargs)
+        #self.set_params(**kwargs)
         return ax
         
     @define_ax   
@@ -702,8 +702,43 @@ class Plots(object):
             ax.plot(x, kde(x), label=lbl, **pltkws)
 
         return ax
-        
     
+    @define_ax    
+    def lines(self, key, *, ax=None, **kwargs):
+        """
+        Generate a map plot based on the given keys.
+
+        Parameters:
+        - keys: The keys used to create the map plot.
+        - kwargs: Additional keyword arguments to customize the plot.
+
+        Returns:
+        - The matplotlib Axes object containing the map plot.
+        """
+        from datasurfer import DataPool
+        assert isinstance(self.db, DataPool), 'This method is only available for DataPool objects.'
+
+        
+        for obj in self.db:
+            kwargs.update(labels=[obj.name])
+            obj.plot.line(key, ax=ax, **kwargs)
+            
+        ax.set_ylabel(key)
+
+        return ax
+    
+    @define_ax
+    def scatters(self, xkey, ykey, *, ax=None, **kwargs):
+ 
+        from datasurfer import DataPool
+        assert isinstance(self.db, DataPool), 'This method is only available for DataPool objects.'       
+        
+        for obj in self.db:
+
+            obj.plot.scatter(xkey, ykey, ax=ax, label=obj.name, **kwargs)
+
+
+        return ax        
     
        
 if __name__ == '__main__':
