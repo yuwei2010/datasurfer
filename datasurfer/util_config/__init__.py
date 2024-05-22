@@ -118,6 +118,11 @@ class Configurator(object):
                 self._cfg[key] = set(value)
         return self
     
+    def clear(self):
+        
+        self._cfg = dict()
+        return self
+    
     def search(self, pattern):
         """
         Searches for keys in the configuration dictionary that match the given pattern.
@@ -296,7 +301,11 @@ class Configurator(object):
 
         if isinstance(self.db, DataInterface):
             df = self.dataframe
+            assert len(df.columns) == 1, f'Found {len(df.columns)} signals mapped to same output name, expect only one.'
+
             df.columns = [self.db.name]
+
+            
         elif isinstance(self.db, DataPool):
             @show_pool_progress('Processing', show=pbar)
             def fun(self):

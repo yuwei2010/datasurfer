@@ -17,8 +17,13 @@ class Signal(object):
         self.db = db
         
     def __call__(self, *keys, **kwargs):
+        from datasurfer import DataPool
+        from datasurfer import DataInterface
         
-        return self.db[keys].describe(**kwargs)
+        if isinstance(self.db, DataInterface):
+            return self.db.keys()
+        elif isinstance(self.db, DataPool):
+            return self.db.list_signals()
 
     @parse_data(add_labels=False)
     def arghisto(self, val, *, bins, **kwargs):
