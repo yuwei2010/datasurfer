@@ -185,8 +185,7 @@ class DataPool(object):
         return self
     
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        
-        
+               
         self.close()
         
         if exc_type:
@@ -294,7 +293,7 @@ class DataPool(object):
         elif isinstance(inval, (list, tuple, set)) and len(inval):
             
             
-            if all(na in self.keys() for na in inval):
+            if all(n in self.keys() for n in inval):
                 
                 out = self.__class__([self.get_object(n) for n in inval])
                 
@@ -1539,7 +1538,7 @@ class DataPool(object):
         list(fun(self))        
         return self
 
-    def to_summary_excel(self, name, keys=None, pbar=True):
+    def to_multisheet_excel(self, name, keys=None, pbar=True):
         """
         Save the data pool to an Excel file.
 
@@ -1803,7 +1802,7 @@ class DataPool(object):
             self.initialized = False
         gc.collect()
 
-        return None
+        return self
     
     def fill_missing_keys(self, config=None, pbar=True):
         """

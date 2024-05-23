@@ -36,6 +36,10 @@
         "ParquetObject"
     ],
     ".h5": [
+        "lib_objects.pdf_object",
+        "PDFTextObject"
+    ],
+    ".pdf": [
         "lib_objects.hdf_object",
         "HDFObject"
     ],
