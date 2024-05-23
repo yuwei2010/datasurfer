@@ -35,6 +35,10 @@
         "lib_objects.parquet_object",
         "ParquetObject"
     ],
+    ".h5": [
+        "lib_objects.hdf_object",
+        "HDFObject"
+    ],
     ".xkf": [
         "lib_objects.femke_object",
         "KFObject"

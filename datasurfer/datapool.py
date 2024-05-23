@@ -1362,12 +1362,12 @@ class DataPool(object):
         - DataPool: A new DataPool object that is a deep copy of the original object.
         """
         from datasurfer import DataInterface
-        from datasurfer.lib_objects.pandas_object import PandasObject
+        from datasurfer.lib_objects.parquet_object import ParquetObject
         
         @show_pool_progress('Copying', show=pbar)
         def fun(self):           
             for obj in self.objs:
-                obj = obj.to_object(PandasObject)
+                obj = obj.to_object(ParquetObject)
                 if pipeline:
                     list(DataInterface.pipeline(*pipeline)(obj))
                               
