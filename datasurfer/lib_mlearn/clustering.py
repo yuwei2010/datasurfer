@@ -51,6 +51,7 @@ def gaussian(X, n_clusters=3, **kwargs):
     gm = GaussianMixture(n_components=n_clusters, **kwargs).fit(X)
     
     return gm
+
 #%%
 def bayesian(X, n_clusters=3, **kwargs):
     from sklearn.mixture import BayesianGaussianMixture

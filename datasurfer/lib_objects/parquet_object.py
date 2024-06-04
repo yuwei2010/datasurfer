@@ -25,6 +25,16 @@ class ParquetObject(DataInterface):
         self.kwargs = kwargs
     
     @property
+    def orgpath(self):
+        if not hasattr(self, '_orgpath'):
+            metadata = self.fhandler.schema.metadata
+            if b'orgpath' in metadata:  
+                self._orgpath = json.loads(metadata[b'orgpath'].decode('utf-8'))       
+            else:
+                self._orgpath = None
+            
+        return self._orgpath    
+    @property
     def comment(self):
         if self._comment is None:
             metadata = self.fhandler.schema.metadata
@@ -71,27 +81,27 @@ class ParquetObject(DataInterface):
             return self.fhandler.to_pandas()
     
     def add_metadata(self, **kwargs):
-            """
-            Adds metadata to the Parquet file.
+        """
+        Adds metadata to the Parquet file.
 
-            Args:
-                **kwargs: Keyword arguments representing the metadata key-value pairs.
-                          The values can be either a string or a dictionary.
+        Args:
+            **kwargs: Keyword arguments representing the metadata key-value pairs.
+                        The values can be either a string or a dictionary.
 
-            Returns:
-                A new Parquet table with the updated metadata.
-            """
-            assert all(isinstance(value, (str, dict)) for value in kwargs.values()), "Value must be a string or a dictionary."
+        Returns:
+            A new Parquet table with the updated metadata.
+        """
+        assert all(isinstance(value, (str, dict)) for value in kwargs.values()), "Value must be a string or a dictionary."
 
-            metadata = self.fhandler.schema.metadata     
-            for key, value in kwargs.items():    
-                str_attr = value if isinstance(value, str) else json.dumps(value)            
-                metadata.update({key: str_attr})
-            
-            new_schema = self.fhandler.schema.with_metadata(metadata)
-            new_table = self.fhandler.cast(new_schema)  
-            
-            return new_table
+        metadata = self.fhandler.schema.metadata     
+        for key, value in kwargs.items():    
+            str_attr = value if isinstance(value, str) else json.dumps(value)            
+            metadata.update({key: str_attr})
+        
+        new_schema = self.fhandler.schema.with_metadata(metadata)
+        new_table = self.fhandler.cast(new_schema)  
+        
+        return new_table
     
     
     def save(self, path, **kwargs):
@@ -114,6 +124,9 @@ class ParquetObject(DataInterface):
 
         if self.config is not None:
             metadata['config'] = self.config
+            
+        if hasattr(self, '_orgpath') and self._orgpath is not None:
+            metadata['orgpath'] = self.orgpath
 
         if metadata:
             new_table = self.add_metadata(**metadata)
@@ -143,10 +156,11 @@ class ParquetObject(DataInterface):
         assert isinstance(other, DataInterface)
         dat = other.to_dict()
         df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-        obj = ParquetObject(path=dat['path'],
+        obj = ParquetObject(path=None,
                             config=dat['config'],
                             comment=dat['comment'],
                             name=dat['name'])
+        obj._orgpath = other.path
         obj._fhandler = pa.Table.from_pandas(df)
 
         return obj
