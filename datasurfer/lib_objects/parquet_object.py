@@ -29,7 +29,7 @@ class ParquetObject(DataInterface):
         if not hasattr(self, '_orgpath'):
             metadata = self.fhandler.schema.metadata
             if b'orgpath' in metadata:  
-                self._orgpath = json.loads(metadata[b'orgpath'].decode('utf-8'))       
+                self._orgpath = metadata[b'orgpath'].decode('utf-8')
             else:
                 self._orgpath = None
             
@@ -91,6 +91,7 @@ class ParquetObject(DataInterface):
         Returns:
             A new Parquet table with the updated metadata.
         """
+
         assert all(isinstance(value, (str, dict)) for value in kwargs.values()), "Value must be a string or a dictionary."
 
         metadata = self.fhandler.schema.metadata     
@@ -126,7 +127,7 @@ class ParquetObject(DataInterface):
             metadata['config'] = self.config
             
         if hasattr(self, '_orgpath') and self._orgpath is not None:
-            metadata['orgpath'] = self.orgpath
+            metadata['orgpath'] = str(self.orgpath)
 
         if metadata:
             new_table = self.add_metadata(**metadata)

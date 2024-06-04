@@ -123,7 +123,7 @@ class DataPool(object):
                 
                 raise IOError(f'Can not find the dir or file "{dpath}".')    
                 
-        elif isinstance(datobjects, (list, set, tuple)):
+        elif isinstance(datobjects, (list, set, tuple)) and len(datobjects) > 1:
             
             if all(isinstance(s, (str, Path)) for s in datobjects) and all(Path(s).is_dir() for s in datobjects):
                 
@@ -661,6 +661,8 @@ class DataPool(object):
 
         return self
     
+    
+    
     def append(self, obj):
         """
         Appends an object to the datapool.
@@ -1055,18 +1057,7 @@ class DataPool(object):
             
         return sorted(set(chain(*get(self))))
     
-    def sort_objects(self, key):
-        """
-        Sorts the objects in the datapool based on the specified key.
-
-        Args:
-            key: The key to sort the objects by.
-
-        Returns:
-            None. The objects in the datapool are sorted in-place.
-        """
-        return list(self.objs[:]).sort(key=lambda obj: obj.key)
-    
+   
     def sort_objects(self, key):
         """
         Sorts the objects in the datapool based on the specified key.
@@ -1078,50 +1069,8 @@ class DataPool(object):
             list: A sorted list of objects.
 
         """
-        return list(self.objs[:]).sort(key=lambda obj: obj.key)
+        return list(self.objs[:]).sort(key=lambda obj: getattr(obj, key))
     
-    def sort_objects(self, key):
-        """
-        Sorts the objects in the datapool based on the specified key.
-
-        Args:
-            key: The key to sort the objects by.
-
-        Returns:
-            A sorted list of objects.
-
-        """
-        return list(self.objs[:]).sort(key=lambda obj:obj.key)
-    
-    def map(self, func, ignore_error=True, pbar=True):
-        """
-        Apply a function to each object in the datapool and return the results.
-
-        Args:
-            func (function): The function to apply to each object.
-            ignore_error (bool, optional): Whether to ignore any exceptions raised during processing. Defaults to True.
-            pbar (bool, optional): Whether to show a progress bar during processing. Defaults to True.
-
-        Returns:
-            list: A list of the results of applying the function to each object.
-        """
-        @show_pool_progress('Processing', pbar)
-        def get(self):
-            for obj in self.objs:
-                try:
-                    yield func(obj)
-                except Exception as err:
-                    if ignore_error:
-                        errname = err.__class__.__name__
-                        tb = traceback.format_exc(limit=0, chain=False)
-                        warnings.warn(f'Exception "{errname}" is raised while processing "{obj.name}": "{tb}"')
-                        yield None
-                    else:
-                        raise
-
-        return list(get(self))
-        
-
         
     def apply(self, signame, methode, ignore_error=True, pbar=True):
         """
@@ -1344,8 +1293,8 @@ class DataPool(object):
         return wrapper  
     
     def mlp_deepcopy(self, **kwargs):
-        from datasurfer.lib_objects.pandas_object import PandasObject
-        objs = self.mlp.map(lambda x: x.to_object(PandasObject))
+        from datasurfer.lib_objects.parquet_object import ParquetObject
+        objs = self.mlp.map(lambda x: x.to_object(ParquetObject))
         
         dp = DataPool(objs, **kwargs)
         return dp            
@@ -1485,12 +1434,57 @@ class DataPool(object):
         dfs = list(fun(self))
         return pd.concat(dfs, axis=1)
     
+
+    
+    def to_parquets(self, wdir, pbar=True):
+        """
+        Save the data from each object in the datapool to separate Parquet files.
+
+        Args:
+            wdir (str): The directory path where the Parquet files will be saved.
+            pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+
+        Returns:
+            self: The current instance of the datapool.
+        """
+        
+        from datasurfer.lib_objects.parquet_object import ParquetObject
+        wdir = Path(wdir)
+        wdir.mkdir(exist_ok=True)
+
+        @show_pool_progress('Saving', show=pbar)
+        def fun(self):
+            for obj in self.objs:
+                obj.to_object(ParquetObject).save(wdir / (obj.name+'.parquet'))
+                yield True
+
+        list(fun(self))
+
+        return self
+    def mlp_to_parquets(self, wdir):
+        """
+        Save the data from each object in the datapool to separate Parquet files.
+
+        Args:
+            wdir (str): The directory path where the Parquet files will be saved.
+            pbar (bool, optional): Whether to show a progress bar. Defaults to True.
+
+        Returns:
+            self: The current instance of the datapool.
+        """
+        from datasurfer.lib_objects.parquet_object import ParquetObject
+        wdir = Path(wdir)
+        wdir.mkdir(exist_ok=True)
+        self.mlp.map(lambda x: x.to_object(ParquetObject).save(wdir / (x.name+'.parquet')))
+        
+        return self 
+
     def mlp_to_csvs(self, wdir):
         
         self.mlp.map(lambda x: x.df.to_csv(Path(wdir) / (x.name+'.csv')))
         
-        return self
-                
+        return self  
+                 
     def to_csvs(self, wdir, pbar=True):
         """
         Save the data from each object in the datapool to separate CSV files.
@@ -1604,6 +1598,16 @@ class DataPool(object):
         dlk = DataLake(pools)
 
         return dlk
+    
+    def groupby(self, func, pbar=True):
+        out = dict()
+
+        for obj in self.objs:   
+            
+            out.setdefault(func(obj), DataPool([])).append(obj)
+            
+        return out    
+        
                
     def save(self, name, pbar=True):
         """
