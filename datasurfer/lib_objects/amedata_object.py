@@ -137,40 +137,123 @@ class AMEDataObject(DataInterface):
     
     @staticmethod
     def dump(*inputs, titles=None, units=None):
-        
+        """
+        Dump the input data into a formatted string representation.
+
+        Args:
+            *inputs: Variable length arguments representing the input data arrays.
+            titles (list, optional): List of titles for each axis. Defaults to None.
+            units (list, optional): List of units for each axis. Defaults to None.
+
+        Returns:
+            list: A list of strings representing the formatted data.
+
+        Raises:
+            AssertionError: If the data length does not match the axis points.
+
+        """
         axispoints = [np.unique(arr) for arr in inputs[:-1]]
         data = np.asarray(inputs[-1]).ravel()
-        
-        ncol= len(axispoints[0])
+
+        ncol = len(axispoints[0])
         ndim = len(axispoints)
-        nrow = int(len(data)/ncol)
+        nrow = int(len(data) / ncol)
         titles = titles or []
         units = units or []
-        
-        assert ncol*nrow == len(data), 'Data length not match axispoints'
-               
+
+        assert ncol * nrow == len(data), 'Data length does not match axis points'
+
         lines = [f'# Table format: {ndim}D']
-             
+
         if units:
             lines.append(f'# table_unit = {units[0]}')
             for idx, unit in enumerate(units[1:], 1):
-                lines.append(f'# axis{idx}_unit = {unit}')   
-                    
+                lines.append(f'# axis{idx}_unit = {unit}')
+
         for idx, title in enumerate(titles, 1):
-            
             lines.append(f'# axis{idx}_title = {title}')
-       
+
         if ndim == 1:
             for x, y in zip(axispoints[0], data):
-                lines.append(f'{x:>30.14e} {y:>30.14e}')                
+                lines.append(f'{x:>30.14e} {y:>30.14e}')
         else:
             for arr in axispoints:
                 lines.append(f'{len(arr)}')
+                
             for arr in axispoints:
                 lines.append(''.join([f'{x:>30.14e}' for x in arr]))
+
+            for row in range(nrow):
+                lines.append(''.join([f'{x:>30.14e}' for x in data[row * ncol:(row + 1) * ncol]]))
+        return lines
+    
+#%%
+class AMETableXYObject(DataInterface):
+
+    exts = ['.dat']
+    
+    @property
+    def fhandler(self):
+        """
+        Property that returns the lines of the file represented by the object.
+
+        Returns:
+            list: The lines of the file.
+        """
+        if not hasattr(self, '_fhandler'):
+            with open(self.path, 'r') as fobj:
+                lines = [l.strip() for l in fobj.readlines() if l.strip()]
+                
+            self._fhandler = lines
+            assert lines[0] == '# Table format: XY', 'Table format not match, expect xy-table.'
+        return self._fhandler    
+    
+    @property
+    def titles(self):
+        """
+        Property that returns the shape of the data.
+
+        Returns:
+            list: The shape of the data.
+        """
+
+        r = re.compile(r'# axis[0-9]+_title = (.*)')
+        lines = list(filter(r.match, self.fhandler))    
+        
+        titles = [r.match(line).group(1) for line in lines]
+        return titles
+    
+    @property
+    def data(self):
+        """
+        Property that returns the 1D data.
+
+        Returns:
+            ndarray: The 1D data.
+        """
+        titles = self.titles
+        return np.asarray([float(x) for l in self.fhandler[len(titles)+1:] for x in l.split()]).reshape(-1, len(titles))
+    
+    def get_df(self):
+        """
+        Method that returns the data as a pandas DataFrame.
+
+        Returns:
+            DataFrame: The data as a DataFrame.
+        """
+        return pd.DataFrame(self.data, columns=self.titles)
+    
+    @staticmethod
+    def dump(df):
+        
+        lines = ['# Table format: XY']
+        
+        for title in df.columns:
+            lines.append(f'# axis{df.columns.get_loc(title)+1}_title = {title}')    
             
-            for row in range(nrow):               
-                lines.append(''.join([f'{x:>30.14e}' for x in data[row*ncol:(row+1)*ncol]]))         
+        for rowdata in df.values:
+            lines.append(''.join([f'{x:<30.14e}' for x in rowdata]))
+        
         return lines
     
 if __name__ == '__main__':

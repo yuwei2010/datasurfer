@@ -58,7 +58,7 @@ class AMEResObject(DataInterface):
         """
         
         
-        fparam = self.path.parent / (self.path.stem+'.ssf')
+        fparam = self.path.parent / (self.stem+'.ssf'+self.ext_idx)
         out = dict()
 
         with open(fparam, 'r') as fobj:
@@ -99,6 +99,24 @@ class AMEResObject(DataInterface):
             out[item['Data_Path']] = item
 
         return out
+    
+    @property
+    def stem(self):
+        
+        r = re.compile(r'(.+)(\.results.*)')
+        return r.match(self.path.name).group(1)
+    
+    @property
+    def ext(self):
+        
+        r = re.compile(r'(.+)(\.results.*)')
+        return r.match(self.path.name).group(2)      
+    
+    @property
+    def ext_idx(self):
+        r = re.compile(r'(.+)\.results(.*)')     
+        return r.match(self.path.name).group(2)    
+          
     
     @property
     def t(self):

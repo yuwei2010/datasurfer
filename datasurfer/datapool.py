@@ -1599,7 +1599,7 @@ class DataPool(object):
 
         return dlk
     
-    def groupby(self, func, pbar=True):
+    def groupby(self, func):
         out = dict()
 
         for obj in self.objs:   
