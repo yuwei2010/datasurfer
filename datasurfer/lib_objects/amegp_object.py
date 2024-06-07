@@ -37,9 +37,9 @@ class AMEGPObject(DataInterface):
             Saves the object's data to a file.
 
     """
-    exts = ['.gp']
+    exts = ['.amegp']
     
-    def __init__(self, path=None, config=None, name=None, comment=None):
+    def __init__(self, path=None, name=None, comment=None):
         """
         Initializes a new instance of the AMEGPObject class.
 
@@ -50,10 +50,8 @@ class AMEGPObject(DataInterface):
             comment (str): Additional comment for the object.
 
         """
-        if name is None:
-            name = Path(path).stem[:-1]
-        
-        super().__init__(path, config=config, name=name, comment=comment)  
+        name = name or Path(path).stem[:-1]
+        super().__init__(path, name=name, comment=comment)  
     
     def __setitem__(self, name, value):
         """

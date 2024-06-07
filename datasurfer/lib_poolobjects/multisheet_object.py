@@ -26,10 +26,6 @@ class ExcelDataPool(DataPool):
 #%%
 if __name__ == '__main__':
     
-    path = r'C:\30_eATS1p6\80_Lifetime\30_HeatDump\40_Export_Histograms\10_eATS1p6_V2C\last_Temp\Histogram_tACScrewU_V2C.xlsx'
-    
-    dp = ExcelDataPool(path)
-    
-    print(dp)
+    pass
     
     
