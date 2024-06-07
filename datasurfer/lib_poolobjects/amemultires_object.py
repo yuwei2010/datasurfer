@@ -13,8 +13,22 @@ class AMESingleResObject(AMEResObject):
         
         path_amegp = kwargs.pop('amegp', None) or self.path.parent / (self.stem + self.ext.replace('results', 'amegp'))
         
-        self.amegp = AMEGPObject(path_amegp, name=name, comment=comment)
-    
+        self.gp = self.global_param = AMEGPObject(path_amegp, name=name, comment=comment)
+
+    @property
+    def name(self):
+        if self._name is None:
+            
+            assert self.path is not None, 'Expect a name for data object.'
+            return self.stem+self.ext_idx
+        else:
+            return self._name
+        
+    @name.setter
+    def name(self, value):  
+        self._name = value
+        self.gp.name = value
+            
     @property    
     def df_gp(self):
         
@@ -33,6 +47,6 @@ class AMEMultiResPool(DataPool):
         
         super().__init__(path, interface=AMESingleResObject, pattern=pattern, config=config, name=name, comment=comment)
         
-        self.gp = self.global_params = DataPool([obj.amegp for obj in self.objs])
+        self.gp = self.global_params = DataPool([obj.gp for obj in self.objs])
 
 

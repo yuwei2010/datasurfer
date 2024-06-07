@@ -77,7 +77,9 @@ class AMEGPObject(DataInterface):
             return self.stem+self.ext_idx
         else:
             return self._name
-    
+    @name.setter
+    def name(self, value):  
+        self._name = value
 
     
     def __setitem__(self, name, value):
@@ -129,7 +131,7 @@ class AMEGPObject(DataInterface):
             self: The AMEGPObject instance.
 
         """
-        name = name if name is not None else self.path
+        name = name or self.path
         
         with open(self.path, 'r') as fobj:
             lines = fobj.readlines()

@@ -53,6 +53,10 @@ class AMEResObject(DataInterface):
         else:
             return self._name
         
+    @name.setter
+    def name(self, value):  
+        self._name = value    
+        
     @property
     def params(self):
         """
