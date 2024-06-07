@@ -280,3 +280,13 @@ class ASAMmdfObject(DataInterface):
         """
         r = re.compile(patt)
         return list(filter(r.match, self.channels))
+    
+    @staticmethod
+    def dump(name, df, **kwargs):
+        
+        # https://asammdf.readthedocs.io/en/latest/examples.html
+        mdfobj = asammdf.MDF()
+        mdfobj.append(df)
+        mdfobj.save(name, **kwargs)
+        
+        return mdfobj

@@ -39,13 +39,19 @@ class AMEResObject(DataInterface):
 
     exts = ['.results']
 
-    def __init__(self, path=None, config=None, name=None, comment=None):
+    def __init__(self, path, config=None, name=None, comment=None):
+                
+        super().__init__(path, config=config, name=name, comment=comment) 
         
-        if name is None:
+        
+    @property
+    def name(self):
+        if self._name is None:
             
-            name = Path(path).stem[:-1]
-        
-        super().__init__(path, config=config, name=name, comment=comment)  
+            assert self.path is not None, 'Expect a name for data object.'
+            return self.stem+self.ext_idx
+        else:
+            return self._name
         
     @property
     def params(self):
@@ -58,7 +64,7 @@ class AMEResObject(DataInterface):
         """
         
         
-        fparam = self.path.parent / (self.stem+'.ssf'+self.ext_idx)
+        fparam = self.path.parent / (self.stem+'.ssf.'+self.ext_idx)
         out = dict()
 
         with open(fparam, 'r') as fobj:
@@ -114,7 +120,7 @@ class AMEResObject(DataInterface):
     
     @property
     def ext_idx(self):
-        r = re.compile(r'(.+)\.results(.*)')     
+        r = re.compile(r'(.+)\.results[.]{0,1}(.*)')     
         return r.match(self.path.name).group(2)    
           
     

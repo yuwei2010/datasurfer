@@ -50,8 +50,35 @@ class AMEGPObject(DataInterface):
             comment (str): Additional comment for the object.
 
         """
-        name = name or Path(path).stem[:-1]
-        super().__init__(path, name=name, comment=comment)  
+        super().__init__(path, name=name, comment=comment)     
+        
+    @property
+    def stem(self):
+        
+        r = re.compile(r'(.+)(\.amegp.*)')
+        return r.match(self.path.name).group(1)
+    
+    @property
+    def ext(self):
+        
+        r = re.compile(r'(.+)(\.amegp.*)')
+        return r.match(self.path.name).group(2)      
+    
+    @property
+    def ext_idx(self):
+        r = re.compile(r'(.+)\.amegp[.]{0,1}(.*)')     
+        return r.match(self.path.name).group(2) 
+         
+    @property
+    def name(self):
+        if self._name is None:
+            
+            assert self.path is not None, 'Expect a name for data object.'
+            return self.stem+self.ext_idx
+        else:
+            return self._name
+    
+
     
     def __setitem__(self, name, value):
         """

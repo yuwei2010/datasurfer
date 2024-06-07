@@ -230,7 +230,8 @@ def extract_channels(newconfig=None):
             channels = self.channels if hasattr(self, 'channels') else self.df.columns
             
             outkeys = []
-            
+
+
             for k in newkeys:
 
                 if isinstance(k, str): 
@@ -241,7 +242,7 @@ def extract_channels(newconfig=None):
                     else:
                         
                         warnings.warn(f'"{k}" not found.')
-                else:
+                elif not k is None:
                     
                     for kk in k:
                         
