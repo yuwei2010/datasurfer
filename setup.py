@@ -41,6 +41,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/yuw1si/datasurfer',
-    version='1.1',
+    version='1.1.1',
     zip_safe=False,
 )
