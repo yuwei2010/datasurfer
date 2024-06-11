@@ -290,7 +290,7 @@ def translate_config(newconfig=None):
                         
                         if isinstance(v, str):
                         
-                            res.columns = res.columns.str.replace(v, k, regex=False)
+                            res.columns = res.columns.astype(str).str.replace(v, k, regex=False)
                             
                         elif isinstance(v, (list, tuple, set)):
                             

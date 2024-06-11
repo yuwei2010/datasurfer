@@ -108,7 +108,7 @@ class ASAMmdfObject(DataInterface):
         if self._comment is None :
             info = self.info
             if info and 'comment' in info:
-                xmlobj= fromstring(info['comment'])             
+                xmlobj = fromstring(info['comment'])             
                 comment = dict()
                 try:
                     tx, = xmlobj.findall('TX')

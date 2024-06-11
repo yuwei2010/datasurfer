@@ -68,7 +68,7 @@ class AMEResObject(DataInterface):
         """
         
         
-        fparam = self.path.parent / (self.stem+'.ssf.'+self.ext_idx)
+        fparam = self.path.parent / (self.stem+'.ssf.'+self.ext_idx).rstrip('.')
         out = dict()
 
         with open(fparam, 'r') as fobj:
