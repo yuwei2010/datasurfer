@@ -75,13 +75,14 @@ class AMEVLObject(DataInterface):
             attrs = var.attrib
 
             if 'Data_Path' in attrs:
-                attrs['PARENT'] = None
+                # attrs['PARENT'] = None
                 out[attrs['Data_Path']] = attrs
 
-                tievar = var.find('TIE_VAR')
-                if tievar is not None:
+            tievars = var.findall('TIE_VAR')
+            if tievars:
+                for tievar in tievars:
                     attrs = tievar.attrib
-                    attrs['PARENT'] = var.attrib['Data_Path']
+                    #attrs['PARENT'] = var.attrib['Data_Path']
                     out[attrs['Data_Path']] = attrs
 
         df = pd.DataFrame(out)
@@ -256,8 +257,8 @@ class AMEResObject(DataInterface):
         return self.params.columns.tolist()
 
 
-    # @translate_config()
-    # @extract_channels()
+    @translate_config()
+    @extract_channels()
     def get_channels(self, *channels):
         """
         Retrieves the data for the specified channels.
@@ -272,9 +273,8 @@ class AMEResObject(DataInterface):
         params = self.params
         
         key_row = 'VARNUM' if 'VARNUM' in params.index else 'Row_Index'
-        
-        row_indices = [params[c][key_row] for c in channels]
-        
+        row_indices = [row_indices.append(int(params[c][key_row])) for c in channels]
+                
         array = self.get_results(rows=row_indices)
         
         df = pd.DataFrame(dict(zip(channels, array[1:])))
@@ -345,10 +345,13 @@ class AMEResObject(DataInterface):
         
             narray, = np.fromfile(fobj, dtype=np.dtype('i'), count=1)
             nvar, = abs(np.fromfile(fobj, dtype=np.dtype('i'), count=1))
-            _ = np.hstack([[0], np.fromfile(fobj, dtype=np.dtype('i'), count=nvar)+1])                        
+            index = np.hstack([[0], np.fromfile(fobj, dtype=np.dtype('i'), count=nvar)+1])                   
             nvar = nvar + 1
             array = np.fromfile(fobj, dtype=np.dtype('d'), count=narray*nvar)
             array = array.reshape(narray, nvar).T
+            
+        if rows:
+            rows = np.concatenate([np.where(index==r)[0] for r in rows])
                 
         array = (array if rows is None 
                     else array[np.concatenate([[0], np.asarray(rows, dtype=int).ravel()])])

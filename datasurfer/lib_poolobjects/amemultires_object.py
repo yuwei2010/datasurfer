@@ -1,5 +1,5 @@
 
-from datasurfer.lib_objects.ameres_object import AMEResObject, AMEVLObject
+from datasurfer.lib_objects.ameres_object import AMEResObject
 from datasurfer.lib_objects.amegp_object import AMEGPObject
 from datasurfer.datapool import DataPool
 
