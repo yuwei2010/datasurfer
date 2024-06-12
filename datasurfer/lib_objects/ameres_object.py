@@ -11,54 +11,133 @@ from datasurfer.datautils import translate_config, extract_channels
 
 #%%
 class AMEVLObject(DataInterface):
+    """
+    Represents an AMEVL object.
+
+    Args:
+        path (str): The path to the object.
+        name (str, optional): The name of the object. Defaults to None.
+        comment (str, optional): Any additional comment for the object. Defaults to None.
+    """
+
     def __init__(self, path, name=None, comment=None):
-                
-        super().__init__(path, name=name, comment=comment)     
+        super().__init__(path, name=name, comment=comment)
 
     @property
     def stem(self):
-        
+        """
+        Returns the stem of the object's path.
+
+        Returns:
+            str: The stem of the object's path.
+        """
         r = re.compile(r'(.+)(\.vl\..*)')
         return r.match(self.path.name).group(1)
-    
+
     @property
     def name(self):
+        """
+        Returns the name of the object.
+
+        If the name is not set, it returns the stem of the object's path.
+
+        Returns:
+            str: The name of the object.
+        """
         if self._name is None:
-            
             assert self.path is not None, 'Expect a name for data object.'
             return self.stem
         else:
             return self._name
-        
+
     @name.setter
-    def name(self, value):  
-        self._name = value      
-        
+    def name(self, value):
+        """
+        Sets the name of the object.
+
+        Args:
+            value (str): The name to set.
+        """
+        self._name = value
+
     def get_df(self):
-        
-        root = ET.parse(self.path).getroot() 
+        """
+        Parses the XML file and returns a DataFrame.
+
+        Returns:
+            pandas.DataFrame: The DataFrame containing the parsed data.
+        """
+        root = ET.parse(self.path).getroot()
         out = dict()
         varlst = root.find('VARS_LIST')
 
         for var in varlst:
-            
-            attrs = var.attrib   
-            
+            attrs = var.attrib
+
             if 'Data_Path' in attrs:
                 attrs['PARENT'] = None
                 out[attrs['Data_Path']] = attrs
-            
+
                 tievar = var.find('TIE_VAR')
-            
-            
-                if tievar is not None: 
-            
+                if tievar is not None:
                     attrs = tievar.attrib
                     attrs['PARENT'] = var.attrib['Data_Path']
-                    out[attrs['Data_Path']] = attrs       
-        
-        df = pd.DataFrame(out)        
+                    out[attrs['Data_Path']] = attrs
+
+        df = pd.DataFrame(out)
         return df
+#%%    
+class AMESSFObject(DataInterface):
+    
+    def __init__(self, path, name=None, comment=None):
+                
+        super().__init__(path, name=name, comment=comment) 
+        
+    
+    def get_df(self):
+        
+        out = dict()
+
+        with open(self.path, 'r') as fobj:
+            lines = fobj.readlines()
+
+        for idx, l in enumerate(lines, start=1):
+            item = dict()
+            l = l.strip()
+
+            try:
+                raw, = re.findall(r'Data_Path=\S+', l)
+                l = l.replace(raw, '').strip()
+                s, = re.findall(r'Data_Path=(.+)', raw)
+                item['Data_Path'] = s
+
+                raw, = re.findall(r'Param_Id=\S+', l)
+                l = l.replace(raw, '').strip()
+                s, = re.findall(r'Param_Id=(.+)', raw)
+                item['Param_Id'] = s
+            except ValueError:
+                continue
+
+            try:
+                raw, = re.findall(r'\[\S+\]', l)
+                l = l.replace(raw, '').strip()
+                s, = re.findall(r'\[(\S+)\]', raw)
+                item['Unit'] = s
+            except ValueError:
+                item['Unit'] = '-'
+
+            raw, = re.findall(r'^[01]+\s+\S+\s+\S+\s+\S+', l)
+            l = l.replace(raw, '').strip()
+            s, = re.findall(r'^[01]+\s+(\S+\s+\S+\s+\S+)', raw)
+            item['Label'] = s
+            item['Description'] = l
+            item['Row_Index'] = idx
+
+            out[item['Data_Path']] = item
+
+        df = pd.DataFrame(out)
+        return df
+           
 
 #%% AMERES_OJBECT
 class AMEResObject(DataInterface):
@@ -87,10 +166,33 @@ class AMEResObject(DataInterface):
 
     exts = ['.results']
 
-    def __init__(self, path, config=None, name=None, comment=None):
+    def __init__(self, path, config=None, name=None, comment=None, **kwargs):
                 
         super().__init__(path, config=config, name=name, comment=comment) 
+        f_amevl = kwargs.pop('amevl', None)     
+
+        if f_amevl is None:
+            try:
+                r = re.compile(rf'{self.stem}.vl.crc_\d+')
+                f_amevl, = filter(r.match,  [s.name for s in self.path.parent.glob('*')])
+                f_amevl = self.path.parent / f_amevl
+            except ValueError:
+                f_amevl = None
+                
+        if f_amevl:            
+            self.vl = AMEVLObject(f_amevl, name=name, comment=comment)
+        else:
+            self.vl = None       
         
+        f_amessf = kwargs.pop('amessf', None)
+        
+        if f_amessf is None:       
+            f_amessf = self.path.parent / (self.stem+'.ssf.'+self.ext_idx).rstrip('.')  
+            
+        if Path(f_amessf).is_file():  
+            self.ssf = AMESSFObject(f_amessf, name=name, comment=comment) 
+        else:
+            self.ssf = None 
         
     @property
     def name(self):

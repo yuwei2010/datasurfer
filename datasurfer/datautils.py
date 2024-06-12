@@ -242,7 +242,7 @@ def extract_channels(newconfig=None):
                     else:
                         
                         warnings.warn(f'"{k}" not found.')
-                elif not k is None:
+                elif k is not None:
                     
                     for kk in k:
                         

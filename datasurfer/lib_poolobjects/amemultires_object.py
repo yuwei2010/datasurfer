@@ -1,6 +1,10 @@
+import re
+import pandas as pd
 from datasurfer.lib_objects.ameres_object import AMEResObject, AMEVLObject
 from datasurfer.lib_objects.amegp_object import AMEGPObject
 from datasurfer.datapool import DataPool
+from datasurfer.datautils import translate_config, extract_channels
+
 
 #%%
 class AMESingleResObject(AMEResObject):
@@ -24,14 +28,19 @@ class AMESingleResObject(AMEResObject):
     """
 
     def __init__(self, path, config=None, name=None, comment=None, **kwargs):
-        super().__init__(path, config=config, name=name, comment=comment)
         
+        super().__init__(path, config=config, name=name, comment=comment)
+ 
+        
+        amegp = kwargs.pop('amegp', None)
         f_amegp = self.path.parent / (self.stem + self.ext.replace('results', 'amegp'))
         
-        if kwargs.get('amegp', None):
-            path_amegp = kwargs.pop('amegp', None)
+        if amegp is not None:
+            path_amegp = amegp
         elif f_amegp.is_file():
             path_amegp = f_amegp
+        else:
+            path_amegp = None
         
         if path_amegp:
             self.gp = self.global_param = AMEGPObject(path_amegp, name=name, comment=comment)
@@ -63,7 +72,10 @@ class AMESingleResObject(AMEResObject):
 
         """
         self._name = value
-        self.gp.name = value
+        if self.gp:
+            self.gp.name = value
+        if self.vl:
+            self.vl.name = value
             
     @property    
     def df_gp(self):
@@ -75,7 +87,8 @@ class AMESingleResObject(AMEResObject):
 
         """
         return self.amegp.df
-            
+    
+      
 
 #%%
 class AMEMultiResPool(DataPool):
