@@ -722,7 +722,7 @@ class DataPool(object):
         self.objs.extend(objs)
         return self
     
-    def load_signals(self, *keys, mapping=None, pbar=True):
+    def load_signals(self, *keys, **mapping):
         """
         Load signals from the data pool.
 
@@ -742,10 +742,10 @@ class DataPool(object):
             dp.load_signals('signal3', mapping=my_mapping_object)
 
         """
-        @show_pool_progress('Loading', show=pbar)
+        @show_pool_progress('Loading', show=True)
         def get(self):
             for obj in self.objs:
-                obj.load(*keys, mapping=mapping)
+                obj.load(*keys, **mapping)
                 yield
 
         list(get(self))

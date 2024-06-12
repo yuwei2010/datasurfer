@@ -192,7 +192,10 @@ class AMEResObject(DataInterface):
         if Path(f_amessf).is_file():  
             self.ssf = AMESSFObject(f_amessf, name=name, comment=comment) 
         else:
-            self.ssf = None 
+            self.ssf = None
+        
+        if self.ssf is None and self.vl is None:
+            raise ValueError('Please assign a valid SSF or VL file to the AMEResObject.')
         
     @property
     def name(self):
@@ -206,60 +209,7 @@ class AMEResObject(DataInterface):
     @name.setter
     def name(self, value):  
         self._name = value    
-        
-    @property
-    def params(self):
-        """
-        Parses a parameter file and returns a dictionary of parameter information.
-
-        Returns:
-            dict: A dictionary containing parameter information. The keys are the data paths and the values are dictionaries
-                  containing the parameter details such as 'Data_Path', 'Param_Id', 'Unit', 'Label', 'Description', and 'Row_Index'.
-        """
-        
-        
-        fparam = self.path.parent / (self.stem+'.ssf.'+self.ext_idx).rstrip('.')
-        out = dict()
-
-        with open(fparam, 'r') as fobj:
-            lines = fobj.readlines()
-
-        for idx, l in enumerate(lines, start=1):
-            item = dict()
-            l = l.strip()
-
-            try:
-                raw, = re.findall(r'Data_Path=\S+', l)
-                l = l.replace(raw, '').strip()
-                s, = re.findall(r'Data_Path=(.+)', raw)
-                item['Data_Path'] = s
-
-                raw, = re.findall(r'Param_Id=\S+', l)
-                l = l.replace(raw, '').strip()
-                s, = re.findall(r'Param_Id=(.+)', raw)
-                item['Param_Id'] = s
-            except ValueError:
-                continue
-
-            try:
-                raw, = re.findall(r'\[\S+\]', l)
-                l = l.replace(raw, '').strip()
-                s, = re.findall(r'\[(\S+)\]', raw)
-                item['Unit'] = s
-            except ValueError:
-                item['Unit'] = '-'
-
-            raw, = re.findall(r'^[01]+\s+\S+\s+\S+\s+\S+', l)
-            l = l.replace(raw, '').strip()
-            s, = re.findall(r'^[01]+\s+(\S+\s+\S+\s+\S+)', raw)
-            item['Label'] = s
-            item['Description'] = l
-            item['Row_Index'] = idx
-
-            out[item['Data_Path']] = item
-
-        return out
-    
+           
     @property
     def stem(self):
         
@@ -294,13 +244,20 @@ class AMEResObject(DataInterface):
             return np.asarray(t)
 
     @property
+    def params(self):        
+        if self.vl:
+            return self.vl.df
+        else:
+            return self.ssf.df
+        
+    @property
     def channels(self):
         
-        return sorted(v['Data_Path'] for v in self.params.values())
+        return self.params.columns.tolist()
 
 
-    @translate_config()
-    @extract_channels()
+    # @translate_config()
+    # @extract_channels()
     def get_channels(self, *channels):
         """
         Retrieves the data for the specified channels.
@@ -314,7 +271,9 @@ class AMEResObject(DataInterface):
         
         params = self.params
         
-        row_indices = [params[c]['Row_Index'] for c in channels]
+        key_row = 'VARNUM' if 'VARNUM' in params.index else 'Row_Index'
+        
+        row_indices = [params[c][key_row] for c in channels]
         
         array = self.get_results(rows=row_indices)
         

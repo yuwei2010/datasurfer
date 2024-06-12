@@ -1,9 +1,7 @@
-import re
-import pandas as pd
+
 from datasurfer.lib_objects.ameres_object import AMEResObject, AMEVLObject
 from datasurfer.lib_objects.amegp_object import AMEGPObject
 from datasurfer.datapool import DataPool
-from datasurfer.datautils import translate_config, extract_channels
 
 
 #%%
