@@ -1,16 +1,64 @@
 #%% Import Libraries
-
-
 import re
 import pandas as pd
 import numpy as np
+import xml.etree.ElementTree as ET
 
 from pathlib import Path
 
 from datasurfer.datainterface import DataInterface 
 from datasurfer.datautils import translate_config, extract_channels
 
+#%%
+class AMEVLObject(DataInterface):
+    def __init__(self, path, name=None, comment=None):
+                
+        super().__init__(path, name=name, comment=comment)     
 
+    @property
+    def stem(self):
+        
+        r = re.compile(r'(.+)(\.vl\..*)')
+        return r.match(self.path.name).group(1)
+    
+    @property
+    def name(self):
+        if self._name is None:
+            
+            assert self.path is not None, 'Expect a name for data object.'
+            return self.stem
+        else:
+            return self._name
+        
+    @name.setter
+    def name(self, value):  
+        self._name = value      
+        
+    def get_df(self):
+        
+        root = ET.parse(self.path).getroot() 
+        out = dict()
+        varlst = root.find('VARS_LIST')
+
+        for var in varlst:
+            
+            attrs = var.attrib   
+            
+            if 'Data_Path' in attrs:
+                attrs['PARENT'] = None
+                out[attrs['Data_Path']] = attrs
+            
+                tievar = var.find('TIE_VAR')
+            
+            
+                if tievar is not None: 
+            
+                    attrs = tievar.attrib
+                    attrs['PARENT'] = var.attrib['Data_Path']
+                    out[attrs['Data_Path']] = attrs       
+        
+        df = pd.DataFrame(out)        
+        return df
 
 #%% AMERES_OJBECT
 class AMEResObject(DataInterface):
