@@ -59,6 +59,14 @@ class AMEVLObject(DataInterface):
             value (str): The name to set.
         """
         self._name = value
+        
+    @property
+    def fhandler(self):
+        
+        if not hasattr(self, '_fhandler'):
+            self._fhandler = ET.parse(self.path)
+            
+        return self._fhandler
 
     def get_df(self):
         """
@@ -67,7 +75,7 @@ class AMEVLObject(DataInterface):
         Returns:
             pandas.DataFrame: The DataFrame containing the parsed data.
         """
-        root = ET.parse(self.path).getroot()
+        root = self.fhandler.getroot()
         out = dict()
         varlst = root.find('VARS_LIST')
 
@@ -87,6 +95,34 @@ class AMEVLObject(DataInterface):
 
         df = pd.DataFrame(out)
         return df
+    
+    def save(self, name=None):
+        
+        path = name or self.path
+        
+        root = self.fhandler.getroot()
+        varlst = root.find('VARS_LIST') 
+        
+        for var in varlst:
+            attrs = var.attrib
+
+            if 'Data_Path' in attrs:
+                key = attrs['Data_Path']
+                for k in attrs.keys():
+                    var.set(k, str(self.df[key][k]))
+                    
+            tievars = var.findall('TIE_VAR')
+            if tievars:
+                for tievar in tievars:
+                    attrs = tievar.attrib
+                    key = attrs['Data_Path']
+                    for k in attrs.keys():
+                        tievar.set(k, str(self.df[key][k]))    
+                        
+        self.fhandler.write(path)   
+        
+        return self         
+        
 #%%    
 class AMESSFObject(DataInterface):
     
