@@ -309,7 +309,7 @@ class AMEResObject(DataInterface):
         params = self.params
         
         key_row = 'VARNUM' if 'VARNUM' in params.index else 'Row_Index'
-        row_indices = [row_indices.append(int(params[c][key_row])) for c in channels]
+        row_indices = [int(params[c][key_row]) for c in channels]
                 
         array = self.get_results(rows=row_indices)
         

@@ -2,12 +2,112 @@
 
 import re
 import pandas as pd
-from pathlib import Path
+import xml.etree.ElementTree as ET
 from datasurfer.datainterface import DataInterface
+#%%
+
+class AMEGPObject(DataInterface):  
+    
+    def __init__(self, path=None, name=None, comment=None):
+        """
+        Initializes a new instance of the AMEGPObject class.
+
+        Args:
+            path (str): The path to the data file.
+            config (dict): Configuration settings for the object.
+            name (str): The name of the object.
+            comment (str): Additional comment for the object.
+
+        """
+        super().__init__(path, name=name, comment=comment)   
+        
+    @property
+    def stem(self):
+        """
+        Returns the stem of the object's path.
+
+        Returns:
+            str: The stem of the object's path.
+        """
+        r = re.compile(r'(.+)(\.amegp.*)')
+        return r.match(self.path.name).group(1)
+
+    @property
+    def name(self):
+        """
+        Returns the name of the object.
+
+        If the name is not set, it returns the stem of the object's path.
+
+        Returns:
+            str: The name of the object.
+        """
+        if self._name is None:
+            assert self.path is not None, 'Expect a name for data object.'
+            return self.stem
+        else:
+            return self._name
+
+    @name.setter
+    def name(self, value):
+        """
+        Sets the name of the object.
+
+        Args:
+            value (str): The name to set.
+        """
+        self._name = value
+        
+    @property
+    def fhandler(self):
+        
+        if not hasattr(self, '_fhandler'):
+            self._fhandler = ET.parse(self.path)
+            
+        return self._fhandler       
+    
+    def get_df(self):
+        """
+        Returns a pandas DataFrame containing the data from the AMEGP object.
+
+        Returns:
+            pandas.DataFrame: A DataFrame containing the data from the AMEGP object.
+        """
+        out = dict()
+        for param in self.fhandler.getroot():
+            attris = dict()
+            for attr in param:
+                attris[attr.tag] = attr.text
+
+            out[attris['VARNAME']] = attris
+
+        df = pd.DataFrame(out) 
+        return df
+    
+    def save(self, name=None):
+        """
+        Save the data to a file.
+
+        Args:
+            name (str, optional): The name of the file to save the data to. If not provided, the data will be saved to the object's `path` attribute.
+
+        Returns:
+            self: The current instance of the object.
+
+        """
+        path = name or self.path
+        for param in self.fhandler.getroot():
+            key = param.find('VARNAME').text
+            for attr in param:
+                attr.text = str(self.df[key][attr.tag])
+        self.fhandler.write(path)
+        return self
+
+
 
 
 #%% AMEGP_OJBECT
-class AMEGPObject(DataInterface):
+class _AMEGPObject_(DataInterface):
     """
     Represents an object for handling AMEGP data.
 
