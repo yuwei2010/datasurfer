@@ -7,9 +7,10 @@ from datasurfer.datapool import DataPool
 from datasurfer.datalake import DataLake
 from datasurfer.datainterface import DataInterface
 from datasurfer.datainterface import list_interfaces
+from datasurfer.lib_poolobjects.financepool_object import StockPool
 
 
-__all__ = ['DataPool', 'DataLake', 'DataInterface', 'list_interfaces']
+__all__ = ['DataPool', 'DataLake', 'DataInterface', 'list_interfaces', 'FinancePool']
 
 #%%
 
@@ -94,7 +95,7 @@ def read_multisheets_excel(input, **kwargs):
     ```
 
     """
-    from datasurfer.lib_poolobjects.multisheet_object import ExcelDataPool
+    from datasurfer.lib_poolobjects.excelmultisheet_object import ExcelDataPool
     
     if isinstance(input, DataInterface):
         
