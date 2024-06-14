@@ -65,8 +65,10 @@ class ParquetObject(DataInterface):
     def fhandler(self):
 
         if not hasattr(self, '_fhandler'):
- 
-            self._fhandler = pq.read_table(self.path, **self.kwargs)
+            if self.path is not None:
+                self._fhandler = pq.read_table(self.path, **self.kwargs)
+            else:
+                self._fhandler = pa.Table.from_pandas(self.df)
                 
         return self._fhandler
     

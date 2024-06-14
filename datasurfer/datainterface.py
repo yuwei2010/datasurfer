@@ -133,11 +133,17 @@ class DataInterface(object):
             comment (str, optional): A comment or description for the data object. Defaults to None.
         """
           
-        if path is not None:
-            path = Path(path).absolute() 
+        if path is not None:  
+            if isinstance(path, (str, Path)):          
+                path = Path(path).absolute() 
+                
+            elif isinstance(path, pd.DataFrame):
+                self._df = path
+                path = None
             
-        self._name = name
+            
         self.path = path
+        self._name = name        
         self._config = parse_config(config)
         self._comment = comment
         
@@ -219,6 +225,13 @@ class DataInterface(object):
         self._config = parse_config(val)  
         if hasattr(self, '_df'):
             del self._df
+    @property
+    def dtypes(self):
+        return self.df.dtypes
+                
+    def info(self):
+        return self.df.info()
+    
     
     def apply(self, name, value):
         """

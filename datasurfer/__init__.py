@@ -70,11 +70,11 @@ def df2object(df, name, **kwargs):
         AssertionError: If the input data is not a pandas DataFrame.
     """
     import pandas as pd
-    from datasurfer.lib_objects.numpy_object import NumpyObject
+    from datasurfer.lib_objects.parquet_object import ParquetObject
 
     assert isinstance(df, pd.DataFrame), "The input data must be a pandas DataFrame."
 
-    return NumpyObject(df, name=name, **kwargs)
+    return ParquetObject(df, name=name, **kwargs)
 
 #%%
 def read_multisheets_excel(input, **kwargs):
