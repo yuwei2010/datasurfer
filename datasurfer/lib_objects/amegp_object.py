@@ -103,9 +103,6 @@ class AMEGPObject(DataInterface):
         self.fhandler.write(path)
         return self
 
-
-
-
 #%% AMEGP_OJBECT
 class _AMEGPObject_(DataInterface):
     """
@@ -254,3 +251,5 @@ class _AMEGPObject_(DataInterface):
             fobj.writelines(newlines)
             
         return self
+
+#%%
