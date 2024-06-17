@@ -19,7 +19,7 @@ def strategy_wrapper(func):
         
         assert isinstance(out, pd.DataFrame), 'Expected a pandas DataFrame as output'
         
-        return ParquetObject(out, name=obj.name, comment={**{'name': name}, **kwargs})
+        return StockObject(out, name=obj.name, comment={**{'name': name}, **kwargs})
     
     return wrapper
 
@@ -32,6 +32,11 @@ class StockObject(FinanceObject):
         func_ = strategy_wrapper(func)
         
         return func_(self, **kwargs)
+    
+    def portfolio(self, by):
+        
+        return self.df[by].dropna().iloc[-1]
+    
 
 
 
@@ -45,7 +50,7 @@ class StockPool(DataPool):
         
     def portfolio(self, by):
         
-        return pd.Series(self.map(lambda x: x[by].dropna().iloc[-1]), name=self.name, index=self.names())
+        return pd.Series(self.map(lambda x: x.portfolio(by)), name=self.name, index=self.names())
         
         
     def backtesting(self, func, pbar=True, **kwargs):
@@ -54,7 +59,7 @@ class StockPool(DataPool):
                        
         #func_ = strategy_wrapper(func)
         
-        @show_pool_progress(f'Backtesting strategy {bcolors.OKGREEN}{bcolors.BOLD}<{name}>{bcolors.ENDC}', show=pbar)
+        @show_pool_progress(f'Backtesting {bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}', show=pbar)
         def get(self):           
             for obj in self.objs:                                           
                 yield obj.backtesting(func, **kwargs)

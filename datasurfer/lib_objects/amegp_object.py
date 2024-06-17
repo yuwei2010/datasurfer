@@ -60,11 +60,18 @@ class AMEGPObject(DataInterface):
         
     @property
     def fhandler(self):
+        """
+        Returns the XML file handler for the current object.
         
+        If the XML file handler has not been initialized yet, it will be initialized by parsing the XML file specified by the `path` attribute.
+        
+        Returns:
+            The XML file handler for the current object.
+        """
         if not hasattr(self, '_fhandler'):
             self._fhandler = ET.parse(self.path)
             
-        return self._fhandler       
+        return self._fhandler
     
     def get_df(self):
         """
