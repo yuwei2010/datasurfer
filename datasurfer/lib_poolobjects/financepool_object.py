@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from datasurfer import DataPool
 from datasurfer.lib_objects.pandas_object import FinanceObject
 from datasurfer.lib_objects.parquet_object import ParquetObject
@@ -37,8 +38,24 @@ class StockObject(FinanceObject):
         
         return self.df[by].dropna().iloc[-1]
     
+    def plot_operation(self, date='trade_date', base='close', share='shares'):
+        
+        chg_shares = self[share].diff()
+        buys = self[base].copy()
+        buys[chg_shares <= 0] = np.nan
+        
+        sells = self[base].copy()
+        sells[chg_shares >= 0] = np.nan       
 
-
+        ax = self.plot.line(base, x=date, setax=True, labels=['Close'], color='grey', lw=1)
+        self.plot.line(buys.values, x=date, ls='None', marker='^', markersize=10, color='g', ax=ax, labels=['Buy'])
+        self.plot.line(sells.values, x=date, ls='None', marker='v', markersize=10, color='r', ax=ax, labels=['Sell'])
+        ax.legend(loc='best', ncols=3)
+        
+        ax.set_xlabel(date)
+        ax.set_ylabel(base)
+        
+        return ax
 
 #%%
 
