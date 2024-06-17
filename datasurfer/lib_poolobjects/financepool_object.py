@@ -66,26 +66,54 @@ class StockPool(DataPool):
         super().__init__(path, interface=StockObject, config=config, name=name, comment=comment)
         
     def portfolio(self, by):
-        
+        """
+        Calculate the portfolio for each object in the finance pool.
+
+        Parameters:
+        - by: The parameter to group the portfolio by.
+
+        Returns:
+        - pd.Series: A pandas Series object containing the portfolio values, with the object names as the index.
+
+        """
         return pd.Series(self.map(lambda x: x.portfolio(by)), name=self.name, index=self.names())
         
         
     def backtesting(self, func, pbar=True, **kwargs):
-        
+        """
+        Perform backtesting on the objects in the pool using the specified function.
+
+        Args:
+            func: The function to be used for backtesting.
+            pbar: A boolean value indicating whether to show a progress bar during backtesting.
+            **kwargs: Additional keyword arguments to be passed to the backtesting function.
+
+        Returns:
+            A StockPool object containing the results of the backtesting.
+
+        """
         name = kwargs.get('name', None) or func.__name__
-                       
-        #func_ = strategy_wrapper(func)
-        
+
         @show_pool_progress(f'Backtesting {bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}', show=pbar)
-        def get(self):           
-            for obj in self.objs:                                           
+        def get(self):
+            for obj in self.objs:
                 yield obj.backtesting(func, **kwargs)
-        
+
         return StockPool(list(get(self)), name=name)
     
     
     def mlp_backtesting(self, func, **kwargs):
-        
+        """
+        Perform backtesting on a given function using the multiple processor.
+
+        Parameters:
+        - func: The function to be backtested.
+        - kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+        - StockPool: A StockPool object containing the backtested results.
+
+        """
         name = kwargs.get('name', None) or func.__name__
         func_ = strategy_wrapper(func)
         fun = lambda obj: func_(obj, **kwargs)  
