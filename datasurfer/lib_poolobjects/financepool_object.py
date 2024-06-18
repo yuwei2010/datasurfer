@@ -34,6 +34,15 @@ class StockObject(FinanceObject):
         
         return func_(self, **kwargs)
     
+    def date2index(self, name):
+        
+        self.df.sort_values(by=name, inplace=True)
+        self.df.reset_index(drop=True, inplace=True)
+        self.df.set_index(name, inplace=True, drop=False)
+        self.df.index.name = None
+        
+        return self
+    
     def portfolio(self, by):
         
         return self.df[by].dropna().iloc[-1]
@@ -73,24 +82,24 @@ class StockPool(DataPool):
     def backtesting(self, func, pbar=True, **kwargs):
         
         name = kwargs.get('name', None) or func.__name__
-                       
-        #func_ = strategy_wrapper(func)
         
+        comment = kwargs.pop('comment', None) 
+                              
         @show_pool_progress(f'Backtesting {bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}', show=pbar)
         def get(self):           
             for obj in self.objs:                                           
                 yield obj.backtesting(func, **kwargs)
         
-        return StockPool(list(get(self)), name=name)
+        return StockPool(list(get(self)), name=name, comment=comment)
     
     
     def mlp_backtesting(self, func, **kwargs):
-        
+        comment = kwargs.pop('comment', None) 
         name = kwargs.get('name', None) or func.__name__
         func_ = strategy_wrapper(func)
         fun = lambda obj: func_(obj, **kwargs)  
         
-        return StockPool(self.mlp.map(fun), name=name)
+        return StockPool(self.mlp.map(fun), name=name, comment=comment)
     
 
     
