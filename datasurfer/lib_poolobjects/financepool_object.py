@@ -47,7 +47,7 @@ class StockObject(FinanceObject):
         
         return self.df[by].dropna().iloc[-1]
     
-    def plot_operation(self, date='trade_date', base='close', share='shares'):
+    def plot_operation(self, date='trade_date', base='close', share='shares', **kwargs):
         
         chg_shares = self[share].diff()
         buys = self[base].copy()
@@ -56,10 +56,10 @@ class StockObject(FinanceObject):
         sells = self[base].copy()
         sells[chg_shares >= 0] = np.nan       
 
-        ax = self.plot.line(base, x=date, setax=True, labels=['Close'], color='grey', lw=1)
+        ax = self.plot(**kwargs).line(base, x=date, setax=True, labels=['Close'], color='grey', lw=1)
         self.plot.line(buys.values, x=date, ls='None', marker='^', markersize=10, color='g', ax=ax, labels=['Buy'])
         self.plot.line(sells.values, x=date, ls='None', marker='v', markersize=10, color='r', ax=ax, labels=['Sell'])
-        ax.legend(loc='best', ncols=3)
+        ax.legend(loc='best', ncols=3, title=self.name)
         
         ax.set_xlabel(date)
         ax.set_ylabel(base)
