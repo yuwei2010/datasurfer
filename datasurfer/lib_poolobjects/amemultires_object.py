@@ -1,6 +1,6 @@
 
-from datasurfer.lib_objects.ameres_object import AMEResObject
-from datasurfer.lib_objects.amegp_object import AMEGPObject
+from datasurfer.lib_objects.amevari_object import AMEResObject
+from datasurfer.lib_objects.ameparam_object import AMEGPObject
 from datasurfer.datapool import DataPool
 
 

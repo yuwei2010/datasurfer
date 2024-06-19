@@ -5,12 +5,11 @@ import numpy as np
 import xml.etree.ElementTree as ET
 
 from pathlib import Path
-
-from datasurfer.datainterface import DataInterface 
+from datasurfer.lib_objects.ameparam_object import AMEObject
 from datasurfer.datautils import translate_config, extract_channels
 
 #%%
-class AMEVLObject(DataInterface):
+class AMEVLObject(AMEObject):
     """
     Represents an AMEVL object.
 
@@ -19,53 +18,33 @@ class AMEVLObject(DataInterface):
         name (str, optional): The name of the object. Defaults to None.
         comment (str, optional): Any additional comment for the object. Defaults to None.
     """
-
-    def __init__(self, path, name=None, comment=None):
+    ametype = 'vl'
+    
+    def __init__(self, path, idxstr='ref', name=None, comment=None):
+        
         super().__init__(path, name=name, comment=comment)
-
+        
+        self.idxstr = str(idxstr)
+        
     @property
-    def stem(self):
-        """
-        Returns the stem of the object's path.
-
-        Returns:
-            str: The stem of the object's path.
-        """
-        r = re.compile(r'(.+)(\.vl\..*)')
-        return r.match(self.path.name).group(1)
-
-    @property
-    def name(self):
-        """
-        Returns the name of the object.
-
-        If the name is not set, it returns the stem of the object's path.
-
-        Returns:
-            str: The name of the object.
-        """
-        if self._name is None:
-            assert self.path is not None, 'Expect a name for data object.'
-            return self.stem
-        else:
-            return self._name
-
-    @name.setter
-    def name(self, value):
-        """
-        Sets the name of the object.
-
-        Args:
-            value (str): The name to set.
-        """
-        self._name = value
+    def ext_idx(self):
+        return self.idxstr
         
     @property
     def fhandler(self):
         
         if not hasattr(self, '_fhandler'):
-            self._fhandler = ET.parse(self.path)
-            
+            rootlst = ET.parse(self.path)
+
+            for param in rootlst.getroot():
+                for attr in param:
+                    if attr.attrib['dataset'] == self.ext_idx:
+                        checksum = attr.attrib['checksum']
+                        break
+            vlpath = Path(self.path.parent / (self.stem+'.vl.crc_'+checksum))
+            assert vlpath.is_file(), f'Cannot find any VL file for index {self.idxstr}.'
+            self._fhandler = ET.parse(vlpath)
+                                    
         return self._fhandler
 
     def get_df(self):
@@ -124,12 +103,10 @@ class AMEVLObject(DataInterface):
         return self         
         
 #%%    
-class AMESSFObject(DataInterface):
+class AMESSFObject(AMEObject):
     
-    def __init__(self, path, name=None, comment=None):
-                
-        super().__init__(path, name=name, comment=comment) 
-        
+    
+    ametype = 'ssf'    
     
     def get_df(self):
         
@@ -177,7 +154,7 @@ class AMESSFObject(DataInterface):
            
 
 #%% AMERES_OJBECT
-class AMEResObject(DataInterface):
+class AMEResObject(AMEObject):
     """
     Represents an object for handling AMERES data.
 
@@ -201,7 +178,7 @@ class AMEResObject(DataInterface):
         search_channel: Searches for data channels that match a given pattern.
     """
 
-    exts = ['.results']
+    ametype = 'results'
 
     def __init__(self, path, config=None, name=None, comment=None, **kwargs):
                 
@@ -210,14 +187,12 @@ class AMEResObject(DataInterface):
 
         if f_amevl is None:
             try:
-                r = re.compile(rf'{self.stem}.vl.crc_\d+')
-                f_amevl, = filter(r.match,  [s.name for s in self.path.parent.glob('*')])
-                f_amevl = self.path.parent / f_amevl
+                f_amevl = self.path.parent / (self.stem+'.vl.active')
             except ValueError:
                 f_amevl = None
                 
         if f_amevl:            
-            self.vl = AMEVLObject(f_amevl, name=name, comment=comment)
+            self.vl = AMEVLObject(f_amevl, self.ext_idx,  name=name, comment=comment)
         else:
             self.vl = None       
         
@@ -234,35 +209,6 @@ class AMEResObject(DataInterface):
         if self.ssf is None and self.vl is None:
             raise ValueError('Please assign a valid SSF or VL file to the AMEResObject.')
         
-    @property
-    def name(self):
-        if self._name is None:
-            
-            assert self.path is not None, 'Expect a name for data object.'
-            return self.stem+self.ext_idx
-        else:
-            return self._name
-        
-    @name.setter
-    def name(self, value):  
-        self._name = value    
-           
-    @property
-    def stem(self):
-        
-        r = re.compile(r'(.+)(\.results.*)')
-        return r.match(self.path.name).group(1)
-    
-    @property
-    def ext(self):
-        
-        r = re.compile(r'(.+)(\.results.*)')
-        return r.match(self.path.name).group(2)      
-    
-    @property
-    def ext_idx(self):
-        r = re.compile(r'(.+)\.results[.]{0,1}(.*)')     
-        return r.match(self.path.name).group(2)    
           
     
     @property

@@ -4,9 +4,54 @@ import re
 import pandas as pd
 import xml.etree.ElementTree as ET
 from datasurfer.datainterface import DataInterface
-#%%
 
-class AMEGPObject(DataInterface):  
+#%%
+class AMEObject(DataInterface):
+
+    @property
+    def name(self):
+        if self._name is None:
+            
+            assert self.path is not None, 'Expect a name for data object.'
+            
+            if self.ext_idx.isnumeric():
+                return self.stem+self.ext_idx
+            else:
+                return self.stem
+       
+        else:
+            return self._name
+        
+    @name.setter
+    def name(self, value):  
+        self._name = value    
+           
+    @property
+    def stem(self):
+        
+        r = re.compile(rf'(.+)(\.{self.__class__.ametype}.*)')
+        return r.match(self.path.name).group(1)
+    
+    @property
+    def ext(self):
+        
+        r = re.compile(rf'(.+)(\.{self.__class__.ametype}.*)')
+        return r.match(self.path.name).group(2)      
+    
+    @property
+    def ext_idx(self):
+        r = re.compile(rf'(.+)\.{self.__class__.ametype}[.]?(\d*)')  
+ 
+        idxstr = r.match(self.path.name).group(2)    
+        if len(idxstr):
+            return idxstr
+        else:
+            return 'ref'   
+    
+#%%
+class AMEGPObject(AMEObject):  
+    
+    ametype = 'amegp'
     
     def __init__(self, path=None, name=None, comment=None):
         """
@@ -21,43 +66,7 @@ class AMEGPObject(DataInterface):
         """
         super().__init__(path, name=name, comment=comment)   
         
-    @property
-    def stem(self):
-        """
-        Returns the stem of the object's path.
 
-        Returns:
-            str: The stem of the object's path.
-        """
-        r = re.compile(r'(.+)(\.amegp.*)')
-        return r.match(self.path.name).group(1)
-
-    @property
-    def name(self):
-        """
-        Returns the name of the object.
-
-        If the name is not set, it returns the stem of the object's path.
-
-        Returns:
-            str: The name of the object.
-        """
-        if self._name is None:
-            assert self.path is not None, 'Expect a name for data object.'
-            return self.stem
-        else:
-            return self._name
-
-    @name.setter
-    def name(self, value):
-        """
-        Sets the name of the object.
-
-        Args:
-            value (str): The name to set.
-        """
-        self._name = value
-        
     @property
     def fhandler(self):
         """
