@@ -163,7 +163,9 @@ class AMEParamDataObject(AMEObject):
 class AMEGPObject(AMEObject):  
     
     ametype = 'amegp'
-
+    
+    def __setitem__(self, name, value):
+        self.df.loc['VALUE', name] = value
         
     @property
     def fhandler(self):
