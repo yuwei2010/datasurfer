@@ -924,9 +924,9 @@ class DataInterface(object):
         """
         out = dict()
         
-        out['path'] = str(self.path)
-        out['config'] = self.config
-        out['comment'] = self.comment  
+        out['path'] = str(self.path) if hasattr(self, 'path') else None
+        out['config'] = self.config if hasattr(self, '_config') else None
+        out['comment'] = self.comment  if hasattr(self, '_comment') else None
         out['name'] = self.name
         out['df'] = self.df.values
         out['index'] = self.df.index

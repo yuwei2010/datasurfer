@@ -3,7 +3,7 @@ import pyarrow as pa
 import pandas as pd
 import json
 from datasurfer.datainterface import DataInterface
-from datasurfer.datautils import translate_config, parse_config
+from datasurfer.datautils import translate_config
 
 class ParquetObject(DataInterface):
     """
@@ -33,7 +33,8 @@ class ParquetObject(DataInterface):
             else:
                 self._orgpath = None
             
-        return self._orgpath    
+        return self._orgpath  
+      
     @property
     def comment(self):
         if self._comment is None:
@@ -47,7 +48,7 @@ class ParquetObject(DataInterface):
         
         self._comment = value
         
-    @property
+    @DataInterface.config.getter
     def config(self):
         if self._config is None:
             metadata = self.fhandler.schema.metadata
@@ -55,11 +56,11 @@ class ParquetObject(DataInterface):
                 self._config = json.loads(metadata[b'config'].decode('utf-8'))     
         return self._config
     
-    @config.setter
-    def config(self, val):                
-        self._config = parse_config(val)  
-        if hasattr(self, '_df'):
-            del self._df
+    # @config.setter
+    # def config(self, val):                
+    #     self._config = parse_config(val)  
+    #     if hasattr(self, '_df'):
+    #         del self._df
         
     @property
     def fhandler(self):
@@ -74,13 +75,13 @@ class ParquetObject(DataInterface):
     
     @translate_config()    
     def get_df(self):
-            """
-            Returns the DataFrame representation of the Parquet object.
-            
-            Returns:
-                pandas.DataFrame: The DataFrame representation of the Parquet object.
-            """
-            return self.fhandler.to_pandas()
+        """
+        Returns the DataFrame representation of the Parquet object.
+        
+        Returns:
+            pandas.DataFrame: The DataFrame representation of the Parquet object.
+        """
+        return self.fhandler.to_pandas()
     
     def add_metadata(self, **kwargs):
         """
@@ -158,11 +159,14 @@ class ParquetObject(DataInterface):
 
         assert isinstance(other, DataInterface)
         dat = other.to_dict()
+               
         df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
+
         obj = ParquetObject(path=None,
                             config=dat['config'],
                             comment=dat['comment'],
                             name=dat['name'])
+        
         obj._orgpath = other.path
         obj._fhandler = pa.Table.from_pandas(df)
 
