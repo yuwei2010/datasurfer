@@ -3,11 +3,13 @@
 import re
 import pandas as pd
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from datasurfer.datainterface import DataInterface
 
 #%%
 class AMEObject(DataInterface):
 
+    ametype = 'ame'
     @property
     def name(self):
         if self._name is None:
@@ -47,6 +49,8 @@ class AMEObject(DataInterface):
             return idxstr
         else:
             return 'ref'   
+
+        
 #%%
 class AMEPLObject(AMEObject):
     

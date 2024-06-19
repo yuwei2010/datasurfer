@@ -1,9 +1,10 @@
 
 from pathlib import Path
 from datasurfer.lib_objects.amevari_object import AMEResObject
-from datasurfer.lib_objects.ameparam_object import AMEGPObject, AMEParamObject
+from datasurfer.lib_objects.ameparam_object import AMEGPObject, AMEParamObject, AMEObject
+from datasurfer.datalake import DataLake
 from datasurfer.datapool import DataPool
-
+from datasurfer.datautils import show_pool_progress
 
 #%%
 class AMESingleResObject(AMEResObject):
@@ -27,6 +28,7 @@ class AMESingleResObject(AMEResObject):
     """
 
     def __init__(self, path, config=None, name=None, comment=None, **kwargs):
+        
         
         super().__init__(path, config=config, name=name, comment=comment)
     
@@ -101,5 +103,60 @@ class AMEMultiResPool(DataPool):
         super().__init__(path, interface=AMESingleResObject, pattern=pattern, config=config, name=name, comment=comment)
         self.gp = self.global_params = DataPool([obj.gp for obj in self.objs], keep_df_index=True, name=self.name, comment=comment)
         self.params = DataPool([obj.param for obj in self.objs], keep_df_index=True, name=self.name, comment=comment)
+
+
+#%%
+class AMESystemObject(AMEObject):
+                
+    def unpack(self, dst=None):
+        
+        import tarfile
+        dst = dst or self.path.parent
+        
+        Path(dst).mkdir(parents=True, exist_ok=True)
+        
+        with tarfile.open(self.path) as tar:
+            for m in tar.getmembers():
+                tar.extract(m, path=dst)     
+                
+        return self
+    
+    def results(self, dir=None):
+        
+        return AMEMultiResPool(dir or self.path.parent, pattern=rf'{self.stem}_\.results[.]?\d*', 
+                               config=self.config, name=self.name, comment=self.comment)
+    
+#%%
+class AMESystemPool(DataPool):
+    
+    def __init__(self, path, config=None, name=None, comment=None, **kwargs):
+        """
+        Initializes a new instance of the AMEMultiResPool class.
+
+        Args:
+            path (str): The path to the data pool.
+            config (dict, optional): Configuration parameters for the data pool. Defaults to None.
+            name (str, optional): The name of the data pool. Defaults to None.
+            comment (str, optional): Additional comments about the data pool. Defaults to None.
+            **kwargs: Additional keyword arguments.
+
+        """
+        pattern = kwargs.pop('pattern', None) or r'^.+\.ame$'
+        super().__init__(path, interface=AMESystemObject, pattern=pattern, config=config, name=name, comment=comment)
+        
+    def unpack(self, dst=None, pbar=True):
+        
+        @show_pool_progress('Unpacking', show=pbar)
+        def get(self):
+            for obj in self.objs:
+                
+                yield obj.unpack(dst=dst)
+                             
+        list(get(self))
+        return self
+    
+    def results(self, dir=None):
+                          
+        return DataLake([obj.results(dir) for obj in self.objs])
 
 

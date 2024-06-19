@@ -1108,7 +1108,7 @@ class DataPool(object):
         list(get(self))
         return self
 
-    def merge(self, pool0, only_data=True, pbar=True):  
+    def merge(self, pool0, only_data=False, pbar=True):  
         """
         Merges the objects from another datapool into the current datapool.
 

@@ -386,7 +386,7 @@ class DataLake(object):
         
         for obj in self.objs:
             try:   
-                out = out.merge(obj, raise_error=raise_error)
+                out = out.merge(obj)
             except ValueError:
                 objname = set(out.names()) & set(obj.names())
                 raise ValueError(f'Cannot merge "{obj.name}" with "{out.name}" because of duplicated data object "{objname}".')    
