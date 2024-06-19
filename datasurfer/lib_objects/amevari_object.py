@@ -186,12 +186,12 @@ class AMEResObject(AMEObject):
         f_amevl = kwargs.pop('amevl', None)     
 
         if f_amevl is None:
-            try:
-                f_amevl = self.path.parent / (self.stem+'.vl.active')
-            except ValueError:
-                f_amevl = None
+
+            f_amevl = Path(self.path.parent / (self.stem+'.vl.active'))
+
+
                 
-        if f_amevl:            
+        if f_amevl.is_file():            
             self.vl = AMEVLObject(f_amevl, self.ext_idx,  name=name, comment=comment)
         else:
             self.vl = None       

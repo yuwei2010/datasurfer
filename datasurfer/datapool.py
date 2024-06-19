@@ -92,6 +92,8 @@ class DataPool(object):
         self.silent = kwargs.pop('silent', False)
         self.name = kwargs.pop('name', None)       
         comments = kwargs.pop('comments', {})
+        self.keep_df_index = kwargs.pop('keep_df_index', False)
+        
         if isinstance(comments, (pd.DataFrame, pd.Series)):
             comments = comments.to_dict()
         
@@ -809,8 +811,9 @@ class DataPool(object):
                                             
                 df = obj.get(signame)
                     
-                df.columns = [obj.name]                      
-                df.index = np.arange(0, len(df))
+                df.columns = [obj.name]   
+                if not self.keep_df_index:                   
+                    df.index = np.arange(0, len(df))
 
                 yield df
                 
