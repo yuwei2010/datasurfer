@@ -199,7 +199,7 @@ class AMEResObject(AMEObject):
         f_amessf = kwargs.pop('amessf', None)
         
         if f_amessf is None:       
-            f_amessf = self.path.parent / (self.stem+'.ssf.'+self.ext_idx).rstrip('.')  
+            f_amessf = str(self.path).replace('results', 'ssf')
             
         if Path(f_amessf).is_file():  
             self.ssf = AMESSFObject(f_amessf, name=name, comment=comment) 
