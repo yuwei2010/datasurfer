@@ -1,7 +1,7 @@
 
 import numpy as np
 import pandas as pd
-
+from pathlib import Path
 from datasurfer.datainterface import DataInterface
 from datasurfer.datautils import translate_config
 
@@ -36,7 +36,7 @@ class PandasObject(DataInterface):
         super().__init__(path, config=config, name=name, comment=comment)
         self.kwargs = kwargs
         
-        if self.path and self.path.suffix.lower() in ('.xlsx', '.xls'):
+        if isinstance(self.path, Path) and self.path.suffix.lower() in ('.xlsx', '.xls'):
             self.sheet_names = pd.ExcelFile(self.path).sheet_names
             
 
@@ -64,16 +64,17 @@ class PandasObject(DataInterface):
             
         return df
     
-    @staticmethod
-    def from_other(other):
+    @classmethod
+    def from_other(cls, other):
         
-        assert isinstance(other, DataInterface)
+        #assert isinstance(other, DataInterface)
         dat = other.to_dict()
+
         df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
-        obj = PandasObject(path=dat['path'],
-                    config=dat['config'],
-                    comment=dat['comment'],
-                    name=dat['name'],)
+        obj = cls(path=dat['path'],
+                config=dat['config'],
+                comment=dat['comment'],
+                name=dat['name'],)
         obj._df = df
 
         return obj 

@@ -2,10 +2,11 @@ import pandas as pd
 import numpy as np
 from datasurfer import DataPool
 from datasurfer.lib_objects.pandas_object import FinanceObject
-from datasurfer.lib_objects.parquet_object import ParquetObject
 from functools import wraps
 from datasurfer.datautils import show_pool_progress, bcolors
+from datasurfer.lib_web.yahoofinance_access import YahooFinanceAccess
 
+WEB_ACCESS = {'yahoo': YahooFinanceAccess}
 #%%
 def strategy_wrapper(func):
     
@@ -27,6 +28,15 @@ def strategy_wrapper(func):
 #%%
 
 class StockObject(FinanceObject):
+    
+    
+    @classmethod
+    def from_web(cls, symbol, freq, days=None, start=None, 
+                   end=None, config=None, access='yahoo'):       
+        web_engine = WEB_ACCESS[access]       
+        obj = web_engine(symbol, freq, days=days, start=start, end=end, config=config)        
+        new_obj = cls.from_other(obj)        
+        return new_obj
         
     def backtesting(self, func, **kwargs):  
                    
@@ -72,8 +82,22 @@ class StockPool(DataPool):
     
     def __init__(self, path, config=None, name=None, comment=None, **kwargs):
         
-        super().__init__(path, interface=StockObject, config=config, name=name, comment=comment)
+        super().__init__(path, interface=StockObject, config=config, name=name, comment=comment, **kwargs)
         
+    @classmethod
+    def from_web(cls, symbols, pause=5, **kwargs):
+        import time
+        from tqdm import tqdm 
+        def get():
+            pbar = tqdm(symbols)
+            for symbol in pbar:
+                msg = f'Download "{bcolors.OKGREEN}{bcolors.BOLD}{symbol}{bcolors.ENDC}"'
+                pbar.set_description(f'{msg}')
+                yield StockObject.from_web(symbol, **kwargs)
+                time.sleep(pause)
+                
+        return cls(list(get()))
+                    
     def portfolio(self, by):
         
         return pd.Series(self.map(lambda x: x.portfolio(by)), name=self.name, index=self.names())

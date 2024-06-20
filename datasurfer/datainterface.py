@@ -349,7 +349,6 @@ class DataInterface(object):
     
     @property
     def name(self):
-        
         if self._name is None:
             
             assert self.path is not None, 'Expect a name for data object.'
@@ -924,7 +923,7 @@ class DataInterface(object):
         """
         out = dict()
         
-        out['path'] = str(self.path) if hasattr(self, 'path') else None
+        out['path'] = str(self.path) if self.path else None
         out['config'] = self.config if hasattr(self, '_config') else None
         out['comment'] = self.comment  if hasattr(self, '_comment') else None
         out['name'] = self.name

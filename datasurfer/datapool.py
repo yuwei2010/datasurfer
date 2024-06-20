@@ -81,7 +81,7 @@ class DataPool(object):
             # Get data from pool, return a pandas dataframe
             TRotor = pool['tRotor']
         """
-
+        
         if Path(__file__).parent.joinpath('map_interface.json').exists():
             sys.path.insert(0, Path(__file__).parent / '..')
             map_interface = json.load(open(Path(__file__).parent.joinpath('map_interface.json'), 'r', encoding='utf8')) 
@@ -125,7 +125,7 @@ class DataPool(object):
                 
                 raise IOError(f'Can not find the dir or file "{dpath}".')    
                 
-        elif isinstance(datobjects, (list, set, tuple)) and len(datobjects) > 1:
+        elif isinstance(datobjects, (list, set, tuple)) and len(datobjects) >= 1:
             
             if all(isinstance(s, (str, Path)) for s in datobjects) and all(Path(s).is_dir() for s in datobjects):
                 
@@ -137,10 +137,9 @@ class DataPool(object):
         
         if datobjects is None or len(datobjects)==0:
             datobjects = []
-            
-
-            
+                       
         objs = []
+        
         from datasurfer import DataInterface
         for obj in datobjects:
             
@@ -175,7 +174,8 @@ class DataPool(object):
                     objs.append(cls(obj, config=config, **kwargs))
                 else:
                     warnings.warn(f'Can not find any interface for "{obj}"')
-      
+        
+
         self.objs = sorted(set(objs), key=lambda x:x.name)
         self.apply_comments(**comments)
         

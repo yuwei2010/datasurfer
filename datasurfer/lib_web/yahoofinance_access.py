@@ -41,7 +41,7 @@ class YahooFinanceAccess(DataInterface):
             if days is None:               
                 end = datetime.datetime.now() if end is None else end
             else:                
-                end = start + datetime.timedelta(days=days)
+                end = start + datetime.timedelta(days=days)  
         
         freq = FREQ_STRS[np.abs(FREQ_ARR - freq).argmin()]
         
@@ -79,6 +79,7 @@ class YahooFinanceAccess(DataInterface):
     
     @translate_config()
     def get_df(self):
+        
         keys = ['date', 'open', 'high', 'low', 'close', 'volume']
         df = pd.DataFrame({**self.data['indicators']['quote'][0], 
                            **dict(date=pd.to_datetime(self.data['timestamp'], unit='s'))}).dropna()[keys]
@@ -87,59 +88,3 @@ class YahooFinanceAccess(DataInterface):
         return df
         
         
-# import asyncio, random
-
-# urls = ['url1',....]
-
-# def get_url() -> str | None:
-#     global urls
-#     return urls.pop() if any(urls) else None
-
-
-# async def producer(queue: asyncio.Queue):
-#     while True:
-#         if queue.full():
-#             print(f"queue full ({queue.qsize()}), sleeping...")
-#             await asyncio.sleep(0.3)
-#             continue
-
-#         # get a url to fetch
-#         url = get_url()
-#         if not url:
-#             break
-#         print(f"PRODUCED: {url}")
-#         await queue.put(url)
-#         await asyncio.sleep(0.1)
-
-
-# async def consumer(queue: asyncio.Queue):
-#     while True:
-#         url = await queue.get()
-#         # simulate I/O operation
-#         await asyncio.sleep(random.randint(1, 3))
-#         queue.task_done()
-#         print(f"CONSUMED: {url}")
-
-
-# async def main():
-#     concurrency = 3
-#     queue: asyncio.Queue = asyncio.Queue(concurrency)
-
-#     # fire up the both producers and consumers
-#     consumers = [asyncio.create_task(consumer(queue)) for _ in range(concurrency)]
-#     producers = [asyncio.create_task(producer(queue)) for _ in range(1)]
-
-#     # with both producers and consumers running, wait for
-#     # the producers to finish
-#     await asyncio.gather(*producers)
-#     print("---- done producing")
-
-#     # wait for the remaining tasks to be processed
-#     await queue.join()
-
-#     # cancel the consumers, which are now idle
-#     for c in consumers:
-#         c.cancel()
-
-
-# asyncio.run(main())
