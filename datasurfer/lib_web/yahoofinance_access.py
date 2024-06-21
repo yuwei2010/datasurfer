@@ -77,9 +77,9 @@ class YahooFinanceAccess(DataInterface):
                 raise ValueError(f'Frequency {freq} not supported, please use one of {FREQ_STRS}')
         
         self.url = URL_YAHOO.format(symbol=symbol, 
-                                time_start=int(start.timestamp()),
-                                time_end=int(end.timestamp()), 
-                                frequency=freq)  
+                                    time_start=int(start.timestamp()),
+                                    time_end=int(end.timestamp()), 
+                                    frequency=freq)  
 
         
     @property
@@ -137,10 +137,11 @@ class YahooFinanceAccess(DataInterface):
         Returns:
         - DataFrame: The data as a pandas DataFrame.
         """
-        keys = ['date', 'open', 'high', 'low', 'close', 'volume']
+        keys = ['ticker', 'date', 'open', 'high', 'low', 'close', 'volume']
         df = pd.DataFrame({**self.data['indicators']['quote'][0], 
-                           **dict(date=pd.to_datetime(self.data['timestamp'], unit='s'))}).dropna()[keys]
-        df.index.name = self.data['meta']['symbol']
+                           **dict(date=pd.to_datetime(self.data['timestamp'], unit='s'))}).dropna()
+        df['ticker'] = self.data['meta']['symbol']
+        df = df[keys]
         
         return df
         

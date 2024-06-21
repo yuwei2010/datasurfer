@@ -35,6 +35,58 @@ def strategy_wrapper(func):
     return wrapper
 
 #%%
+class Backtester(object):
+    
+    """
+    Backtester class for backtesting trading strategies.
+    https://algotrading101.com/learn/build-my-own-custom-backtester-python/
+    https://github.com/IgorWounds/Backtester101/tree/main/backtester
+    """
+
+    def __init__(
+        self,
+        initial_capital: float = 10000.0,
+        commission_pct: float = 0.001,
+        commission_fixed: float = 1.0,
+    ):
+        """Initialize the backtester with initial capital and commission fees."""
+        self.initial_capital: float = initial_capital
+        self.commission_pct: float = commission_pct
+        self.commission_fixed: float = commission_fixed
+        self.assets_data: dict = {}
+        self.portfolio_history: dict = {}
+        self.daily_portfolio_values: list[float] = []
+
+    def execute_trade(self, asset: str, signal: int, price: float) -> None:
+        """Execute a trade based on the signal and price."""
+        if signal > 0 and self.assets_data[asset]["cash"] > 0:  # Buy
+            trade_value = self.assets_data[asset]["cash"]
+            commission = self.calculate_commission(trade_value)
+            shares_to_buy = (trade_value - commission) / price
+            self.assets_data[asset]["positions"] += shares_to_buy
+            self.assets_data[asset]["cash"] -= trade_value
+        elif signal < 0 and self.assets_data[asset]["positions"] > 0:  # Sell
+            trade_value = self.assets_data[asset]["positions"] * price
+            commission = self.calculate_commission(trade_value)
+            self.assets_data[asset]["cash"] += trade_value - commission
+            self.assets_data[asset]["positions"] = 0 
+                  
+    def calculate_commission(self, trade_value: float) -> float:
+        """Calculate the commission fee for a trade."""
+        return max(trade_value * self.commission_pct, self.commission_fixed)   
+    
+    def update_portfolio(self, asset: str, price: float) -> None:
+        """Update the portfolio with the latest price."""
+        self.assets_data[asset]["position_value"] = (
+            self.assets_data[asset]["positions"] * price
+        )
+        self.assets_data[asset]["total_value"] = (
+            self.assets_data[asset]["cash"] + self.assets_data[asset]["position_value"]
+        )
+        self.portfolio_history[asset].append(self.assets_data[asset]["total_value"])
+
+
+#%%
 
 class StockObject(FinanceObject):
     """
@@ -124,7 +176,7 @@ class StockObject(FinanceObject):
         """
         return self.df[by].dropna().iloc[-1]
     
-    def plot_operation(self, date='trade_date', base='close', share='shares', **kwargs):
+    def plot_operation(self, date=None, base='close', share='shares', **kwargs):
         """
         Plots the buy and sell operations on a graph.
 
@@ -137,6 +189,8 @@ class StockObject(FinanceObject):
         Returns:
             The matplotlib Axes object containing the plotted graph.
         """
+        
+        date = self.df.index.to_list() if date is None else date
         chg_shares = self[share].diff()
         buys = self[base].copy()
         buys[chg_shares <= 0] = np.nan
@@ -261,6 +315,9 @@ class StockPool(DataPool):
         fun = lambda obj: func_(obj, **kwargs)
 
         return StockPool(self.mlp.map(fun), name=name, comment=comment)
+    
+    def date2index(self, by):
+        return self.map(lambda x: x.date2index(by)) 
     
 
     
