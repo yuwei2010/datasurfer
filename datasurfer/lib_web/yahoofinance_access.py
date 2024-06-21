@@ -1,4 +1,4 @@
-import json
+
 import datetime
 import requests
 import pandas as pd
@@ -42,8 +42,11 @@ class YahooFinanceAccess(DataInterface):
                 end = datetime.datetime.now() if end is None else end
             else:                
                 end = start + datetime.timedelta(days=days)  
-        
-        freq = FREQ_STRS[np.abs(FREQ_ARR - freq).argmin()]
+        try:
+            freq = FREQ_STRS[np.abs(FREQ_ARR - freq).argmin()]
+        except:
+            if freq not in FREQ_STRS:
+                raise ValueError(f'Frequency {freq} not supported, please use one of {FREQ_STRS}')
         
         self.url = URL_YAHOO.format(symbol=symbol, 
                                 time_start=int(start.timestamp()),
