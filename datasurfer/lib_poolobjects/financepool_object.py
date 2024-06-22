@@ -6,6 +6,12 @@ from functools import wraps
 from datasurfer.datautils import show_pool_progress, bcolors
 from datasurfer.lib_web.yahoofinance_access import YahooFinanceAccess
 
+# """
+# Backtester class for backtesting trading strategies.
+# https://algotrading101.com/learn/build-my-own-custom-backtester-python/
+# https://github.com/IgorWounds/Backtester101/tree/main/backtester
+# """
+
 WEB_ACCESS = {'yahoo': YahooFinanceAccess}
 #%%
 def strategy_wrapper(func):
@@ -34,8 +40,11 @@ def strategy_wrapper(func):
     
     return wrapper
 
+
+
+
 #%%
-class Backtester(object):
+class Backbloker(object):
     
     """
     Backtester class for backtesting trading strategies.
@@ -43,47 +52,74 @@ class Backtester(object):
     https://github.com/IgorWounds/Backtester101/tree/main/backtester
     """
 
-    def __init__(
-        self,
-        initial_capital: float = 10000.0,
-        commission_pct: float = 0.001,
-        commission_fixed: float = 1.0,
-    ):
+    def __init__(self, initial_capital: float = 1_000_000.0, commission_pct: float = 0.001, commission_fixed = 1.0):
         """Initialize the backtester with initial capital and commission fees."""
-        self.initial_capital: float = initial_capital
-        self.commission_pct: float = commission_pct
-        self.commission_fixed: float = commission_fixed
-        self.assets_data: dict = {}
-        self.portfolio_history: dict = {}
-        self.daily_portfolio_values: list[float] = []
+        
+        self.initial_capital = initial_capital
+        self.commission_pct = commission_pct
+        self.commission_fixed = commission_fixed      
 
-    def execute_trade(self, asset: str, signal: int, price: float) -> None:
+
+    def execute_trade(self, signal: int, price: float) -> None:
+        
         """Execute a trade based on the signal and price."""
-        if signal > 0 and self.assets_data[asset]["cash"] > 0:  # Buy
-            trade_value = self.assets_data[asset]["cash"]
-            commission = self.calculate_commission(trade_value)
-            shares_to_buy = (trade_value - commission) / price
-            self.assets_data[asset]["positions"] += shares_to_buy
-            self.assets_data[asset]["cash"] -= trade_value
-        elif signal < 0 and self.assets_data[asset]["positions"] > 0:  # Sell
-            trade_value = self.assets_data[asset]["positions"] * price
-            commission = self.calculate_commission(trade_value)
-            self.assets_data[asset]["cash"] += trade_value - commission
-            self.assets_data[asset]["positions"] = 0 
-                  
-    def calculate_commission(self, trade_value: float) -> float:
-        """Calculate the commission fee for a trade."""
-        return max(trade_value * self.commission_pct, self.commission_fixed)   
+        
+        if signal > 0 and self.asset_data["cash"] > 0:  # Buy
+            
+            shares_to_buy = self.asset_data["cash"] * signal // ((1+self.commission_pct)*price)                        
+            commission = max(self.commission_fixed, shares_to_buy*price*self.commission_pct)  
+            trade_value = shares_to_buy * price + commission
+       
+            self.asset_data["positions"] += shares_to_buy
+            self.asset_data["cash"] -= trade_value            
+            
+        elif signal < 0 and self.asset_data["positions"] > 0:  # Sell
+            
+            shares_to_sell = round(self.asset_data["positions"] * -signal)
+            trade_value = shares_to_sell * price           
+            commission = max(self.commission_fixed, trade_value*self.commission_pct)  
+            
+            self.asset_data["cash"] += trade_value - commission
+            self.asset_data["positions"] -= shares_to_sell 
+            
+        else:
+            commission = 0
+            
+            
+        self.asset_data["position_value"]  = self.asset_data["positions"] * price
+        self.asset_data["portfolio_value"] = self.asset_data["position_value"] + self.asset_data["cash"]
+        
+        self.cash_history.append(self.asset_data["cash"])
+        self.position_history.append(self.asset_data["positions"])
+        self.commission_history.append(commission)
+        self.portfolio_history.append(self.asset_data["portfolio_value"])
+        
+        return self
     
-    def update_portfolio(self, asset: str, price: float) -> None:
-        """Update the portfolio with the latest price."""
-        self.assets_data[asset]["position_value"] = (
-            self.assets_data[asset]["positions"] * price
-        )
-        self.assets_data[asset]["total_value"] = (
-            self.assets_data[asset]["cash"] + self.assets_data[asset]["position_value"]
-        )
-        self.portfolio_history[asset].append(self.assets_data[asset]["total_value"])
+    def backtrade(self, data, by='close'):
+        
+        self.asset_data = {                
+                            "cash": self.initial_capital,
+                            "positions": 0,
+                            "position_value": 0,
+                            "portfolio_value": self.initial_capital,
+                            }
+        
+        self.cash_history = []
+        self.position_history = []
+        self.commission_history = []
+        self.portfolio_history = []
+        
+        for _, row in data.iterrows():           
+            self.execute_trade(row['signal'], row[by])
+            
+       
+        data['position'] = self.position_history
+        data['cash'] = self.cash_history
+        data['commission'] = self.commission_history
+        data['portfolio'] = self.portfolio_history
+        
+        return self
 
 
 #%%
@@ -236,7 +272,7 @@ class StockPool(DataPool):
     """
 
     def __init__(self, path, config=None, name=None, comment=None, **kwargs):
-        super().__init__(path, interface=StockObject, config=config, name=name, comment=comment, **kwargs)
+        super().__init__(path, interface=StockObject, config=config, name=name, comment=comment, keep_df_index=True, **kwargs)
 
     @classmethod
     def from_web(cls, symbols, pause=5, **kwargs):
@@ -317,6 +353,7 @@ class StockPool(DataPool):
         return StockPool(self.mlp.map(fun), name=name, comment=comment)
     
     def date2index(self, by):
+        
         return self.map(lambda x: x.date2index(by)) 
     
 
