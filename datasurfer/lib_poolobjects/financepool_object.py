@@ -28,15 +28,20 @@ def strategy_wrapper(func):
     @wraps(func)
     def wrapper(obj, **kwargs):
         
-        name = kwargs.pop('name', None) or func.__name__
+        inplace = kwargs.pop('inplace', False)
         
-        data = obj.df.copy()
+        if inplace:
+            data = obj.df
+        else:        
+            data = obj.df.copy()
         
         out = func(data, **kwargs)
         
         assert isinstance(out, pd.DataFrame), 'Expected a pandas DataFrame as output'
-        
-        return StockObject(out, name=obj.name, comment={**{'name': name}, **kwargs})
+        if inplace:
+            return obj
+        else:
+            return StockObject(out, name=obj.name, comment=obj.comment, config=obj.config)
     
     return wrapper
 
@@ -52,74 +57,77 @@ class Backbloker(object):
     https://github.com/IgorWounds/Backtester101/tree/main/backtester
     """
 
-    def __init__(self, initial_capital: float = 1_000_000.0, commission_pct: float = 0.001, commission_fixed = 1.0):
+    def __init__(self, initial_capital: float = 1_000_000.0, commission_pct: float = 0, commission_fixed = 0, by='close'):
         """Initialize the backtester with initial capital and commission fees."""
         
         self.initial_capital = initial_capital
         self.commission_pct = commission_pct
-        self.commission_fixed = commission_fixed      
-
-
-    def execute_trade(self, signal: int, price: float) -> None:
+        self.commission_fixed = commission_fixed 
+        self.tradeby = by
         
-        """Execute a trade based on the signal and price."""
+    def __call__(self, strategy):    
         
-        if signal > 0 and self.asset_data["cash"] > 0:  # Buy
-            
-            shares_to_buy = self.asset_data["cash"] * signal // ((1+self.commission_pct)*price)                        
-            commission = max(self.commission_fixed, shares_to_buy*price*self.commission_pct)  
-            trade_value = shares_to_buy * price + commission
-       
-            self.asset_data["positions"] += shares_to_buy
-            self.asset_data["cash"] -= trade_value            
-            
-        elif signal < 0 and self.asset_data["positions"] > 0:  # Sell
-            
-            shares_to_sell = round(self.asset_data["positions"] * -signal)
-            trade_value = shares_to_sell * price           
-            commission = max(self.commission_fixed, trade_value*self.commission_pct)  
-            
-            self.asset_data["cash"] += trade_value - commission
-            self.asset_data["positions"] -= shares_to_sell 
-            
-        else:
-            commission = 0
-            
-            
-        self.asset_data["position_value"]  = self.asset_data["positions"] * price
-        self.asset_data["portfolio_value"] = self.asset_data["position_value"] + self.asset_data["cash"]
+        def trade(data, **kwargs):
+                        
+            data = strategy(data, **kwargs)
+            return self.trade(data)
         
-        self.cash_history.append(self.asset_data["cash"])
-        self.position_history.append(self.asset_data["positions"])
-        self.commission_history.append(commission)
-        self.portfolio_history.append(self.asset_data["portfolio_value"])
-        
-        return self
+        return trade
     
-    def backtrade(self, data, by='close'):
-        
-        self.asset_data = {                
-                            "cash": self.initial_capital,
-                            "positions": 0,
-                            "position_value": 0,
-                            "portfolio_value": self.initial_capital,
-                            }
-        
-        self.cash_history = []
-        self.position_history = []
-        self.commission_history = []
-        self.portfolio_history = []
-        
-        for _, row in data.iterrows():           
-            self.execute_trade(row['signal'], row[by])
+    def trade(self, data):
             
-       
-        data['position'] = self.position_history
-        data['cash'] = self.cash_history
-        data['commission'] = self.commission_history
-        data['portfolio'] = self.portfolio_history
+        asset_data = {                
+                        "cash": self.initial_capital,
+                        "positions": 0,
+                        "position_value": 0,
+                        "portfolio_value": self.initial_capital,
+                    }
         
-        return self
+        cash_history = []
+        position_history = []
+        commission_history = []
+        portfolio_history = []
+        
+        for _, row in data.iterrows():   
+            
+            signal = row['signal']
+            price = row[self.tradeby]
+            
+            if signal > 0 and asset_data["cash"] > 0:  # Buy
+                
+                shares_to_buy = asset_data["cash"] * signal // ((1+self.commission_pct)*price)                                        
+                commission = max(self.commission_fixed, shares_to_buy*price*self.commission_pct)  
+                trade_value = shares_to_buy * price + commission
+        
+                asset_data["positions"] += shares_to_buy
+                asset_data["cash"] -= trade_value            
+                
+            elif signal < 0 and asset_data["positions"] > 0:  # Sell
+                
+                shares_to_sell = round(-signal * asset_data["positions"])
+                trade_value = shares_to_sell * price           
+                commission = max(self.commission_fixed, trade_value*self.commission_pct)  
+                
+                asset_data["cash"] += trade_value - commission
+                asset_data["positions"] -= shares_to_sell 
+                
+            else:
+                commission = 0
+                       
+            asset_data["position_value"]  = asset_data["positions"] * price
+            asset_data["portfolio_value"] = asset_data["position_value"] + asset_data["cash"]
+
+            cash_history.append(asset_data["cash"])
+            position_history.append(asset_data["positions"])
+            commission_history.append(commission)
+            portfolio_history.append(asset_data["portfolio_value"])         
+        
+        data['position'] = position_history
+        data['cash'] = cash_history
+        data['commission'] = commission_history
+        data['portfolio'] = portfolio_history
+        
+        return data
 
 
 #%%
@@ -326,13 +334,19 @@ class StockPool(DataPool):
         """
         name = kwargs.get('name', None) or func.__name__
         comment = kwargs.pop('comment', None)
+        inplace = kwargs.get('inplace', False)
 
         @show_pool_progress(f'Backtesting {bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}', show=pbar)
         def get(self):
+            
             for obj in self.objs:
                 yield obj.backtesting(func, **kwargs)
 
-        return StockPool(list(get(self)), name=name, comment=comment)
+        if inplace:
+            list(get(self))
+            return self
+        else:
+            return StockPool(list(get(self)), name=name, comment=comment)
 
     def mlp_backtesting(self, func, **kwargs):
         """
