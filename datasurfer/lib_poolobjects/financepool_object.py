@@ -74,7 +74,7 @@ class Backbloker(object):
         
         return trade
     
-    def trade(self, data):
+    def trade(self, data, signal_col='signal'):
             
         asset_data = {                
                         "cash": self.initial_capital,
@@ -90,7 +90,7 @@ class Backbloker(object):
         
         for _, row in data.iterrows():   
             
-            signal = row['signal']
+            signal = row[signal_col]
             price = row[self.tradeby]
             
             if signal > 0 and asset_data["cash"] > 0:  # Buy
@@ -99,7 +99,7 @@ class Backbloker(object):
                 commission = max(self.commission_fixed, shares_to_buy*price*self.commission_pct)  
                 trade_value = shares_to_buy * price + commission
         
-                asset_data["positions"] += shares_to_buy
+                asset_data["positions"] += int(shares_to_buy)
                 asset_data["cash"] -= trade_value            
                 
             elif signal < 0 and asset_data["positions"] > 0:  # Sell
@@ -109,7 +109,7 @@ class Backbloker(object):
                 commission = max(self.commission_fixed, trade_value*self.commission_pct)  
                 
                 asset_data["cash"] += trade_value - commission
-                asset_data["positions"] -= shares_to_sell 
+                asset_data["positions"] -= int(shares_to_sell)
                 
             else:
                 commission = 0
@@ -126,8 +126,32 @@ class Backbloker(object):
         data['cash'] = cash_history
         data['commission'] = commission_history
         data['portfolio'] = portfolio_history
+        data['daily_return'] = data['portfolio'].pct_change()
+        data['total_daily_return'] = (1 + data['daily_return']).cumprod() 
+
         
         return data
+    
+    
+    def get_peformance(self, data, risk_free_rate=0):
+
+        out = pd.Series()
+        out['final_portfolio_value'] = data['portfolio'].iloc[-1]
+        out['total_return'] = (out['final_portfolio_value'] - self.initial_capital) / self.initial_capital
+        out['annualized_return'] = (1 + out['total_return']) ** (252 / len(data)) - 1
+        out['aunualized_volatility'] = data['daily_return'].std() * np.sqrt(252)
+        out['sharpe_ratio'] = (out['annualized_return'] - risk_free_rate) / out['aunualized_volatility'] if out['aunualized_volatility'] != 0 else np.nan
+        
+        downside_volatility = data['daily_return'][data['daily_return'] < 0].std() * np.sqrt(252)
+        out['sortino_ratio'] = (out['annualized_return'] - risk_free_rate) / downside_volatility if downside_volatility >0 else np.nan
+        
+        out['CALMAR_ratio'] = out['annualized_return'] / abs(data['daily_return'].min())
+        out['maximal_drawdown'] = (data['total_daily_return'].cummax() - data['total_daily_return']).max()
+        
+        
+        return out
+    
+    
 
 
 #%%
@@ -191,6 +215,14 @@ class StockObject(FinanceObject):
         
         return func_(self, **kwargs)
     
+    def get_peformance(self, trader, **kwargs):
+        
+        out = trader.get_peformance(self.df, **kwargs)
+        out.name = self.name
+        
+        return out
+        
+    
     def date2index(self, name):
         """
         Sets the date column as the index of the stock data.
@@ -207,18 +239,6 @@ class StockObject(FinanceObject):
         self.df.index.name = None
         
         return self
-    
-    def portfolio(self, by):
-        """
-        Retrieves the latest portfolio value.
-
-        Args:
-            - by: The column to use for calculating the portfolio value.
-
-        Returns:
-            The latest portfolio value.
-        """
-        return self.df[by].dropna().iloc[-1]
     
     def plot_operation(self, date=None, base='close', share='shares', **kwargs):
         """
@@ -308,17 +328,6 @@ class StockPool(DataPool):
 
         return cls(list(get()))
 
-    def portfolio(self, by):
-        """
-        Calculate the portfolio for the stock pool.
-
-        Parameters:
-        - by (str): The method to calculate the portfolio.
-
-        Returns:
-        - pd.Series: A pandas Series object representing the portfolio.
-        """
-        return pd.Series(self.map(lambda x: x.portfolio(by)), name=self.name, index=self.names())
 
     def backtesting(self, func, pbar=True, **kwargs):
         """
@@ -332,7 +341,7 @@ class StockPool(DataPool):
         Returns:
         - StockPool: A stock pool object containing the backtesting results.
         """
-        name = kwargs.get('name', None) or func.__name__
+        name = kwargs.pop('name', None) or func.__name__
         comment = kwargs.pop('comment', None)
         inplace = kwargs.get('inplace', False)
 
@@ -368,8 +377,12 @@ class StockPool(DataPool):
     
     def date2index(self, by):
         
-        return self.map(lambda x: x.date2index(by)) 
+        self.map(lambda x: x.date2index(by)) 
+        return self
     
+    def get_peformance(self, trader, **kwargs):
+        
+        return pd.concat(self.map(lambda x: x.get_peformance(trader, **kwargs)), axis=1)
 
     
     
