@@ -6,12 +6,6 @@ from functools import wraps
 from datasurfer.datautils import show_pool_progress, bcolors
 from datasurfer.lib_web.yahoofinance_access import YahooFinanceAccess
 
-# """
-# Backtester class for backtesting trading strategies.
-# https://algotrading101.com/learn/build-my-own-custom-backtester-python/
-# https://github.com/IgorWounds/Backtester101/tree/main/backtester
-# """
-
 WEB_ACCESS = {'yahoo': YahooFinanceAccess}
 #%%
 def strategy_wrapper(func):
