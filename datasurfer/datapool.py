@@ -21,7 +21,46 @@ from functools import reduce
 from datasurfer.datautils import collect_files, combine_configs, show_pool_progress
     
 random.seed()
+#%%       
+class LocObject:
+    
+    def __init__(self, pool):
+        
+        self.cls = pool.__class__
+        self.pool = pool
+        
+    def __getitem__(self, val):
+        objs = self.pool.map(lambda obj: obj.loc[val], description='Slicing')
+        return self.cls(objs, name=self.pool.name)
+    
+    def __setitem__(self, slc, value):
+        @show_pool_progress('Processing')
+        def fun(self):
+            
+            for obj in self.objs:
+                
+                obj.df.loc[slc] = value
+                yield 
 
+
+#%%       
+class iLocObject:   
+    def __init__(self, pool):
+        
+        self.cls = pool.__class__
+        self.pool = pool
+        
+    def __getitem__(self, val):
+        objs = self.pool.map(lambda obj: obj.iloc[val], description='Slicing')
+        return self.cls(objs, name=self.pool.name)
+    def __setitem__(self, slc, value):
+        @show_pool_progress('Processing')
+        def fun(self):
+            
+            for obj in self.objs:
+                
+                obj.df.iloc[slc] = value
+                yield 
   
 #%% Data Pool
 
@@ -376,6 +415,24 @@ class DataPool(object):
     def size(self):
         return self.__len__()
     
+    @property
+    def loc(self):
+            
+        locobj = LocObject(self)
+        
+        return locobj
+    @property
+    def iloc(self):
+            
+        locobj = iLocObject(self)
+        
+        return locobj   
+    @property
+    def shape(self):
+        
+        return pd.DataFrame.from_dict({obj.name: obj.shape for obj in self},
+                                      orient='index', columns=['row', 'col'])
+                 
     
     def describe(self, verbose=False, pbar=False):
         """
@@ -403,7 +460,7 @@ class DataPool(object):
             ftype = pd.Series([Path(p).suffix for p in self.paths()], index=self.names(), name='File Type')
             date  = self.file_date() 
             size  = (self.file_size() / 1e6).round(4)     
-        except FileNotFoundError:
+        except (TypeError, FileNotFoundError):
             ftype = pd.Series(np.nan*np.ones(len(self.objs)), name='File Type')
             date = pd.Series(np.nan*np.ones(len(self.objs)), name='File Date')
             size = pd.Series(np.nan*np.ones(len(self.objs)), name='File Size')
@@ -1155,7 +1212,7 @@ class DataPool(object):
 
         return self
     
-    def map(self, func, ignore_error=True, pbar=True, asiterator=False):
+    def map(self, func, ignore_error=True, pbar=True, asiterator=False, description='Processing'):
         """
         Apply a function to each object in the datapool and return the results.
 
@@ -1167,7 +1224,7 @@ class DataPool(object):
         Returns:
             list: A list of the results of applying the function to each object.
         """
-        @show_pool_progress('Processing', pbar)
+        @show_pool_progress(description, pbar)
         def get(self):
             for obj in self.objs:
                 try:
@@ -1387,6 +1444,11 @@ class DataPool(object):
 
         list(get(self))
 
+        return self
+    
+    def col2index(self, col, **kwargs):
+        
+        self.map(lambda x: x.col2index(col, **kwargs)) 
         return self
     
     def def2json(self):

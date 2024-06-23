@@ -55,7 +55,40 @@ def list_interfaces():
     
     return df
 
-
+#%%       
+class LocObject:
+    
+    def __init__(self, obj):
+        
+        self.cls = obj.__class__
+        self.obj = obj
+        
+    def __getitem__(self, slc):
+        
+        return self.cls(pd.DataFrame(self.obj.df.loc[slc]), name=self.obj.name, 
+                        comment=self.obj.comment, config=self.obj.config)
+        
+    def __setitem__(self, slc, val):
+        
+        self.obj.df.loc[slc] = val
+        
+#%%       
+class iLocObject:
+    
+    def __init__(self, obj):
+        
+        self.cls = obj.__class__
+        self.obj = obj
+        
+    def __getitem__(self, val):
+        
+        return self.cls(pd.DataFrame(self.obj.df.iloc[val]), name=self.obj.name, 
+                        comment=self.obj.comment, config=self.obj.config)
+        
+    def __setitem__(self, slc, val):
+        
+        self.obj.df.loc[slc] = val      
+         
 #%%
 class DataInterface(object):
     """
@@ -228,9 +261,26 @@ class DataInterface(object):
     @property
     def dtypes(self):
         return self.df.dtypes
+    
+    @property
+    def loc(self):
+            
+        locobj = LocObject(self)
+        
+        return locobj
+    @property
+    def iloc(self):
+            
+        locobj = iLocObject(self)
+        
+        return locobj    
                 
     def info(self):
         return self.df.info()
+    
+    @property
+    def shape(self):
+        return self.df.shape
     
     
     def apply(self, name, value):
@@ -750,6 +800,23 @@ class DataInterface(object):
     
     def select_cols(self, keys):
         return self.squeeze(*keys)
+    
+    def col2index(self, col, drop=False):
+        """
+        Sets the date column as the index of the stock data.
+
+        Args:
+            - name: The name of the date column.
+
+        Returns:
+            The StockObject instance with the date column set as the index.
+        """
+        self.df.sort_values(by=col, inplace=True)
+        self.df.reset_index(drop=True, inplace=True)
+        self.df.set_index(col, inplace=True, drop=drop)
+        self.df.index.name = None
+        
+        return self
 
     @staticmethod
     def pipeline(*funs, hook=None, ignore_error=True, asiterator=True):

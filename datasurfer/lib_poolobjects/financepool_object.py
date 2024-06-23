@@ -216,24 +216,6 @@ class StockObject(FinanceObject):
         out.name = self.name
         
         return out
-        
-    
-    def date2index(self, name):
-        """
-        Sets the date column as the index of the stock data.
-
-        Args:
-            - name: The name of the date column.
-
-        Returns:
-            The StockObject instance with the date column set as the index.
-        """
-        self.df.sort_values(by=name, inplace=True)
-        self.df.reset_index(drop=True, inplace=True)
-        self.df.set_index(name, inplace=True, drop=False)
-        self.df.index.name = None
-        
-        return self
     
     def plot_operation(self, col_date=None, col_price='close', col_position='position', **kwargs):
         """
@@ -340,7 +322,7 @@ class StockPool(DataPool):
         comment = kwargs.pop('comment', None)
         inplace = kwargs.get('inplace', False)
         
-        objs = self.map(lambda obj: obj.backtesting(func, inplace=inplace, **kwargs), pbar=pbar)
+        objs = self.map(lambda obj: obj.backtesting(func, inplace=inplace, **kwargs), pbar=pbar, description=f'Backtesting "{bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}" /')
 
         if inplace:
             return self
@@ -365,10 +347,7 @@ class StockPool(DataPool):
 
         return StockPool(self.mlp.map(fun), name=name, comment=comment)
     
-    def date2index(self, by):
-        
-        self.map(lambda x: x.date2index(by)) 
-        return self
+
     
     def get_performance(self, trader, **kwargs):
         
