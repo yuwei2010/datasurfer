@@ -51,13 +51,14 @@ class Backbloker(object):
     https://github.com/IgorWounds/Backtester101/tree/main/backtester
     """
 
-    def __init__(self, initial_capital: float = 1_000_000.0, commission_pct: float = 0, commission_fixed = 0, by='close'):
+    def __init__(self, initial_capital: float = 1_000_000.0, commission_pct: float = 0, commission_fixed = 0, col_price='close', col_signal='signal'):
         """Initialize the backtester with initial capital and commission fees."""
         
         self.initial_capital = initial_capital
         self.commission_pct = commission_pct
         self.commission_fixed = commission_fixed 
-        self.tradeby = by
+        self.col_price = col_price
+        self.col_signal = col_signal
         
     def __call__(self, strategy):    
         
@@ -68,7 +69,7 @@ class Backbloker(object):
         
         return trade
     
-    def trade(self, data, signal_col='signal'):
+    def trade(self, data):
             
         asset_data = {                
                         "cash": self.initial_capital,
@@ -84,8 +85,8 @@ class Backbloker(object):
         
         for _, row in data.iterrows():   
             
-            signal = row[signal_col]
-            price = row[self.tradeby]
+            signal = row[self.col_signal]
+            price = row[self.col_price]
             
             if signal > 0 and asset_data["cash"] > 0:  # Buy
                 
@@ -127,7 +128,7 @@ class Backbloker(object):
         return data
     
     
-    def get_peformance(self, data, risk_free_rate=0):
+    def get_performance(self, data, risk_free_rate=0):
 
         out = pd.Series()
         out['final_portfolio_value'] = data['portfolio'].iloc[-1]
@@ -194,7 +195,7 @@ class StockObject(FinanceObject):
         new_obj = cls.from_other(obj)        
         return new_obj
         
-    def backtesting(self, func, **kwargs):  
+    def backtesting(self, func, inplace=False, **kwargs):  
         """
         Performs backtesting on the stock data.
 
@@ -207,11 +208,11 @@ class StockObject(FinanceObject):
         """
         func_ = strategy_wrapper(func)
         
-        return func_(self, **kwargs)
+        return func_(self, inplace=inplace, **kwargs)
     
-    def get_peformance(self, trader, **kwargs):
+    def get_performance(self, trader, **kwargs):
         
-        out = trader.get_peformance(self.df, **kwargs)
+        out = trader.get_performance(self.df, **kwargs)
         out.name = self.name
         
         return out
@@ -234,7 +235,7 @@ class StockObject(FinanceObject):
         
         return self
     
-    def plot_operation(self, date=None, base='close', share='shares', **kwargs):
+    def plot_operation(self, col_date=None, col_price='close', col_position='position', **kwargs):
         """
         Plots the buy and sell operations on a graph.
 
@@ -248,21 +249,21 @@ class StockObject(FinanceObject):
             The matplotlib Axes object containing the plotted graph.
         """
         
-        date = self.df.index.to_list() if date is None else date
-        chg_shares = self[share].diff()
-        buys = self[base].copy()
-        buys[chg_shares <= 0] = np.nan
+        date = self.df.index.to_list() if col_date is None else col_date
+        chg_position = self[col_position].diff()
+        buys = self[col_price].copy()
+        buys[chg_position <= 0] = np.nan
         
-        sells = self[base].copy()
-        sells[chg_shares >= 0] = np.nan       
+        sells = self[col_price].copy()
+        sells[chg_position >= 0] = np.nan       
 
-        ax = self.plot(**kwargs).line(base, x=date, setax=True, labels=['Close'], color='grey', lw=1)
+        ax = self.plot(**kwargs).line(col_price, x=date, setax=True, labels=['Close'], color='grey', lw=1)
         self.plot.line(buys.values, x=date, ls='None', marker='^', markersize=10, color='g', ax=ax, labels=['Buy'])
         self.plot.line(sells.values, x=date, ls='None', marker='v', markersize=10, color='r', ax=ax, labels=['Sell'])
         ax.legend(loc='best', ncols=3, title=self.name)
         
-        ax.set_xlabel(date)
-        ax.set_ylabel(base)
+        ax.set_xlabel('date')
+        ax.set_ylabel(col_price)
         
         return ax
 
@@ -323,7 +324,7 @@ class StockPool(DataPool):
         return cls(list(get()))
 
 
-    def backtesting(self, func, pbar=True, **kwargs):
+    def backtesting(self, func, pbar=True, inplace=False, **kwargs):
         """
         Perform backtesting on the stock pool.
 
@@ -338,18 +339,13 @@ class StockPool(DataPool):
         name = kwargs.pop('name', None) or func.__name__
         comment = kwargs.pop('comment', None)
         inplace = kwargs.get('inplace', False)
-
-        @show_pool_progress(f'Backtesting {bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}', show=pbar)
-        def get(self):
-            
-            for obj in self.objs:
-                yield obj.backtesting(func, **kwargs)
+        
+        objs = self.map(lambda obj: obj.backtesting(func, inplace=inplace, **kwargs), pbar=pbar)
 
         if inplace:
-            list(get(self))
             return self
         else:
-            return StockPool(list(get(self)), name=name, comment=comment)
+            return StockPool(objs, name=name, comment=comment)
 
     def mlp_backtesting(self, func, **kwargs):
         """
@@ -374,9 +370,9 @@ class StockPool(DataPool):
         self.map(lambda x: x.date2index(by)) 
         return self
     
-    def get_peformance(self, trader, **kwargs):
+    def get_performance(self, trader, **kwargs):
         
-        return pd.concat(self.map(lambda x: x.get_peformance(trader, **kwargs)), axis=1)
+        return pd.concat(self.map(lambda x: x.get_performance(trader, **kwargs)), axis=1)
 
     
     

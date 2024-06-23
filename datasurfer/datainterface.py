@@ -1028,6 +1028,9 @@ class DataInterface(object):
         link_name = link_name or lib.__name__
         setattr(self, link_name, lib(self))
         return self
+    
+    
+    
    
     @property
     def plot(self):
