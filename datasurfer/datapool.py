@@ -720,7 +720,23 @@ class DataPool(object):
 
         return self
     
-    
+    @classmethod
+    def zip(cls, *dps):
+        
+        assert len({dp.name for dp in dps}) == len(dps), 'Data pools muss have unique names.'
+        
+        for name in chain( *[dp.names() for dp in dps]):
+
+            
+            objs = []
+            
+            for dp in dps:
+                obj = dp.get_object(name).copy()
+                obj.name = dp.name
+                objs.append(obj)
+            
+            yield cls(objs, name=name) 
+
     
     def append(self, obj):
         """
@@ -1354,9 +1370,9 @@ class DataPool(object):
     
     def mlp_deepcopy(self, **kwargs):
         from datasurfer.lib_objects.parquet_object import ParquetObject
-        objs = self.mlp.map(lambda x: x.to_object(ParquetObject))
+        objs = self.mlp.map(lambda x: x.copy())
         
-        dp = DataPool(objs, **kwargs)
+        dp = self.__class__(objs, **kwargs)
         return dp            
                 
     def deepcopy(self, *pipeline, pbar=True):
@@ -1375,7 +1391,7 @@ class DataPool(object):
         @show_pool_progress('Copying', show=pbar)
         def fun(self):           
             for obj in self.objs:
-                obj = obj.to_object(ParquetObject)
+                obj = obj.copy
                 if pipeline:
                     list(DataInterface.pipeline(*pipeline)(obj))
                               

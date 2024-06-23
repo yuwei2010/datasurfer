@@ -322,7 +322,8 @@ class StockPool(DataPool):
         comment = kwargs.pop('comment', None)
         inplace = kwargs.get('inplace', False)
         
-        objs = self.map(lambda obj: obj.backtesting(func, inplace=inplace, **kwargs), pbar=pbar, description=f'Backtesting "{bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}" /')
+        objs = self.map(lambda obj: obj.backtesting(func, inplace=inplace, **kwargs), pbar=pbar, 
+                        description=f'Backtesting "{bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}"')
 
         if inplace:
             return self

@@ -282,6 +282,13 @@ class DataInterface(object):
     def shape(self):
         return self.df.shape
     
+    def copy(self):
+        obj = self.__class__(path=self.path, name=self.name, config=self.config, comment=self.comment)
+        obj._df = self.df
+        
+        return obj
+
+    
     
     def apply(self, name, value):
         """
