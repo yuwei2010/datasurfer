@@ -60,8 +60,10 @@ class Backbloker(object):
         self.initial_capital = initial_capital
         self.commission_pct = commission_pct
         self.commission_fixed = commission_fixed 
+        
         self.col_price = col_price
         self.col_signal = col_signal
+        
         
     def __call__(self, strategy):    
             """
@@ -91,60 +93,49 @@ class Backbloker(object):
             
             return trade
     
+    def daily_trade(self, signal, price, cash, positions):
+        
+        if signal > 0 and cash > 0:
+            shares_to_buy = cash * signal // ((1+self.commission_pct)*price)  
+            commission = max(self.commission_fixed, shares_to_buy*price*self.commission_pct)  
+            trade_value = shares_to_buy * price + commission
+            positions += shares_to_buy
+            cash -= trade_value
+            
+        elif signal < 0 and positions > 0:
+            shares_to_sell = round(-signal * positions)
+            trade_value = shares_to_sell * price
+            commission = max(self.commission_fixed, trade_value*self.commission_pct)  
+            cash += trade_value - commission
+            positions -= int(shares_to_sell)
+        
+        else:
+            commission = 0
+            
+        position_value = positions * price
+        portfolio_value = position_value + cash
+        
+        return cash, positions, commission, portfolio_value
+    
     def trade(self, data):
-        """
-        Executes trading strategy on the given data.
-
-        Args:
-            data (pandas.DataFrame): The input data containing signals and prices.
-
-        Returns:
-            pandas.DataFrame: The modified data with additional columns for position, cash, commission, portfolio,
-                              daily return, and total daily return.
-        """
-        asset_data = {                
-            "cash": self.initial_capital,
-            "positions": 0,
-            "position_value": 0,
-            "portfolio_value": self.initial_capital,
-        }
-
+        
+        cash = self.initial_capital
+        positions = 0
+        
         cash_history = []
         position_history = []
         commission_history = []
         portfolio_history = []
-
-        for _, row in data.iterrows():   
+        
+        for _, row in data.iterrows():      
             signal = row[self.col_signal]
-            price = row[self.col_price]
-
-            if signal > 0 and asset_data["cash"] > 0:  # Buy
-                shares_to_buy = asset_data["cash"] * signal // ((1+self.commission_pct)*price)                                        
-                commission = max(self.commission_fixed, shares_to_buy*price*self.commission_pct)  
-                trade_value = shares_to_buy * price + commission
-
-                asset_data["positions"] += int(shares_to_buy)
-                asset_data["cash"] -= trade_value            
-
-            elif signal < 0 and asset_data["positions"] > 0:  # Sell
-                shares_to_sell = round(-signal * asset_data["positions"])
-                trade_value = shares_to_sell * price           
-                commission = max(self.commission_fixed, trade_value*self.commission_pct)  
-
-                asset_data["cash"] += trade_value - commission
-                asset_data["positions"] -= int(shares_to_sell)
-
-            else:
-                commission = 0
-
-            asset_data["position_value"]  = asset_data["positions"] * price
-            asset_data["portfolio_value"] = asset_data["position_value"] + asset_data["cash"]
-
-            cash_history.append(asset_data["cash"])
-            position_history.append(asset_data["positions"])
+            price = row[self.col_price]                    
+            cash, positions, commission, portfolio_value = self.daily_trade(signal, price, cash, positions)
+            cash_history.append(cash)
+            position_history.append(positions)
             commission_history.append(commission)
-            portfolio_history.append(asset_data["portfolio_value"])         
-
+            portfolio_history.append(portfolio_value)  
+              
         data['position'] = position_history
         data['cash'] = cash_history
         data['commission'] = commission_history
@@ -152,8 +143,8 @@ class Backbloker(object):
         data['daily_return'] = data['portfolio'].pct_change()
         data['total_daily_return'] = (1 + data['daily_return']).cumprod() 
 
-        return data
-    
+        return data            
+                      
     
     def get_performance(self, data:pd.DataFrame, risk_free_rate:float=0)->pd.Series:
         """
