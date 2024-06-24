@@ -1462,9 +1462,9 @@ class DataPool(object):
 
         return self
     
-    def col2index(self, col, **kwargs):
+    def col2index(self, col, pbar=True, **kwargs):
         
-        self.map(lambda x: x.col2index(col, **kwargs)) 
+        self.map(lambda x: x.col2index(col, **kwargs), pbar=pbar) 
         return self
     
     def def2json(self):

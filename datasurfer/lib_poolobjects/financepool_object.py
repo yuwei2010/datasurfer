@@ -6,7 +6,10 @@ from functools import wraps
 from datasurfer.datautils import show_pool_progress, bcolors
 from datasurfer.lib_web.yahoofinance_access import YahooFinanceAccess
 
+
+
 WEB_ACCESS = {'yahoo': YahooFinanceAccess}
+
 #%%
 def strategy_wrapper(func):
     """
@@ -231,6 +234,13 @@ class StockObject(FinanceObject):
         obj = web_engine(symbol, freq, days=days, start=start, end=end, config=config)        
         new_obj = cls.from_other(obj)        
         return new_obj
+    
+    def date2index(self, col_date='date', drop=False, offset=0, unit='s'):
+        
+        self.col2index(col_date, drop=drop)
+        self.df.set_index(self.df.index + pd.Timedelta(offset, unit='s'), inplace=True)
+        
+        return self
         
     def backtesting(self, func, inplace=False, **kwargs):  
         """
@@ -323,6 +333,17 @@ class StockPool(DataPool):
     """
 
     def __init__(self, path, config=None, name=None, comment=None, **kwargs):
+        """
+        Initialize a FinancePoolObject.
+
+        Args:
+            path (str): The path to the object.
+            config (dict, optional): Configuration options for the object. Defaults to None.
+            name (str, optional): The name of the object. Defaults to None.
+            comment (str, optional): A comment for the object. Defaults to None.
+            **kwargs: Additional keyword arguments.
+
+        """
         super().__init__(path, interface=StockObject, config=config, name=name, comment=comment, keep_df_index=True, **kwargs)
 
     @classmethod
@@ -351,6 +372,11 @@ class StockPool(DataPool):
 
         return cls(list(get()))
 
+    def date2index(self, col_date='date', pbar=True, **kwargs):
+        self.map(lambda x: x.date2index(col_date, **kwargs), pbar=pbar) 
+        return self        
+        
+    
 
     def backtesting(self, func, pbar=True, inplace=False, **kwargs):
         """
@@ -366,7 +392,6 @@ class StockPool(DataPool):
         """
         name = kwargs.pop('name', None) or func.__name__
         comment = kwargs.pop('comment', None)
-        inplace = kwargs.get('inplace', False)
         
         objs = self.map(lambda obj: obj.backtesting(func, inplace=inplace, **kwargs), pbar=pbar, 
                         description=f'Backtesting "{bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}"')
@@ -393,9 +418,7 @@ class StockPool(DataPool):
         fun = lambda obj: func_(obj, **kwargs)
 
         return StockPool(self.mlp.map(fun), name=name, comment=comment)
-    
-
-    
+        
     def get_performance(self, trader, **kwargs):
         """
         Retrieves the performance data for each object in the finance pool.
