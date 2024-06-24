@@ -61,54 +61,79 @@ class Backbloker(object):
         self.col_signal = col_signal
         
     def __call__(self, strategy):    
-        
-        def trade(data, **kwargs):
-                        
-            data = strategy(data, **kwargs)
-            return self.trade(data)
-        
-        return trade
+            """
+            Call method for the FinancePoolObject class.
+
+            Args:
+                strategy (callable): The strategy function to be executed.
+
+            Returns:
+                callable: A trade function that applies the strategy to the given data.
+
+            """
+            def trade(data, **kwargs):
+                """
+                Trade function that applies the strategy to the given data.
+
+                Args:
+                    data (object): The data to be processed.
+                    **kwargs: Additional keyword arguments to be passed to the strategy function.
+
+                Returns:
+                    object: The processed data.
+
+                """
+                data = strategy(data, **kwargs)
+                return self.trade(data)
+            
+            return trade
     
     def trade(self, data):
-            
+        """
+        Executes trading strategy on the given data.
+
+        Args:
+            data (pandas.DataFrame): The input data containing signals and prices.
+
+        Returns:
+            pandas.DataFrame: The modified data with additional columns for position, cash, commission, portfolio,
+                              daily return, and total daily return.
+        """
         asset_data = {                
-                        "cash": self.initial_capital,
-                        "positions": 0,
-                        "position_value": 0,
-                        "portfolio_value": self.initial_capital,
-                    }
-        
+            "cash": self.initial_capital,
+            "positions": 0,
+            "position_value": 0,
+            "portfolio_value": self.initial_capital,
+        }
+
         cash_history = []
         position_history = []
         commission_history = []
         portfolio_history = []
-        
+
         for _, row in data.iterrows():   
-            
             signal = row[self.col_signal]
             price = row[self.col_price]
-            
+
             if signal > 0 and asset_data["cash"] > 0:  # Buy
-                
                 shares_to_buy = asset_data["cash"] * signal // ((1+self.commission_pct)*price)                                        
                 commission = max(self.commission_fixed, shares_to_buy*price*self.commission_pct)  
                 trade_value = shares_to_buy * price + commission
-        
+
                 asset_data["positions"] += int(shares_to_buy)
                 asset_data["cash"] -= trade_value            
-                
+
             elif signal < 0 and asset_data["positions"] > 0:  # Sell
-                
                 shares_to_sell = round(-signal * asset_data["positions"])
                 trade_value = shares_to_sell * price           
                 commission = max(self.commission_fixed, trade_value*self.commission_pct)  
-                
+
                 asset_data["cash"] += trade_value - commission
                 asset_data["positions"] -= int(shares_to_sell)
-                
+
             else:
                 commission = 0
-                       
+
             asset_data["position_value"]  = asset_data["positions"] * price
             asset_data["portfolio_value"] = asset_data["position_value"] + asset_data["cash"]
 
@@ -116,7 +141,7 @@ class Backbloker(object):
             position_history.append(asset_data["positions"])
             commission_history.append(commission)
             portfolio_history.append(asset_data["portfolio_value"])         
-        
+
         data['position'] = position_history
         data['cash'] = cash_history
         data['commission'] = commission_history
@@ -124,31 +149,43 @@ class Backbloker(object):
         data['daily_return'] = data['portfolio'].pct_change()
         data['total_daily_return'] = (1 + data['daily_return']).cumprod() 
 
-        
         return data
     
     
-    def get_performance(self, data, risk_free_rate=0):
+    def get_performance(self, data:pd.DataFrame, risk_free_rate:float=0)->pd.Series:
+        """
+        Calculate the performance metrics of a portfolio.
 
+        Parameters:
+        - data (pd.DataFrame): DataFrame containing the portfolio data.
+        - risk_free_rate (float): Risk-free rate of return (default: 0).
+
+        Returns:
+        - out (pd.Series): Series containing the calculated performance metrics.
+            - final_portfolio_value: The final value of the portfolio.
+            - total_return: The total return of the portfolio.
+            - annualized_return: The annualized return of the portfolio.
+            - annualized_volatility: The annualized volatility of the portfolio.
+            - sharpe_ratio: The Sharpe ratio of the portfolio.
+            - sortino_ratio: The Sortino ratio of the portfolio.
+            - CALMAR_ratio: The Calmar ratio of the portfolio.
+            - maximal_drawdown: The maximal drawdown of the portfolio.
+        """
         out = pd.Series()
         out['final_portfolio_value'] = data['portfolio'].iloc[-1]
         out['total_return'] = (out['final_portfolio_value'] - self.initial_capital) / self.initial_capital
         out['annualized_return'] = (1 + out['total_return']) ** (252 / len(data)) - 1
-        out['aunualized_volatility'] = data['daily_return'].std() * np.sqrt(252)
-        out['sharpe_ratio'] = (out['annualized_return'] - risk_free_rate) / out['aunualized_volatility'] if out['aunualized_volatility'] != 0 else np.nan
-        
+        out['annualized_volatility'] = data['daily_return'].std() * np.sqrt(252)
+        out['sharpe_ratio'] = (out['annualized_return'] - risk_free_rate) / out['annualized_volatility'] if out['annualized_volatility'] != 0 else np.nan
+
         downside_volatility = data['daily_return'][data['daily_return'] < 0].std() * np.sqrt(252)
-        out['sortino_ratio'] = (out['annualized_return'] - risk_free_rate) / downside_volatility if downside_volatility >0 else np.nan
-        
+        out['sortino_ratio'] = (out['annualized_return'] - risk_free_rate) / downside_volatility if downside_volatility > 0 else np.nan
+
         out['CALMAR_ratio'] = out['annualized_return'] / abs(data['daily_return'].min())
         out['maximal_drawdown'] = (data['total_daily_return'].cummax() - data['total_daily_return']).max()
-        
-        
+
         return out
     
-    
-
-
 #%%
 
 class StockObject(FinanceObject):
@@ -211,7 +248,16 @@ class StockObject(FinanceObject):
         return func_(self, inplace=inplace, **kwargs)
     
     def get_performance(self, trader, **kwargs):
-        
+        """
+        Calculates the performance of the finance pool object based on the given trader.
+
+        Parameters:
+        - trader: The trader object used to calculate the performance.
+        - **kwargs: Additional keyword arguments to be passed to the trader's get_performance method.
+
+        Returns:
+        - out: The performance of the finance pool object as calculated by the trader.
+        """
         out = trader.get_performance(self.df, **kwargs)
         out.name = self.name
         
@@ -351,7 +397,16 @@ class StockPool(DataPool):
 
     
     def get_performance(self, trader, **kwargs):
-        
+        """
+        Retrieves the performance data for each object in the finance pool.
+
+        Parameters:
+        - trader: The trader object used to calculate performance.
+        - **kwargs: Additional keyword arguments to be passed to the `get_performance` method of each object.
+
+        Returns:
+        - performance: A pandas DataFrame containing the performance data for each object in the finance pool.
+        """
         return pd.concat(self.map(lambda x: x.get_performance(trader, **kwargs)), axis=1)
 
     
