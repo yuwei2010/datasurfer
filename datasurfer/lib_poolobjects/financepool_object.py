@@ -66,32 +66,32 @@ class Backbloker(object):
         
         
     def __call__(self, strategy):    
+        """
+        Call method for the FinancePoolObject class.
+
+        Args:
+            strategy (callable): The strategy function to be executed.
+
+        Returns:
+            callable: A trade function that applies the strategy to the given data.
+
+        """
+        def trade(data, **kwargs):
             """
-            Call method for the FinancePoolObject class.
+            Trade function that applies the strategy to the given data.
 
             Args:
-                strategy (callable): The strategy function to be executed.
+                data (object): The data to be processed.
+                **kwargs: Additional keyword arguments to be passed to the strategy function.
 
             Returns:
-                callable: A trade function that applies the strategy to the given data.
+                object: The processed data.
 
             """
-            def trade(data, **kwargs):
-                """
-                Trade function that applies the strategy to the given data.
-
-                Args:
-                    data (object): The data to be processed.
-                    **kwargs: Additional keyword arguments to be passed to the strategy function.
-
-                Returns:
-                    object: The processed data.
-
-                """
-                data = strategy(data, **kwargs)
-                return self.trade(data)
-            
-            return trade
+            data = strategy(data, **kwargs)
+            return self.trade(data)
+        
+        return trade
     
     def daily_trade(self, signal, price, cash, positions):
         
