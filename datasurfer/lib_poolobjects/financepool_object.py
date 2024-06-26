@@ -118,7 +118,16 @@ class Backbloker(object):
         return cash, positions, commission, portfolio_value
     
     def trade(self, data):
-        
+        """
+        Executes trading strategy on the given data.
+
+        Args:
+            data (DataFrame): The input data containing signal and price columns.
+
+        Returns:
+            DataFrame: The modified data with additional columns for position, cash, commission,
+                       portfolio, daily return, and total daily return.
+        """
         cash = self.initial_capital
         positions = 0
         
@@ -135,7 +144,7 @@ class Backbloker(object):
             position_history.append(positions)
             commission_history.append(commission)
             portfolio_history.append(portfolio_value)  
-              
+        
         data['position'] = position_history
         data['cash'] = cash_history
         data['commission'] = commission_history
@@ -143,7 +152,7 @@ class Backbloker(object):
         data['daily_return'] = data['portfolio'].pct_change()
         data['total_daily_return'] = (1 + data['daily_return']).cumprod() 
 
-        return data            
+        return data
                       
     
     def get_performance(self, data:pd.DataFrame, risk_free_rate:float=0)->pd.Series:
