@@ -818,7 +818,7 @@ class DataInterface(object):
         Returns:
             The StockObject instance with the date column set as the index.
         """
-        self.df.sort_values(by=col, inplace=True)
+        
         self.df.reset_index(drop=True, inplace=True)
         self.df.set_index(col, inplace=True, drop=drop)
         self.df.index.name = None

@@ -167,15 +167,21 @@ class Backbloker(object):
 
             pbar.set_description(f'Backtesting "{bcolors.OKGREEN}{bcolors.BOLD}{name}: {date}{bcolors.ENDC}"')
             daily_data = pd.concat([signals.loc[date], prices.loc[date]], axis=1)
-
+            
+            portfolio_values = 0
+            commissions = 0
             for ticker, (signal, price) in daily_data.iterrows():
 
                 cash, positions[ticker], commission, portfolio_value = self.daily_trade(signal, price, cash, positions[ticker])
+                portfolio_values += portfolio_value - cash # only stoke value
+                commissions += commission
+                
+            portfolio_values += cash # portfolio value including cash
 
             positions_history.loc[date] = positions
             cash_history.loc[date] = cash
-            commission_history.loc[date] = commission
-            portfolio_history.loc[date] = portfolio_value
+            commission_history.loc[date] = commissions
+            portfolio_history.loc[date] = portfolio_values
 
         date = pd.Series(signals.index, index=signals.index, name='date')
         signals.columns = ['signal_'+col for col in signals.columns]
@@ -317,7 +323,7 @@ class StockObject(FinanceObject):
     
         return new_obj
     
-    def date2index(self, col_date='date', drop=False, offset=0, unit='s', round=None):
+    def date2index(self, col_date='date', drop=False, offset=0, unit='s', round=None, **kwargs):
         
         if offset == -1:
             try:
@@ -325,11 +331,13 @@ class StockObject(FinanceObject):
             except TypeError:
                 offset = 0
         
-        self.col2index(col_date, drop=drop)
+        super().date2index(col_date, drop=drop, **kwargs)
         
         index = self.df.index + pd.Timedelta(offset, unit=unit)
+        
         if round:
             index = index.round(round)
+            
         self.df.set_index(index, inplace=True)
         
         return self
@@ -439,7 +447,8 @@ class StockPool(DataPool):
             **kwargs: Additional keyword arguments.
 
         """
-        super().__init__(path, interface=StockObject, config=config, name=name, comment=comment, keep_df_index=True, **kwargs)
+        super().__init__(path, interface=StockObject, config=config, name=name, 
+                         comment=comment, keep_df_index=True, **kwargs)
 
     @classmethod
     def from_web(cls, symbols, pause=5, **kwargs):
@@ -468,8 +477,19 @@ class StockPool(DataPool):
         return cls(list(get()))
 
     def date2index(self, col_date='date', pbar=True, **kwargs):
+        """
+        Converts the date column in each object of the pool to an index column.
+
+        Parameters:
+        - col_date (str): The name of the date column. Default is 'date'.
+        - pbar (bool): Whether to display a progress bar. Default is True.
+        - **kwargs: Additional keyword arguments to be passed to the date2index method of each object.
+
+        Returns:
+        - self: The updated FinancePool object.
+        """
         self.map(lambda x: x.date2index(col_date, **kwargs), pbar=pbar) 
-        return self        
+        return self
         
     
 

@@ -95,7 +95,7 @@ class FinanceObject(PandasObject):
         time_format (str): The format of the time values in the finance object.
     """
     exts = ['.csv', '.xlsx', '.xls']
-    def __init__(self, path=None, config=None, name=None, comment=None, col_date=None, time_format='%Y%m%d'):
+    def __init__(self, path=None, config=None, name=None, comment=None):
         """
         Initializes a new instance of the FinanceObject class.
         
@@ -109,25 +109,13 @@ class FinanceObject(PandasObject):
         """
         
         super().__init__(path, config=config, name=name, comment=comment)
-        self.time_format = time_format
-        self.col_date = col_date
+
+        
+    def date2index(self, col_date='date', drop=False, time_format='%Y%m%d'):
+        
+        self.df[col_date] = pd.to_datetime(self.df[col_date], format=time_format)
+        self.df.sort_values(by=col_date, inplace=True)                
+        self.col2index(col_date, drop=drop)
+                
+        return self
     
-    @translate_config()
-    def get_df(self):
-        """
-        Retrieves the data stored in the finance object.
-        
-        Returns:
-            pandas.DataFrame: The data stored in the finance object.
-        """
-        
-        fun = self.__class__.dict_fun[self.path.suffix.lower()]
-                
-        df = fun(self.path)
-                
-        # cols_dat = df.columns[df.columns.str.contains('date')]
-        if self.col_date is not None:
-            
-            df[self.col_date] = pd.to_datetime(df[self.col_date], format=self.time_format)
-        
-        return df
