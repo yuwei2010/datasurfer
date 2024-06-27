@@ -36,6 +36,7 @@ def strategy_wrapper(func):
         out = func(data, **kwargs)
         
         assert isinstance(out, pd.DataFrame), 'Expected a pandas DataFrame as output'
+        
         if inplace:
             return obj
         else:
@@ -55,7 +56,8 @@ class Backbloker(object):
     https://github.com/IgorWounds/Backtester101/tree/main/backtester
     """
 
-    def __init__(self, initial_capital: float = 1_000_000.0, commission_pct: float = 0, commission_fixed = 0, col_price='close', col_signal='signal'):
+    def __init__(self, initial_capital: float = 1_000_000.0, commission_pct: float = 0, 
+                 commission_fixed = 0, col_price='close', col_signal='signal'):
         """Initialize the backtester with initial capital and commission fees."""
         
         self.initial_capital = initial_capital
@@ -164,7 +166,6 @@ class Backbloker(object):
         for date in pbar:
 
             pbar.set_description(f'Backtesting "{bcolors.OKGREEN}{bcolors.BOLD}{name}: {date}{bcolors.ENDC}"')
-
             daily_data = pd.concat([signals.loc[date], prices.loc[date]], axis=1)
 
             for ticker, (signal, price) in daily_data.iterrows():
@@ -291,6 +292,7 @@ class StockObject(FinanceObject):
         - plot_operation: Plots the buy and sell operations on a graph.
     """
 
+
     @classmethod
     def from_web(cls, symbol, freq, days=None, start=None, 
                    end=None, config=None, access='yahoo'):       
@@ -311,10 +313,17 @@ class StockObject(FinanceObject):
         """
         web_engine = WEB_ACCESS[access]       
         obj = web_engine(symbol, freq, days=days, start=start, end=end, config=config)        
-        new_obj = cls.from_other(obj)        
+        new_obj = cls.from_other(obj)  
+    
         return new_obj
     
     def date2index(self, col_date='date', drop=False, offset=0, unit='s'):
+        
+        if offset == -1:
+            try:
+                offset = self.comment['gmtoffset']
+            except ValueError:
+                offset = 0
         
         self.col2index(col_date, drop=drop)
         self.df.set_index(self.df.index + pd.Timedelta(offset, unit='s'), inplace=True)
@@ -334,6 +343,7 @@ class StockObject(FinanceObject):
         """
         if isinstance(func, Backbloker):
             func = func.trade
+            
         func_ = strategy_wrapper(func)
         
         return func_(self, inplace=inplace, **kwargs)

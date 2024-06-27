@@ -95,7 +95,7 @@ class FinanceObject(PandasObject):
         time_format (str): The format of the time values in the finance object.
     """
     exts = ['.csv', '.xlsx', '.xls']
-    def __init__(self, path=None, config=None, name=None, comment=None, time_format='%Y%m%d'):
+    def __init__(self, path=None, config=None, name=None, comment=None, col_date=None, time_format='%Y%m%d'):
         """
         Initializes a new instance of the FinanceObject class.
         
@@ -110,6 +110,7 @@ class FinanceObject(PandasObject):
         
         super().__init__(path, config=config, name=name, comment=comment)
         self.time_format = time_format
+        self.col_date = col_date
     
     @translate_config()
     def get_df(self):
@@ -124,10 +125,9 @@ class FinanceObject(PandasObject):
                 
         df = fun(self.path)
                 
-        cols_dat = df.columns[df.columns.str.contains('date')]
-               
-        for c in cols_dat:
+        # cols_dat = df.columns[df.columns.str.contains('date')]
+        if self.col_date is not None:
             
-            df[c] = pd.to_datetime(df[c], format=self.time_format)
+            df[self.col_date] = pd.to_datetime(df[self.col_date], format=self.time_format)
         
         return df

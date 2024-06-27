@@ -1502,9 +1502,9 @@ class DataPool(object):
             
             for objname, df in self.iter_objsignals(*names):
                                 
-                index = pd.MultiIndex.from_product([[objname], df.columns])
+                cols = pd.MultiIndex.from_product([[objname], df.columns])
                 
-                df.columns = index
+                df.columns = cols
                                 
                 yield df
 
