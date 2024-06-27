@@ -317,16 +317,20 @@ class StockObject(FinanceObject):
     
         return new_obj
     
-    def date2index(self, col_date='date', drop=False, offset=0, unit='s'):
+    def date2index(self, col_date='date', drop=False, offset=0, unit='s', round=None):
         
         if offset == -1:
             try:
                 offset = self.comment['gmtoffset']
-            except ValueError:
+            except TypeError:
                 offset = 0
         
         self.col2index(col_date, drop=drop)
-        self.df.set_index(self.df.index + pd.Timedelta(offset, unit='s'), inplace=True)
+        
+        index = self.df.index + pd.Timedelta(offset, unit=unit)
+        if round:
+            index = index.round(round)
+        self.df.set_index(index, inplace=True)
         
         return self
         
