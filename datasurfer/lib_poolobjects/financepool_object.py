@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 from datasurfer import DataPool
 from datasurfer.lib_objects.pandas_object import FinanceObject
 from functools import wraps
@@ -61,7 +62,7 @@ class Backbloker(object):
         self.commission_pct = commission_pct
         self.commission_fixed = commission_fixed 
         
-        self.col_price = col_price
+        self.col_price  = col_price
         self.col_signal = col_signal
         
         
@@ -76,6 +77,7 @@ class Backbloker(object):
             callable: A trade function that applies the strategy to the given data.
 
         """
+        @wraps(strategy)
         def trade(data, **kwargs):
             """
             Trade function that applies the strategy to the given data.
@@ -93,30 +95,103 @@ class Backbloker(object):
         
         return trade
     
+
+    
     def daily_trade(self, signal, price, cash, positions):
-        
+        """
+        Perform daily trading based on the given signal, price, cash, and positions.
+
+        Args:
+            signal (float): The trading signal for the day.
+            price (float): The price of the asset.
+            cash (float): The available cash for trading.
+            positions (int): The number of positions held.
+
+        Returns:
+            tuple: A tuple containing the updated cash, positions, commission, and portfolio value.
+
+        """
         if signal > 0 and cash > 0:
             shares_to_buy = cash * signal // ((1+self.commission_pct)*price)  
             commission = max(self.commission_fixed, shares_to_buy*price*self.commission_pct)  
             trade_value = shares_to_buy * price + commission
             positions += shares_to_buy
             cash -= trade_value
-            
+
         elif signal < 0 and positions > 0:
             shares_to_sell = round(-signal * positions)
             trade_value = shares_to_sell * price
             commission = max(self.commission_fixed, trade_value*self.commission_pct)  
             cash += trade_value - commission
             positions -= int(shares_to_sell)
-        
+
         else:
             commission = 0
-            
+
         position_value = positions * price
         portfolio_value = position_value + cash
-        
+
         return cash, positions, commission, portfolio_value
     
+    def combo_trade(self, datas, name, **kwargs):
+        """
+        Perform combo trading on the given data.
+
+        Args:
+            datas (StockPool): The StockPool object containing the data for trading.
+            name (str): The name of the trading strategy.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            StockObject: The StockObject containing the trading results.
+
+        Raises:
+            AssertionError: If the input `datas` is not a StockPool object.
+
+        """
+        cash = self.initial_capital
+
+        signals = datas[self.col_signal].fillna(method='bfill')
+        prices = datas[self.col_price].fillna(method='bfill')
+        positions = pd.Series(0, index=signals.columns)
+
+        positions_history = pd.DataFrame(0, index=signals.index, columns=datas.names())
+        cash_history = pd.Series(np.nan, index=signals.index, name='cash')
+        commission_history = pd.Series(np.nan, index=signals.index, name='commission')
+        portfolio_history = pd.Series(np.nan, index=signals.index, name='portfolio')
+
+        pbar = tqdm(signals.index)
+        for date in pbar:
+
+            pbar.set_description(f'Backtesting "{bcolors.OKGREEN}{bcolors.BOLD}{name}: {date}{bcolors.ENDC}"')
+
+            daily_data = pd.concat([signals.loc[date], prices.loc[date]], axis=1)
+
+            for ticker, (signal, price) in daily_data.iterrows():
+
+                cash, positions[ticker], commission, portfolio_value = self.daily_trade(signal, price, cash, positions[ticker])
+
+            positions_history.loc[date] = positions
+            cash_history.loc[date] = cash
+            commission_history.loc[date] = commission
+            portfolio_history.loc[date] = portfolio_value
+
+        date = pd.Series(signals.index, index=signals.index, name='date')
+        signals.columns = ['signal_'+col for col in signals.columns]
+        prices.columns = ['price_'+col for col in prices.columns]
+        positions_history.columns = ['position_'+col for col in positions_history.columns]
+
+        data = pd.concat([date, signals, prices, positions_history, cash_history, commission_history, portfolio_history], axis=1)
+        data['daily_return'] = data['portfolio'].pct_change()
+        data['total_daily_return'] = (1 + data['daily_return']).cumprod()
+
+        return StockObject(data, name=name, comment={'stocks': datas.names(), 'initial_capital': self.initial_capital,
+                                                     'commission_pct': self.commission_pct, 'commission_fixed': self.commission_fixed})
+                    
+    
+            
+
+        
     def trade(self, data):
         """
         Executes trading strategy on the given data.
@@ -128,15 +203,19 @@ class Backbloker(object):
             DataFrame: The modified data with additional columns for position, cash, commission,
                        portfolio, daily return, and total daily return.
         """
+        
+        if isinstance(data, StockObject):
+            data = data.df
         cash = self.initial_capital
         positions = 0
-        
+               
         cash_history = []
         position_history = []
         commission_history = []
         portfolio_history = []
         
-        for _, row in data.iterrows():      
+        for _, row in data.iterrows():  
+                
             signal = row[self.col_signal]
             price = row[self.col_price]                    
             cash, positions, commission, portfolio_value = self.daily_trade(signal, price, cash, positions)
@@ -253,6 +332,8 @@ class StockObject(FinanceObject):
         Returns:
             The result of the backtesting strategy function.
         """
+        if isinstance(func, Backbloker):
+            func = func.trade
         func_ = strategy_wrapper(func)
         
         return func_(self, inplace=inplace, **kwargs)
@@ -400,6 +481,19 @@ class StockPool(DataPool):
             return self
         else:
             return StockPool(objs, name=name, comment=comment)
+        
+    def combo_backtesting(self, backbloker, name):
+        """
+        Perform backtesting on the stock pool using a backbloker object.
+
+        Parameters:
+        - backbloker: The backbloker object to use for backtesting.
+        - **kwargs: Additional keyword arguments.
+
+        Returns:
+        - StockPool: A stock pool object containing the backtesting results.
+        """        
+        return backbloker.combo_trade(self, name)
 
     def mlp_backtesting(self, func, **kwargs):
         """
