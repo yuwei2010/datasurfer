@@ -1084,9 +1084,7 @@ class DataInterface(object):
             self.clean()
             
         return self
-    
-
-    
+   
     def link_library(self, lib, link_name=None):
         """
         Links a library to the data interface.

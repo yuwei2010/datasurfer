@@ -66,18 +66,26 @@ class PandasObject(DataInterface):
     
     @classmethod
     def from_other(cls, other):
-        
-        #assert isinstance(other, DataInterface)
+        """
+        Create a new instance of the class from another DataInterface object.
+
+        Parameters:
+            other (DataInterface): The DataInterface object to create the new instance from.
+
+        Returns:
+            obj (cls): The new instance of the class.
+
+        """
         dat = other.to_dict()
 
         df = pd.DataFrame(dat['df'], index=dat['index'], columns=dat['columns'])
         obj = cls(path=dat['path'],
-                config=dat['config'],
-                comment=dat['comment'],
-                name=dat['name'],)
+                  config=dat['config'],
+                  comment=dat['comment'],
+                  name=dat['name'],)
         obj._df = df
 
-        return obj 
+        return obj
     
 
 
@@ -112,7 +120,17 @@ class FinanceObject(PandasObject):
 
         
     def date2index(self, col_date='date', drop=False, time_format='%Y%m%d'):
-        
+        """
+        Convert a column of dates to an index in the DataFrame.
+
+        Args:
+            col_date (str, optional): The name of the column containing the dates. Defaults to 'date'.
+            drop (bool, optional): Whether to drop the original column after converting it to an index. Defaults to False.
+            time_format (str, optional): The format of the dates in the column. Defaults to '%Y%m%d'.
+
+        Returns:
+            self: The modified DataFrame object with the date column converted to an index.
+        """
         self.df[col_date] = pd.to_datetime(self.df[col_date], format=time_format)
         self.df.sort_values(by=col_date, inplace=True)                
         self.col2index(col_date, drop=drop)

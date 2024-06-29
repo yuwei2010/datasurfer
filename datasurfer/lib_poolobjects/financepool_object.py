@@ -194,10 +194,6 @@ class Backbloker(object):
 
         return StockObject(data, name=name, comment={'stocks': datas.names(), 'initial_capital': self.initial_capital,
                                                      'commission_pct': self.commission_pct, 'commission_fixed': self.commission_fixed})
-                    
-    
-            
-
         
     def trade(self, data):
         """
@@ -324,22 +320,35 @@ class StockObject(FinanceObject):
         return new_obj
     
     def date2index(self, col_date='date', drop=False, offset=0, unit='s', round=None, **kwargs):
+        """
+        Convert the date column of the DataFrame to the index.
         
+        Args:
+            col_date (str): The name of the date column in the DataFrame. Default is 'date'.
+            drop (bool): Whether to drop the date column after converting it to the index. Default is False.
+            offset (int): The offset value to add to the index. Default is 0.
+            unit (str): The unit of the offset value. Default is 's' (seconds).
+            round (str): The rounding method to apply to the index. Default is None.
+            **kwargs: Additional keyword arguments to be passed to the super().date2index() method.
+        
+        Returns:
+            self: The modified object with the date column converted to the index.
+        """
         if offset == -1:
             try:
                 offset = self.comment['gmtoffset']
             except TypeError:
                 offset = 0
-        
+
         super().date2index(col_date, drop=drop, **kwargs)
-        
+
         index = self.df.index + pd.Timedelta(offset, unit=unit)
-        
+
         if round:
             index = index.round(round)
-            
+
         self.df.set_index(index, inplace=True)
-        
+
         return self
         
     def backtesting(self, func, inplace=False, **kwargs):  
