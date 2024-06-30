@@ -35,6 +35,7 @@ def strategy_wrapper(func):
         
         out = func(data, **kwargs)
         
+        
         assert isinstance(out, pd.DataFrame), 'Expected a pandas DataFrame as output'
         
         if inplace:
@@ -351,7 +352,7 @@ class StockObject(FinanceObject):
 
         return self
         
-    def backtesting(self, func, inplace=False, **kwargs):  
+    def backtest(self, func, inplace=False, **kwargs):  
         """
         Performs backtesting on the stock data.
 
@@ -502,7 +503,7 @@ class StockPool(DataPool):
         
     
 
-    def backtesting(self, func, pbar=True, inplace=False, **kwargs):
+    def backtest(self, func, pbar=True, inplace=False, **kwargs):
         """
         Perform backtesting on the stock pool.
 
@@ -514,18 +515,27 @@ class StockPool(DataPool):
         Returns:
         - StockPool: A stock pool object containing the backtesting results.
         """
-        name = kwargs.pop('name', None) or func.__name__
-        comment = kwargs.pop('comment', None)
+        name = kwargs.pop('name', None) or func.__name__ if hasattr(func, '__name__') else self.name
         
-        objs = self.map(lambda obj: obj.backtesting(func, inplace=inplace, **kwargs), pbar=pbar, 
-                        description=f'Backtesting "{bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}"')
+        if not kwargs.pop('share_cash_pool', False):
 
-        if inplace:
-            return self
-        else:
-            return StockPool(objs, name=name, comment=comment)
+            comment = kwargs.pop('comment', None)
+            
+            objs = self.map(lambda obj: obj.backtest(func, inplace=inplace, **kwargs), pbar=pbar, 
+                            description=f'Backtesting "{bcolors.OKGREEN}{bcolors.BOLD}{name}{bcolors.ENDC}"')
+
+            if inplace:
+                return self
+            else:
+                return StockPool(objs, name=name, comment=comment)
+            
+        else:  
+            
+            return self.combo_backtest(func, name)
+
+
         
-    def combo_backtesting(self, backbloker, name):
+    def combo_backtest(self, backbloker, name):
         """
         Perform backtesting on the stock pool using a backbloker object.
 
@@ -538,7 +548,7 @@ class StockPool(DataPool):
         """        
         return backbloker.combo_trade(self, name)
 
-    def mlp_backtesting(self, func, **kwargs):
+    def mlp_backtest(self, func, **kwargs):
         """
         Perform backtesting using a multi-layer perceptron (MLP) on the stock pool.
 
