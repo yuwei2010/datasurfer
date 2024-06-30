@@ -189,7 +189,7 @@ class Backbloker(object):
         prices.columns = ['price_'+col for col in prices.columns]
         positions_history.columns = ['position_'+col for col in positions_history.columns]
 
-        data = pd.concat([date, signals, prices, positions_history, cash_history, commission_history, portfolio_history], axis=1)
+        data = pd.concat([date, prices, signals, positions_history, cash_history, commission_history, portfolio_history], axis=1)
         data['daily_return'] = data['portfolio'].pct_change()
         data['total_daily_return'] = (1 + data['daily_return']).cumprod()
 
@@ -386,7 +386,7 @@ class StockObject(FinanceObject):
         
         return out
     
-    def plot_operation(self, col_date=None, col_price='close', col_position='position', **kwargs):
+    def plot_operation(self, col_date='date', col_price='close', col_position='position', **kwargs):
         """
         Plots the buy and sell operations on a graph.
 
@@ -399,7 +399,7 @@ class StockObject(FinanceObject):
         Returns:
             The matplotlib Axes object containing the plotted graph.
         """
-        
+        ax = kwargs.pop('ax', None)
         date = self.df.index.to_list() if col_date is None else col_date
         chg_position = self[col_position].diff()
         buys = self[col_price].copy()
@@ -408,7 +408,7 @@ class StockObject(FinanceObject):
         sells = self[col_price].copy()
         sells[chg_position >= 0] = np.nan       
 
-        ax = self.plot(**kwargs).line(col_price, x=date, setax=True, labels=['Close'], color='grey', lw=1)
+        ax = self.plot(**kwargs).line(col_price, x=date, ax=ax, setax=True, labels=['Close'], color='grey', lw=1)
         self.plot.line(buys.values, x=date, ls='None', marker='^', markersize=10, color='g', ax=ax, labels=['Buy'])
         self.plot.line(sells.values, x=date, ls='None', marker='v', markersize=10, color='r', ax=ax, labels=['Sell'])
         ax.legend(loc='best', ncols=3, title=self.name)
