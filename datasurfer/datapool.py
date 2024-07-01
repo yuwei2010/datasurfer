@@ -427,6 +427,7 @@ class DataPool(object):
         locobj = iLocObject(self)
         
         return locobj   
+    
     @property
     def shape(self):
         

@@ -57,37 +57,92 @@ def list_interfaces():
 
 #%%       
 class LocObject:
-    
+    """
+    A class that represents a location object.
+
+    Attributes:
+        cls (class): The class of the object.
+        obj (object): The object itself.
+
+    Methods:
+        __getitem__(self, slc): Retrieves a subset of the object's data.
+        __setitem__(self, slc, val): Sets a subset of the object's data to a new value.
+    """
+
     def __init__(self, obj):
-        
+        """
+        Initializes a new instance of the LocObject class.
+
+        Args:
+            obj (object): The object to be wrapped by the LocObject.
+        """
         self.cls = obj.__class__
         self.obj = obj
-        
+
     def __getitem__(self, slc):
-        
+        """
+        Retrieves a subset of the object's data.
+
+        Args:
+            slc: The slice or index used to select the subset of data.
+
+        Returns:
+            object: A new LocObject instance with the selected subset of data.
+        """
         return self.cls(pd.DataFrame(self.obj.df.loc[slc]), name=self.obj.name, 
                         comment=self.obj.comment, config=self.obj.config)
-        
+
     def __setitem__(self, slc, val):
-        
+        """
+        Sets a subset of the object's data to a new value.
+
+        Args:
+            slc: The slice or index used to select the subset of data.
+            val: The new value to be assigned to the selected subset of data.
+        """
         self.obj.df.loc[slc] = val
         
 #%%       
 class iLocObject:
-    
+    """
+    Represents an object that provides indexed access to a DataFrame using integer-based indexing.
+    """
+
     def __init__(self, obj):
-        
+        """
+        Initializes a new instance of the iLocObject class.
+
+        Args:
+            obj: The object to be wrapped.
+
+        """
         self.cls = obj.__class__
         self.obj = obj
-        
+
     def __getitem__(self, val):
-        
+        """
+        Retrieves the specified item(s) from the wrapped object.
+
+        Args:
+            val: The index or slice to retrieve.
+
+        Returns:
+            A new instance of the wrapped object with the specified item(s) retrieved.
+
+        """
         return self.cls(pd.DataFrame(self.obj.df.iloc[val]), name=self.obj.name, 
                         comment=self.obj.comment, config=self.obj.config)
-        
+
     def __setitem__(self, slc, val):
-        
-        self.obj.df.loc[slc] = val      
+        """
+        Sets the specified item(s) in the wrapped object.
+
+        Args:
+            slc: The index or slice to set.
+            val: The value(s) to set.
+
+        """
+        self.obj.df.loc[slc] = val
          
 #%%
 class DataInterface(object):
@@ -288,8 +343,7 @@ class DataInterface(object):
         
         return obj
 
-    
-    
+       
     def apply(self, name, value):
         """
         Applies the given value to the specified column name in the DataFrame.
@@ -304,6 +358,7 @@ class DataInterface(object):
         """
         self.df[name] = value
         return self
+    
     def set_index(self, colname, name=None, drop=False):
         """
         Apply the values of a specified column as the new index of the DataFrame.

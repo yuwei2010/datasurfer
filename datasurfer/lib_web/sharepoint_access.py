@@ -4,6 +4,7 @@ import ssl
 import tempfile
 from requests_kerberos import HTTPKerberosAuth, OPTIONAL
 
+#%%
 class SharepointAccess(object):
     
     def __init__(self, url):
