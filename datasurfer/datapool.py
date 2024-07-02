@@ -780,23 +780,7 @@ class DataPool(object):
 
         return self
     
-    def extend(self, objs):
-        """
-        Extends the datapool with a list of DataInterface objects.
 
-        Args:
-            objs (list): A list of DataInterface objects to be added to the datapool.
-
-        Returns:
-            self: The updated datapool object.
-
-        Raises:
-            AssertionError: If any of the input objects is not an instance of DataInterface.
-        """
-        from datasurfer import DataInterface
-        assert all(isinstance(obj, DataInterface) for obj in objs), 'Input objects must be DataInterface objects.'
-        self.objs.extend(objs)
-        return self
     
     def load_signals(self, *keys, **mapping):
         """
@@ -1631,7 +1615,7 @@ class DataPool(object):
             @show_pool_progress('Saving', show=pbar)
             def fun(self):       
                 for name, df in self.iter_objsignals(*keys):        
-                    df.to_excel(writer, sheet_name=name)
+                    df.to_excel(writer, sheet_name=name[-31:])
                     yield True  
                     
             keys = keys or self.list_signals()              
