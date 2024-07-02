@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import warnings
+import scipy.io
 from datasurfer.datainterface import DataInterface
 
 #%% MATLAB_OJBECT
@@ -46,7 +47,7 @@ class MatlabObject(DataInterface):
             ValueError: If the data area cannot be found in the MATLAB file.
 
         """
-        import scipy.io
+
         if not hasattr(self, '_fhandler'):
             mat = scipy.io.loadmat(self.path)
             if self.matkey:
@@ -100,5 +101,22 @@ class MatlabObject(DataInterface):
                     warnings.warn(f'Can not convert "{key}" to DataFrame')
 
         return df
+    
+    def save(self, key, path=None, **kwargs):
+        
+        path = None or str(self.name) + '.mat'
+        
+        struct = self.df.to_dict('list')
+        
+        for k, v in struct.items():
+            struct[k] = np.array(v).reshape(-1, 1)
+            
+        struct.update(kwargs)
+        
+        scipy.io.savemat(path, {key: struct})
+        
+        return self
+        
+        
     
 # %%
