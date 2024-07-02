@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import warnings
 import scipy.io
+import h5py
 from datasurfer.datainterface import DataInterface
 
 #%% MATLAB_OJBECT
@@ -120,3 +121,49 @@ class MatlabObject(DataInterface):
         
     
 # %%
+
+class H5pyObject(DataInterface):
+    """
+    Represents an H5py object that provides access to data stored in an HDF5 file.
+    
+    Args:
+        path (str): The path to the HDF5 file.
+        root (str): The root path within the HDF5 file where the data is located.
+        config (dict, optional): Configuration settings for the object. Defaults to None.
+        name (str, optional): The name of the object. Defaults to None.
+        comment (str, optional): Any additional comments about the object. Defaults to None.
+    """
+    
+    def __init__(self, path, root, config=None,  name=None, comment=None):
+        super().__init__(path, config=config, comment=comment, name=name)
+        self.root = root
+        
+    @property
+    def fhandler(self):
+        """
+        Property that returns the HDF5 file handler for the specified root path.
+        
+        Returns:
+            h5py.Group: The HDF5 file handler for the specified root path.
+        """
+        if not hasattr(self, '_fhandler'):
+            rts = self.root.split('.')
+            fobj = h5py.File(self.path, 'r') 
+            root = fobj[rts[0]]
+            for r in rts[1:]:  
+                root = root[r]
+            self._fhandler = root
+        return self._fhandler   
+    
+    def get_df(self):
+        """
+        Retrieves the data from the HDF5 file as a pandas DataFrame.
+        
+        Returns:
+            pandas.DataFrame: The data from the HDF5 file as a DataFrame.
+        """
+        df = pd.DataFrame.from_dict(
+            {k: np.array(v).ravel() for k, v in self.fhandler.items()})
+        return df
+        
+        
